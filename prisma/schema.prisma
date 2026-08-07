@@ -1,0 +1,203 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL_UNPOOLED")
+}
+
+// --- Auth (Better Auth) ---
+
+enum Role {
+  ADMIN
+  USER
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  emailVerified Boolean   @default(false) @map("email_verified")
+  image         String?
+  role          Role      @default(USER)
+  banned        Boolean?  @default(false)
+  banReason     String?   @map("ban_reason")
+  banExpires    DateTime? @map("ban_expires")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  sessions Session[]
+  accounts Account[]
+  articles Article[]
+  likes    Like[]
+  comments Comment[]
+
+  @@map("users")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  token     String   @unique
+  expiresAt DateTime @map("expires_at")
+  ipAddress String?  @map("ip_address")
+  userAgent String?  @map("user_agent")
+  impersonatedBy String? @map("impersonated_by")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model Account {
+  id                    String    @id @default(cuid())
+  userId                String    @map("user_id")
+  accountId             String    @map("account_id")
+  providerId            String    @map("provider_id")
+  accessToken           String?   @map("access_token")
+  refreshToken          String?   @map("refresh_token")
+  idToken               String?   @map("id_token")
+  accessTokenExpiresAt  DateTime? @map("access_token_expires_at")
+  refreshTokenExpiresAt DateTime? @map("refresh_token_expires_at")
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("accounts")
+}
+
+model Verification {
+  id         String   @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime @map("expires_at")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@map("verifications")
+}
+
+// --- Content ---
+
+enum ArticleStatus {
+  DRAFT
+  PUBLISHED
+
+  @@map("article_status")
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  color       String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  articles ArticleCategory[]
+
+  @@map("categories")
+}
+
+model Article {
+  id     Int    @id @default(autoincrement())
+  slug   String @unique
+
+  // Legacy primary-category slug, kept for the existing site UI (nav rails,
+  // category pages) which reads a single category per article. Additional
+  // categories can be attached via ArticleCategory without touching this.
+  categorySlug String @map("category_slug")
+
+  headline String
+  dek      String
+  author   String @default("Rocci Stucci")
+  body     String
+
+  coverImageUrl String? @map("cover_image_url")
+
+  status      ArticleStatus @default(DRAFT)
+  isFeatured  Boolean       @default(false) @map("is_featured")
+  viewCount   Int           @default(0) @map("view_count")
+
+  seoTitle       String? @map("seo_title")
+  seoDescription String? @map("seo_description")
+  seoKeywords    String? @map("seo_keywords")
+  ogImage        String? @map("og_image")
+  canonicalUrl   String? @map("canonical_url")
+
+  authorId String? @map("author_id")
+  authorUser User? @relation(fields: [authorId], references: [id], onDelete: SetNull)
+
+  publishedAt DateTime? @map("published_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  categories ArticleCategory[]
+  likes      Like[]
+  comments   Comment[]
+
+  @@index([categorySlug], map: "articles_category_slug_idx")
+  @@index([status, publishedAt(sort: Desc)], map: "articles_status_published_at_idx")
+  @@index([isFeatured])
+  @@map("articles")
+}
+
+model ArticleCategory {
+  articleId  Int    @map("article_id")
+  categoryId String @map("category_id")
+
+  article  Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([articleId, categoryId])
+  @@index([categoryId])
+  @@map("article_categories")
+}
+
+model Like {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  articleId Int      @map("article_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  article Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, articleId])
+  @@index([articleId])
+  @@map("likes")
+}
+
+model Comment {
+  id         String   @id @default(cuid())
+  content    String
+  articleId  Int      @map("article_id")
+  userId     String   @map("user_id")
+  parentId   String?  @map("parent_id")
+  isApproved Boolean  @default(false) @map("is_approved")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  article Article   @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  user    User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent  Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies Comment[] @relation("CommentReplies")
+
+  @@index([articleId, isApproved])
+  @@index([parentId])
+  @@map("comments")
+}
+
+model Subscriber {
+  id            Int      @id @default(autoincrement())
+  email         String   @unique
+  subscribedAt  DateTime @default(now()) @map("subscribed_at")
+
+  @@map("subscribers")
+}

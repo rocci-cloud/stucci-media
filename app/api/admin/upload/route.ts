@@ -1,7 +1,6 @@
 import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import { SESSION_COOKIE, verifySessionToken } from "../../../lib/session";
+import { requireAdminSession } from "../../../lib/require-admin";
 
 export async function POST(request: Request): Promise<NextResponse> {
   const body = (await request.json()) as HandleUploadBody;
@@ -11,10 +10,8 @@ export async function POST(request: Request): Promise<NextResponse> {
       body,
       request,
       onBeforeGenerateToken: async () => {
-        const cookieStore = await cookies();
-        const token = cookieStore.get(SESSION_COOKIE)?.value;
-        const valid = token ? await verifySessionToken(token) : false;
-        if (!valid) {
+        const session = await requireAdminSession();
+        if (!session) {
           throw new Error("Unauthorized");
         }
         return {

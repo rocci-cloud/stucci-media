@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import ArticleForm from "../../../ArticleForm";
 import { updateArticleAction, deleteArticleAction } from "../../actions";
 import { getArticleByIdAdmin } from "../../../../lib/articles";
+import { getCategories } from "../../../../lib/categories";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -11,7 +12,10 @@ export const dynamic = "force-dynamic";
 
 export default async function EditArticlePage({ params }: Props) {
   const { id } = await params;
-  const article = await getArticleByIdAdmin(Number(id));
+  const [article, categories] = await Promise.all([
+    getArticleByIdAdmin(Number(id)),
+    getCategories(),
+  ]);
   if (!article) notFound();
 
   const boundUpdate = updateArticleAction.bind(null, article.id);
@@ -30,7 +34,7 @@ export default async function EditArticlePage({ params }: Props) {
           </button>
         </form>
       </div>
-      <ArticleForm article={article} action={boundUpdate} />
+      <ArticleForm article={article} categories={categories} action={boundUpdate} />
     </main>
   );
 }

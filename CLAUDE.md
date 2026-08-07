@@ -167,13 +167,10 @@ code or running a deploy.
   and `coverImageUrl`, but every existing component still works against it
   unchanged. `category` (label) and `readTime` are computed at read time
   rather than stored.
-- **Admin auth**: single admin, no user table. `ADMIN_USERNAME` +
-  `ADMIN_PASSWORD_HASH` (generate with `npm run admin:hash-password --
-  "password"`) gate a login form at `/admin/login`. A signed JWT session
-  cookie (`app/lib/session.ts`, via `jose`) is checked by `middleware.ts`
-  for every `/admin/*` route. Password hashing (`app/lib/password.ts`,
-  Node's `scrypt`) is kept out of `session.ts` deliberately — middleware
-  runs on the edge runtime and can't use `node:crypto`.
+- **Admin auth** *(superseded by Phase 7's multi-user Better Auth system —
+  kept here for history)*: single admin, no user table. `ADMIN_USERNAME` +
+  `ADMIN_PASSWORD_HASH` gated a login form at `/admin/login` behind a
+  hand-rolled JWT session cookie.
 - **Editor UI**: `/admin` lists all articles (draft + published); `/admin/
   articles/new` and `/admin/articles/[id]/edit` share `ArticleForm.tsx`.
   Server actions in `app/admin/articles/actions.ts` validate and write,
@@ -188,13 +185,9 @@ code or running a deploy.
   + `revalidate = 60` as a fallback, but the real trigger is the
   `revalidatePath` call after every admin write.
 
-Setup for a fresh environment: add the Neon and Vercel Blob integrations
-in the Vercel dashboard's Storage tab (this injects `DATABASE_URL` plus
-`BLOB_STORE_ID` — Blob auth is OIDC-based on this SDK version, no static
-`BLOB_READ_WRITE_TOKEN` needed), set `ADMIN_USERNAME`, `ADMIN_PASSWORD_HASH`,
-and `SESSION_SECRET`, then run `npm run db:migrate` (and optionally `npm run
-db:seed` to load the original placeholder articles) with those env vars
-pulled locally via `vercel env pull .env.local`.
+Setup for a fresh environment: see Phase 7 below for the current
+(Prisma + Better Auth) setup steps — this section describes the original
+Phase 2 bootstrap and is kept for history only.
 
 ## Phase 3 — done: subscriber list + CSV export
 
@@ -298,3 +291,113 @@ for the token/component details; this section is the "what changed."
 - Touch-target pass: every button/link/input across the public site
   (including `SubscribeForm`, `SiteHeader`'s hamburger/search/subscribe,
   `contact/page.tsx`'s form) got `min-h-11`.
+
+## Phase 7 — done: Prisma data foundation + multi-user auth (Better Auth)
+
+The site moved from a single-hardcoded-admin JWT cookie to a real data
+model: registered users with roles, categories as DB rows instead of a
+hardcoded array, and comments/likes tables ready for a future public
+engagement UI.
+
+- **Prisma**: `prisma/schema.prisma` is now the schema source of truth,
+  layered on top of the same Neon Postgres database (`DATABASE_URL`) —
+  the pre-existing `articles`/`subscribers` tables were extended in place
+  via `@@map`/`@map`, not recreated, so no data migration was needed.
+  `app/lib/prisma.ts` exports a singleton `PrismaClient` built with
+  `@prisma/adapter-neon` (the Neon HTTP/WebSocket driver, not raw TCP) —
+  required because this app runs in serverless/edge-adjacent environments
+  (and this sandboxed dev container) where the Postgres wire protocol's
+  raw TCP isn't reachable, only HTTPS is. **Prisma is pinned to the 6.x
+  line** (not 7.x, despite 7 being current on npm) — Prisma 7 requires a
+  `prisma.config.ts` + driver-adapter-only setup that's a bigger, riskier
+  migration than this phase needed; 6.19.3 still supports the simple
+  `datasource { url = env(...) }` schema form.
+- **Migrations can't use `prisma migrate` in this environment** for the
+  same TCP-vs-HTTPS reason — `prisma migrate deploy` always speaks raw
+  Postgres wire protocol. Migrations are hand-written SQL under
+  `prisma/migrations/<name>/migration.sql` (matching what `prisma migrate
+  dev` would generate) applied via `scripts/apply-prisma-migration.mjs`,
+  which runs the SQL through the same Neon HTTP driver the app uses and
+  records it in `_prisma_migrations` so Prisma's own tooling still sees
+  correct migration history. On Vercel (real TCP access) `prisma migrate
+  deploy` would work normally for any future migration — either approach
+  is fine going forward, whichever the environment permits.
+- **Auth**: [Better Auth](https://better-auth.com) (`app/lib/auth.ts`),
+  backed by Prisma via `better-auth/adapters/prisma`, with the built-in
+  `admin` plugin for the `ADMIN`/`USER` role system (`adminRoles:
+  ["ADMIN"]`). Email+password only for now. `app/api/auth/[...all]/
+  route.ts` mounts every Better Auth endpoint; `app/lib/auth-client.ts`
+  exports the React client (`useSession`, `signIn`, `signUp`, `signOut`).
+  **`baseURL` must come from a server-only env var (`BETTER_AUTH_URL`),
+  never `NEXT_PUBLIC_*`** — `NEXT_PUBLIC_` vars get statically inlined
+  into the build output, which silently freezes Better Auth's origin
+  check to whatever it was at build time and throws `INVALID_ORIGIN` on
+  every request once the app's real URL differs (found by testing the
+  actual login flow, not just the build).
+- **User model gained fields beyond the original ask**: Better Auth's
+  `admin` plugin expects `banned`/`banReason`/`banExpires` on `User` and
+  `impersonatedBy` on `Session` (ban/impersonation are part of the plugin,
+  not optional) — omitting them fails user creation with `Unknown
+  argument "banned"`. Discovered at runtime via an actual sign-up request,
+  not from the schema alone; a second migration
+  (`20260807010000_admin_plugin_fields`) added them.
+- **Route protection, two layers**: `proxy.ts` (Next.js 16 renamed
+  `middleware.ts` → `proxy.ts`/`export function proxy` — the old
+  convention is deprecated but still works with a build-time warning)
+  does a cheap edge-safe check via `better-auth/cookies`'s
+  `getSessionCookie()` — cookie presence only, no DB call, since the edge
+  runtime here can't reach Postgres. `app/admin/layout.tsx` does the real
+  check (`auth.api.getSession()` + `role === "ADMIN"`) and is what
+  actually enforces the role — a signed-in non-admin gets redirected to
+  `/`, a signed-out visitor to `/login`.
+- **Login/register UI**: `/login` and `/register` (`app/login/AuthForm.tsx`,
+  shared by both) match the site's form conventions (same field/button
+  treatment as `contact/page.tsx`). Public — any visitor can register;
+  only role determines `/admin` access, not registration itself.
+- **Categories moved into the database**: `app/lib/categories.ts` now
+  reads a `Category` table (`getCategories()`, `getCategoryBySlug()`)
+  instead of exporting a hardcoded array — both became `async`, so every
+  caller (`SiteFooter`, homepage, category pages, the admin article form)
+  was updated to `await` them. The admin `ArticleForm` (a client
+  component) can't call an async server function directly, so its parent
+  server pages (`admin/articles/new`, `admin/articles/[id]/edit`) fetch
+  categories and pass them down as a prop instead.
+  `scripts/seed-categories.mjs` upserts-by-slug the real 7 categories the
+  site uses today (same list the old hardcoded array had) — re-running it
+  is safe and won't duplicate rows. `Article.categorySlug` stays a plain
+  text column (not a foreign key) deliberately, same as before — it's
+  legacy/primary-category-only for the existing single-category site UI;
+  the new `ArticleCategory` join table exists for future multi-category
+  tagging without disturbing that.
+- **`Article.status` became a real Postgres enum** (`article_status`:
+  `DRAFT`/`PUBLISHED`, uppercase) instead of a lowercase-checked text
+  column — `app/lib/articles.ts` still exposes `"draft"`/`"published"`
+  (lowercase) as the public TypeScript type so `ArticleForm.tsx` and
+  `admin/articles/actions.ts` needed zero changes; the enum mapping is
+  internal to `articles.ts`. `scripts/seed.mjs` and
+  `scripts/import-wordpress.mjs` insert the enum directly via raw SQL, so
+  their literal `'published'` values had to become `'PUBLISHED'`.
+- **Admin bootstrapping, by design, doesn't reimplement Better Auth's
+  password hashing**: register a normal account at `/register`, then run
+  `npm run admin:promote -- you@example.com` (`scripts/promote-admin.mjs`)
+  to flip that user's role to `ADMIN` via a direct SQL update. This avoids
+  a seed script needing to replicate Better Auth's internal hash format
+  (version-dependent, not a stable public API).
+- **New models not yet wired to any UI**: `Like` (unique on
+  `userId`+`articleId`) and `Comment` (self-referential `parentId` for
+  threaded replies, `isApproved` for moderation) exist in the schema and
+  migration but have no reader/writer code or public-facing UI yet —
+  scoped for a future phase.
+
+Setup for a fresh environment: add the Neon and Vercel Blob integrations
+in the Vercel dashboard's Storage tab (injects `DATABASE_URL`,
+`DATABASE_URL_UNPOOLED`, `BLOB_STORE_ID`), set `SESSION_SECRET`
+(`openssl rand -base64 32`) and `BETTER_AUTH_URL` (this app's own URL —
+e.g. the Vercel deployment URL, or `http://localhost:3000` in dev), pull
+them locally via `vercel env pull .env.local`, then: `npm run db:migrate`
+(base `articles`/`subscribers` tables) → `npm run db:migrate:prisma --
+20260807000000_init_data_foundation` and `-- 20260807010000_admin_plugin_fields`
+(everything else) → `npm run db:seed-categories` (the 7 real categories)
+→ optionally `npm run db:seed` (placeholder articles). On Vercel, npm's
+`postinstall` runs `prisma generate` automatically so the client is
+always in sync with `prisma/schema.prisma`.

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getAllArticlesAdmin } from "../lib/articles";
-import { logoutAction } from "./actions";
+import SignOutButton from "./SignOutButton";
 
 export const dynamic = "force-dynamic";
 
@@ -21,14 +21,7 @@ export default async function AdminDashboard() {
           >
             New Article
           </Link>
-          <form action={logoutAction}>
-            <button
-              type="submit"
-              className="text-sm font-bold uppercase text-[var(--color-gray)] hover:text-[var(--color-text)]"
-            >
-              Log out
-            </button>
-          </form>
+          <SignOutButton />
         </div>
       </div>
 

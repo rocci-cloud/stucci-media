@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { categories } from "../lib/categories";
+import { getCategories } from "../lib/categories";
 
 const SOCIAL_LINKS = [
   {
@@ -13,7 +13,9 @@ const SOCIAL_LINKS = [
   },
 ];
 
-export default function SiteFooter() {
+export default async function SiteFooter() {
+  const categories = await getCategories();
+
   return (
     <footer className="font-sans bg-[var(--color-navy)] text-white mt-4">
       <div className="mx-auto max-w-[1280px] px-5 py-12 sm:py-14 grid grid-cols-1 sm:grid-cols-4 gap-x-8 gap-y-10">
