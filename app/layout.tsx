@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     template: "%s | Stucci Media",
   },
   description:
-    "Independent news, analysis, and podcasts from Hammond, WI — the stories mainstream media won't run.",
+    "Independent news, analysis, and podcasts from Florida — the stories mainstream media won't run.",
 };
 
 export default function RootLayout({

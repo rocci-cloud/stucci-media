@@ -27,8 +27,10 @@ export default function SiteHeader() {
             Stucci<span className="text-[var(--color-red)]">Media</span>
           </Link>
           <div className="hidden sm:flex flex-col items-end font-sans text-xs text-[var(--color-gray)] leading-tight">
-            <span className="font-bold uppercase tracking-wide text-[var(--color-red)]">Live · Hammond, WI</span>
-            <span>August 7, 2026</span>
+            <span className="font-bold uppercase tracking-wide text-[var(--color-red)]">Live · Florida</span>
+            <span>
+              {new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
+            </span>
           </div>
         </div>
       </header>
