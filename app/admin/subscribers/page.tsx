@@ -19,7 +19,7 @@ export default async function SubscribersPage() {
         </div>
         <a
           href="/api/admin/subscribers/export"
-          className="bg-[var(--color-red)] hover:bg-[var(--color-red-dark)] text-white text-sm font-bold uppercase tracking-wide px-4 py-2.5 rounded-sm"
+          className="bg-[var(--color-red)] hover:bg-[var(--color-red-dark)] text-white text-sm font-bold uppercase tracking-wide px-4 py-2.5 rounded-control"
         >
           Export CSV
         </a>

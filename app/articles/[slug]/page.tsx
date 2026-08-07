@@ -5,6 +5,7 @@ import BreakingBar from "../../components/BreakingBar";
 import SiteHeader from "../../components/SiteHeader";
 import SiteFooter from "../../components/SiteFooter";
 import Sidebar from "../../components/Sidebar";
+import Badge from "../../components/ui/Badge";
 import { getArticleBySlug, getPublishedArticles } from "../../lib/articles";
 
 type Props = {
@@ -70,13 +71,13 @@ export default async function ArticlePage({ params }: Props) {
         <article className="max-w-[720px]">
           <Link
             href="/"
-            className="font-sans text-[13px] text-[var(--color-gray)] hover:text-[var(--color-text)] hover:underline mb-6 inline-block"
+            className="min-h-11 inline-flex items-center font-sans text-[13px] text-[var(--color-gray)] hover:text-[var(--color-text)] hover:underline mb-2"
           >
             ← Back to Home
           </Link>
-          <span className="font-sans block text-xs font-bold uppercase tracking-wide text-[var(--color-red)] mb-3">
+          <Badge variant="text" className="mb-3">
             {article.category}
-          </span>
+          </Badge>
           <h1 className="font-headline text-[28px] sm:text-[38px] font-bold uppercase leading-[1.05] tracking-[-0.005em] mb-4">
             {article.headline}
           </h1>
@@ -92,10 +93,10 @@ export default async function ArticlePage({ params }: Props) {
             <img
               src={article.coverImageUrl}
               alt={article.headline}
-              className="w-full aspect-video object-cover border border-[var(--color-hairline)] mb-7"
+              className="w-full aspect-video object-cover rounded-card shadow-card mb-7"
             />
           ) : (
-            <div className="w-full aspect-video bg-[#E5E4E0] border border-[var(--color-hairline)] mb-7" />
+            <div className="w-full aspect-video bg-[#E5E4E0] rounded-card mb-7" />
           )}
           <div
             className="prose prose-neutral max-w-none text-[17px] sm:text-[19px] leading-[1.75]
@@ -104,7 +105,8 @@ export default async function ArticlePage({ params }: Props) {
               prose-p:mb-5 prose-a:text-[var(--color-red)] prose-a:no-underline hover:prose-a:underline
               prose-strong:text-[var(--color-text)] prose-blockquote:border-l-[var(--color-red)]
               prose-blockquote:font-headline prose-blockquote:text-[22px] prose-blockquote:not-italic
-              prose-img:border prose-img:border-[var(--color-hairline)]"
+              prose-img:rounded-control prose-img:border prose-img:border-[var(--color-hairline)]
+              prose-a:transition-colors"
             dangerouslySetInnerHTML={{ __html: article.bodyHtml }}
           />
         </article>

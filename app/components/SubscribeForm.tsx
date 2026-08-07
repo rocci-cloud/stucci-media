@@ -31,15 +31,15 @@ export default function SubscribeForm({ compact = false }: { compact?: boolean }
           type="email"
           required
           placeholder="you@email.com"
-          className={`flex-1 border border-[#B9B9B9] rounded-sm bg-white text-[var(--color-text)] ${
-            compact ? "px-3 py-2.5 text-[13px]" : "px-3.5 py-3 text-sm"
+          className={`flex-1 min-h-11 border border-[#B9B9B9] rounded-control bg-white text-[var(--color-text)] focus:border-[var(--color-navy)] transition-colors ${
+            compact ? "px-3 text-[13px]" : "px-3.5 text-sm"
           }`}
         />
         <button
           type="submit"
           disabled={pending}
-          className={`bg-[var(--color-red)] hover:bg-[var(--color-red-dark)] text-white font-bold uppercase tracking-wide rounded-sm disabled:opacity-50 ${
-            compact ? "px-4 py-2.5 text-[11.5px]" : "px-5 py-3 text-[13px]"
+          className={`min-h-11 bg-[var(--color-red)] hover:bg-[var(--color-red-dark)] active:bg-[var(--color-red-dark)] text-white font-bold uppercase tracking-wide rounded-control disabled:opacity-50 transition-colors ${
+            compact ? "px-4 text-[11.5px]" : "px-5 text-[13px]"
           }`}
         >
           {pending ? "Subscribing…" : "Subscribe"}
