@@ -9,15 +9,23 @@
 //
 // This re-hosts every broken image on Vercel Blob (the storage this app
 // actually owns — same place /admin's upload button writes to) and
-// rewrites the database to point at the new permanent URLs. The old
-// content is still reachable at https://rsmnews.com/ under the same
-// paths, so that's the source this pulls from.
+// rewrites the database to point at the new permanent URLs.
+//
+// Two ways to find the source image, in priority order:
+//   1. A fresh WordPress export XML (optional first argument) — the same
+//      content is now live at rsmnews.com, and its export's attachment
+//      URLs are the verified-correct current location per article
+//      (matched by post slug). Handles cases where a filename changed
+//      between the old export and now.
+//   2. Fallback: naive domain swap (stuccimedia.com -> rsmnews.com,
+//      same path) for anything not found in the XML, or if no XML is
+//      given at all.
 //
 // IMPORTANT: this must be run somewhere with real outbound internet
 // access to rsmnews.com — a sandboxed agent session typically won't have
 // that. Run it from your own machine:
 //
-//   node --env-file=.env.local scripts/rehost-images.mjs
+//   node --env-file=.env.local scripts/rehost-images.mjs [path-to-export.xml]
 //
 // Requires (in .env.local, alongside the usual DATABASE_URL):
 //   BLOB_READ_WRITE_TOKEN=...
@@ -29,8 +37,10 @@
 // already-fixed rows (now pointing at blob.vercel-storage.com) are
 // skipped automatically.
 
+import { readFileSync } from "node:fs";
 import { neon } from "@neondatabase/serverless";
 import { put } from "@vercel/blob";
+import { XMLParser } from "fast-xml-parser";
 
 const SOURCE_ORIGIN = "https://rsmnews.com";
 const BROKEN_HOST = "stuccimedia.com";
@@ -49,15 +59,71 @@ if (!process.env.BLOB_READ_WRITE_TOKEN) {
 
 const sql = neon(process.env.DATABASE_URL);
 
-async function rehostOne(brokenUrl, label) {
-  const path = new URL(brokenUrl).pathname; // e.g. /wp-content/uploads/2025/10/alabama.png
-  const sourceUrl = `${SOURCE_ORIGIN}${path}`;
+// --- Optional: parse a fresh WordPress export for verified-correct URLs ---
 
+const xmlPath = process.argv[2];
+let postsBySlug = new Map();
+
+if (xmlPath) {
+  const xml = readFileSync(xmlPath, "utf8");
+  const parser = new XMLParser({
+    ignoreAttributes: false,
+    attributeNamePrefix: "@_",
+    isArray: (name) => ["item", "category", "wp:postmeta"].includes(name),
+  });
+  const items = parser.parse(xml).rss.channel.item;
+
+  const attachmentsById = new Map();
+  for (const item of items) {
+    if (item["wp:post_type"] === "attachment") {
+      attachmentsById.set(String(item["wp:post_id"]), item["wp:attachment_url"]);
+    }
+  }
+
+  for (const item of items) {
+    if (item["wp:post_type"] !== "post") continue;
+    const slug = item["wp:post_name"];
+    if (!slug) continue;
+
+    const content = item["content:encoded"] || "";
+    const thumbMeta = item["wp:postmeta"]?.find((m) => m["wp:meta_key"] === "_thumbnail_id");
+    const coverImageUrl = thumbMeta ? attachmentsById.get(String(thumbMeta["wp:meta_value"])) ?? null : null;
+    const inlineUrls = [...content.matchAll(/<img[^>]+src="([^"]+)"/gi)].map((m) => m[1]);
+
+    // filename -> verified current URL, for matching against whatever
+    // filename our own broken URL happens to reference
+    const byFilename = new Map();
+    for (const url of [coverImageUrl, ...inlineUrls].filter(Boolean)) {
+      byFilename.set(url.split("/").pop(), url);
+    }
+
+    postsBySlug.set(slug, { coverImageUrl, byFilename });
+  }
+
+  console.log(`Loaded ${postsBySlug.size} posts from the export for verified URL matching.\n`);
+}
+
+function resolveSourceUrl(brokenUrl, articleSlug, { preferCover } = {}) {
+  const path = new URL(brokenUrl).pathname;
+  const filename = path.split("/").pop();
+  const post = postsBySlug.get(articleSlug);
+
+  if (post) {
+    if (preferCover && post.coverImageUrl) return post.coverImageUrl;
+    const verified = post.byFilename.get(filename);
+    if (verified) return verified;
+  }
+
+  // Fallback: naive domain swap, same path
+  return `${SOURCE_ORIGIN}${path}`;
+}
+
+async function rehostOne(sourceUrl, label) {
   const res = await fetch(sourceUrl);
   if (!res.ok) throw new Error(`HTTP ${res.status} fetching ${sourceUrl}`);
   const buffer = Buffer.from(await res.arrayBuffer());
 
-  const filename = path.split("/").pop() || "image";
+  const filename = new URL(sourceUrl).pathname.split("/").pop() || "image";
   const blob = await put(`article-images/${label}-${filename}`, buffer, {
     access: "public",
     addRandomSuffix: true,
@@ -77,7 +143,8 @@ let coverOk = 0;
 let coverFailed = 0;
 for (const row of coverRows) {
   try {
-    const newUrl = await rehostOne(row.cover_image_url, row.slug);
+    const sourceUrl = resolveSourceUrl(row.cover_image_url, row.slug, { preferCover: true });
+    const newUrl = await rehostOne(sourceUrl, row.slug);
     await sql`update articles set cover_image_url = ${newUrl} where id = ${row.id}`;
     console.log(`  ✓ ${row.slug}`);
     coverOk++;
@@ -111,7 +178,8 @@ for (const row of bodyRows) {
   let newBody = row.body;
   for (const [i, brokenUrl] of matches.entries()) {
     try {
-      const newUrl = await rehostOne(brokenUrl, `${row.slug}-inline-${i}`);
+      const sourceUrl = resolveSourceUrl(brokenUrl, row.slug);
+      const newUrl = await rehostOne(sourceUrl, `${row.slug}-inline-${i}`);
       newBody = newBody.split(brokenUrl).join(newUrl);
       console.log(`  ✓ ${row.slug} (inline image ${i + 1}/${matches.length})`);
       inlineOk++;
