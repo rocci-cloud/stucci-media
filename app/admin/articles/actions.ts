@@ -56,7 +56,7 @@ export async function createArticleAction(
   }
 
   revalidatePath("/", "layout");
-  redirect("/admin");
+  redirect("/admin/articles");
 }
 
 export async function updateArticleAction(
@@ -77,11 +77,25 @@ export async function updateArticleAction(
   }
 
   revalidatePath("/", "layout");
-  redirect("/admin");
+  redirect("/admin/articles");
 }
 
 export async function deleteArticleAction(id: number) {
   await deleteArticle(id);
   revalidatePath("/", "layout");
-  redirect("/admin");
+  redirect("/admin/articles");
+}
+
+// Row-level delete from the articles list — no redirect, so the client can
+// remove the row in place (optimistic) and stay on the list.
+export type DeleteArticleResult = { success: true } | { success: false; error: string };
+
+export async function deleteArticleFromListAction(id: number): Promise<DeleteArticleResult> {
+  try {
+    await deleteArticle(id);
+    revalidatePath("/", "layout");
+    return { success: true };
+  } catch {
+    return { success: false, error: "Something went wrong deleting the article." };
+  }
 }

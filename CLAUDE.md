@@ -401,3 +401,86 @@ them locally via `vercel env pull .env.local`, then: `npm run db:migrate`
 → optionally `npm run db:seed` (placeholder articles). On Vercel, npm's
 `postinstall` runs `prisma generate` automatically so the client is
 always in sync with `prisma/schema.prisma`.
+
+## Phase 8 — done: admin dashboard shell + Categories management
+
+`/admin` went from a single bare articles table to a real dashboard
+product: sidebar nav, top bar, stat overview, and a full Categories CRUD
+screen with search/sort, optimistic delete, and a slug-conflict safety
+check — built on shadcn/ui-pattern components, hand-written rather than
+pulled via the `shadcn` CLI.
+
+- **The `shadcn` CLI can't run in this environment** — `ui.shadcn.com`
+  (where `shadcn init`/`add` fetch component source and the init preset)
+  is blocked by this sandbox's outbound network policy (`registry.npmjs.org`
+  is allowed, that domain isn't). Worked around by installing the same
+  underlying packages (`class-variance-authority`, `clsx`, `tailwind-merge`,
+  `lucide-react`, the individual `@radix-ui/react-*` primitives, `sonner`,
+  `tw-animate-css`) directly from npm and hand-writing the component
+  wrappers (`Button`, `Input`, `Textarea`, `Label`, `Card`, `Badge`,
+  `Table`, `Dialog`, `AlertDialog`, `DropdownMenu`, `Sheet`, `Avatar`,
+  `Separator`, `Skeleton`, the `sonner` `Toaster`) matching shadcn's actual
+  source patterns. If a future environment *can* reach the registry,
+  `npx shadcn@latest add <component>` should still work going forward —
+  nothing here locks the project out of the real CLI, it just wasn't
+  available for this phase.
+- **Scoped to `app/admin/components/ui/` + `app/admin/lib/cn.ts`**,
+  deliberately separate from the public site's existing
+  `app/components/ui/` primitives (`ArticleCard`, `SectionHeader`, the
+  editorial `Badge`) — same directory name, different purpose and API, so
+  keeping them in physically separate trees avoids any mixup between "the
+  premium news-reader design system" and "the dashboard chrome." A new
+  `--admin-*`-prefixed CSS variable set in `globals.css` backs the
+  dashboard components (`--admin-primary` is the same brand red, but the
+  neutral scale — `--admin-bg`, `--admin-border`, `--admin-fg-muted`,
+  etc. — is its own dashboard-appropriate palette, not the public site's
+  navy/red/serif editorial tokens).
+- **`app/admin/layout.tsx`** now renders `<AdminShell>` (sidebar + top bar
+  + `<Toaster />`) around every `/admin/*` page, on top of the existing
+  session/role redirect logic — the role check didn't change, just what
+  wraps the authorized content. Nav items (Dashboard/Articles/Categories/
+  Comments/Settings) live in `app/admin/components/nav-items.ts`, shared
+  between the desktop sidebar and the mobile `Sheet`-based drawer so they
+  can't drift apart.
+- **The articles list moved from `/admin` to `/admin/articles`** —
+  `/admin` is now a real Dashboard (stat cards: total/published/draft
+  articles, category count, subscriber count, each linking to its
+  section; a "recently updated" list). `deleteArticleAction` (used by the
+  edit page's delete button, which still redirects after) is now
+  redirect-target-`/admin/articles`; a new sibling,
+  `deleteArticleFromListAction`, returns a result instead of redirecting
+  so the Articles list can delete a row in place.
+- **Categories CRUD** (`app/admin/categories/`): `CategoriesClient.tsx`
+  holds the table, search, and a sort menu (name/most-articles/newest);
+  `CategoryDialog.tsx` is the shared create/edit form (slug
+  auto-generates from name via the same `slugify()` — now factored out to
+  `app/lib/slugify.ts` — until the slug field is hand-edited, same UX as
+  the article editor). `app/lib/categories.ts` gained
+  `getCategoriesWithCounts()` (a `prisma.article.groupBy` on
+  `categorySlug` joined against the category list — counts are by the
+  legacy primary-category column, not the unused `ArticleCategory` join
+  table, since that's what the site's nav/category pages actually read)
+  and full `createCategory`/`updateCategory`/`deleteCategory`. Renaming a
+  category's slug cascades to every article's `categorySlug` in the same
+  `$transaction` — otherwise a rename would silently orphan articles
+  filed under the old slug (`getCategoryBySlug` would just stop finding
+  them). Delete is blocked server-side
+  (`app/admin/categories/actions.ts`'s `deleteCategoryAction`) whenever
+  `getCategoryArticleCount(slug) > 0`, with the count surfaced in the
+  confirmation dialog so it reads as "re-file these first," not a generic
+  failure.
+- **Optimistic updates**: category and article row deletion both use
+  React 19's `useOptimistic` — the row disappears immediately, and if the
+  server call fails (e.g. the delete-blocked case), the optimistic state
+  automatically reverts to the last committed list and a `sonner` toast
+  explains why. Create/edit go through a modal that awaits the server
+  action before closing (a spinner + disabled submit is the loading
+  state there) rather than optimistic insertion — the temp-ID/replace
+  dance needed for a truly optimistic modal-based create wasn't worth it
+  for the UX gain over "the dialog closes the moment it's actually done."
+- **Comments and Settings are real pages, not stubs disguised as done**:
+  `/admin/comments` is an explicit "coming soon" empty state (the
+  `Comment`/`Like` tables exist from Phase 7 but have no reader/writer
+  code or public UI yet). `/admin/settings` is a working profile editor
+  (name, via Better Auth's `authClient.updateUser`) — email and role are
+  shown read-only.

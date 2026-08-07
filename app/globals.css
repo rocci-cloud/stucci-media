@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "tw-animate-css";
 @plugin "@tailwindcss/typography";
 
 @theme {
@@ -29,6 +30,29 @@
   --color-blue: #1c5aa6;
   --color-bg: #ffffff;
   --color-bg-off: #f7f8fa;
+
+  /* Admin dashboard tokens — a distinct neutral-dashboard palette from the
+     public site's editorial one, but built from the same brand navy/red so
+     the two surfaces read as one product. --admin-* prefix keeps these from
+     ever colliding with the public --color-* tokens above. */
+  --admin-bg: #f7f8fa;
+  --admin-surface: #ffffff;
+  --admin-bg-subtle: #f1f3f6;
+  --admin-border: #e4e7ec;
+  --admin-fg: #101828;
+  --admin-fg-muted: #667085;
+  --admin-primary: #c8102e;
+  --admin-primary-hover: #9c0c23;
+  --admin-ring: rgba(200, 16, 46, 0.4);
+  --admin-danger: #dc2626;
+  --admin-danger-bg: #fef2f2;
+  --admin-success: #16a34a;
+  --admin-success-bg: #f0fdf4;
+  --admin-sidebar-bg: #0a1628;
+  --admin-sidebar-fg: rgba(255, 255, 255, 0.68);
+  --admin-sidebar-fg-active: #ffffff;
+  --admin-sidebar-active-bg: rgba(255, 255, 255, 0.08);
+  --admin-sidebar-border: rgba(255, 255, 255, 0.08);
 }
 
 html,

@@ -6,9 +6,9 @@ export default async function NewArticlePage() {
   const categories = await getCategories();
 
   return (
-    <main className="max-w-[720px] mx-auto px-5 py-10">
-      <h1 className="font-headline text-[28px] font-black mb-6">New Article</h1>
+    <div className="max-w-[720px]">
+      <h2 className="mb-6 text-lg font-semibold text-[var(--admin-fg)]">New article</h2>
       <ArticleForm categories={categories} action={createArticleAction} />
-    </main>
+    </div>
   );
 }

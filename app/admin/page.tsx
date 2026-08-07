@@ -1,63 +1,89 @@
 import Link from "next/link";
+import { FileText, FolderTree, Mail, CheckCircle2, PenLine } from "lucide-react";
 import { getAllArticlesAdmin } from "../lib/articles";
-import SignOutButton from "./SignOutButton";
+import { getCategories } from "../lib/categories";
+import { getAllSubscribers } from "../lib/subscribers";
+import { Card, CardContent } from "./components/ui/card";
+import { Badge } from "./components/ui/badge";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminDashboard() {
-  const articles = await getAllArticlesAdmin();
+export default async function DashboardPage() {
+  const [articles, categories, subscribers] = await Promise.all([
+    getAllArticlesAdmin(),
+    getCategories(),
+    getAllSubscribers(),
+  ]);
+
+  const published = articles.filter((a) => a.status === "published").length;
+  const drafts = articles.length - published;
+  const recent = articles.slice(0, 6);
+
+  const stats = [
+    { label: "Total articles", value: articles.length, icon: FileText, href: "/admin/articles" },
+    { label: "Published", value: published, icon: CheckCircle2, href: "/admin/articles" },
+    { label: "Drafts", value: drafts, icon: PenLine, href: "/admin/articles" },
+    { label: "Categories", value: categories.length, icon: FolderTree, href: "/admin/categories" },
+    { label: "Subscribers", value: subscribers.length, icon: Mail, href: "/admin/subscribers" },
+  ];
 
   return (
-    <main className="max-w-[900px] mx-auto px-5 py-10 font-sans">
-      <div className="flex items-center justify-between mb-8">
-        <h1 className="font-headline text-[28px] font-black">Articles</h1>
-        <div className="flex items-center gap-5">
-          <Link href="/admin/subscribers" className="text-sm font-bold uppercase text-[var(--color-gray)] hover:text-[var(--color-text)]">
-            Subscribers
-          </Link>
-          <Link
-            href="/admin/articles/new"
-            className="bg-[var(--color-red)] hover:bg-[var(--color-red-dark)] text-white text-sm font-bold uppercase tracking-wide px-4 py-2.5 rounded-control"
-          >
-            New Article
-          </Link>
-          <SignOutButton />
-        </div>
+    <div className="flex flex-col gap-6">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+        {stats.map((stat) => {
+          const Icon = stat.icon;
+          return (
+            <Link key={stat.label} href={stat.href}>
+              <Card className="transition-shadow hover:shadow-md">
+                <CardContent className="flex flex-col gap-3 p-4">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[var(--admin-bg-subtle)] text-[var(--admin-fg-muted)]">
+                    <Icon className="h-[18px] w-[18px]" />
+                  </div>
+                  <div>
+                    <div className="text-2xl font-bold tabular-nums text-[var(--admin-fg)]">{stat.value}</div>
+                    <div className="text-[12.5px] text-[var(--admin-fg-muted)]">{stat.label}</div>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+          );
+        })}
       </div>
 
-      {articles.length === 0 ? (
-        <p className="text-sm text-[var(--color-gray)]">No articles yet.</p>
-      ) : (
-        <table className="w-full text-sm border-collapse">
-          <thead>
-            <tr className="border-b-2 border-[var(--color-hairline-strong)] text-left">
-              <th className="py-2 pr-4">Headline</th>
-              <th className="py-2 pr-4">Category</th>
-              <th className="py-2 pr-4">Status</th>
-              <th className="py-2 pr-4">Updated</th>
-              <th className="py-2" />
-            </tr>
-          </thead>
-          <tbody>
-            {articles.map((a) => (
-              <tr key={a.id} className="border-b border-[var(--color-hairline)]">
-                <td className="py-3 pr-4">{a.headline}</td>
-                <td className="py-3 pr-4">{a.category}</td>
-                <td className="py-3 pr-4 capitalize">{a.status}</td>
-                <td className="py-3 pr-4">{a.date}</td>
-                <td className="py-3">
-                  <Link
-                    href={`/admin/articles/${a.id}/edit`}
-                    className="text-[var(--color-red)] hover:underline font-bold"
-                  >
-                    Edit
-                  </Link>
-                </td>
-              </tr>
+      <Card>
+        <div className="flex items-center justify-between border-b border-[var(--admin-border)] px-5 py-4">
+          <h2 className="text-sm font-semibold text-[var(--admin-fg)]">Recently updated</h2>
+          <Link href="/admin/articles" className="text-[13px] font-medium text-[var(--admin-primary)] hover:underline">
+            View all →
+          </Link>
+        </div>
+        {recent.length === 0 ? (
+          <div className="px-5 py-10 text-center text-[13px] text-[var(--admin-fg-muted)]">
+            No articles yet — <Link href="/admin/articles/new" className="text-[var(--admin-primary)] hover:underline">write your first one</Link>.
+          </div>
+        ) : (
+          <ul className="divide-y divide-[var(--admin-border)]">
+            {recent.map((article) => (
+              <li key={article.id}>
+                <Link
+                  href={`/admin/articles/${article.id}/edit`}
+                  className="flex items-center justify-between gap-4 px-5 py-3.5 transition-colors hover:bg-[var(--admin-bg-subtle)]/60"
+                >
+                  <div className="min-w-0">
+                    <div className="truncate text-sm font-medium text-[var(--admin-fg)]">{article.headline}</div>
+                    <div className="text-[12.5px] text-[var(--admin-fg-muted)]">
+                      {article.category} · {article.date}
+                    </div>
+                  </div>
+                  <Badge variant={article.status === "published" ? "success" : "outline"} className="shrink-0">
+                    {article.status}
+                  </Badge>
+                </Link>
+              </li>
             ))}
-          </tbody>
-        </table>
-      )}
-    </main>
+          </ul>
+        )}
+      </Card>
+    </div>
   );
 }
