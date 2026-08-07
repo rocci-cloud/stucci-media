@@ -1,0 +1,31 @@
+name: Re-host article images
+
+# Manual, one-time fix: runs scripts/rehost-images.mjs, which pulls every
+# broken article image (currently pointing at the now-inactive
+# stuccimedia.com WordPress install) from rsmnews.com, uploads it to this
+# app's own Vercel Blob storage, and updates the database. See that
+# script's header comment for the full story.
+#
+# Click "Run workflow" in the Actions tab to fire this — no local setup
+# needed. Requires two repo secrets (Settings → Secrets and variables →
+# Actions): DATABASE_URL and BLOB_READ_WRITE_TOKEN.
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  rehost-images:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - run: npm ci
+
+      - run: node scripts/rehost-images.mjs scripts/data/wordpress-export.xml
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
