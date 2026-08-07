@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import ArticleForm from "../../../ArticleForm";
+import ArticleEditor from "../../ArticleEditor";
 import { updateArticleAction, deleteArticleAction } from "../../actions";
 import { getArticleByIdAdmin } from "../../../../lib/articles";
 import { getCategories } from "../../../../lib/categories";
@@ -22,9 +22,10 @@ export default async function EditArticlePage({ params }: Props) {
 
   const boundUpdate = updateArticleAction.bind(null, article.id);
   const boundDelete = deleteArticleAction.bind(null, article.id);
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://stuccimedia.com";
 
   return (
-    <div className="max-w-[720px]">
+    <div className="max-w-[1100px]">
       <div className="mb-6 flex items-center justify-between">
         <h2 className="text-lg font-semibold text-[var(--admin-fg)]">Edit article</h2>
         <form action={boundDelete}>
@@ -34,7 +35,7 @@ export default async function EditArticlePage({ params }: Props) {
           </Button>
         </form>
       </div>
-      <ArticleForm article={article} categories={categories} action={boundUpdate} />
+      <ArticleEditor article={article} categories={categories} action={boundUpdate} siteUrl={siteUrl} />
     </div>
   );
 }

@@ -484,3 +484,81 @@ pulled via the `shadcn` CLI.
   code or public UI yet). `/admin/settings` is a working profile editor
   (name, via Better Auth's `authClient.updateUser`) — email and role are
   shown read-only.
+
+## Phase 9 — done: full Articles management (editor, SEO panel, multi-category)
+
+The articles list and editor went from a bare table + plain-textarea form
+to a real CMS surface: a Tiptap rich text editor, true multi-category
+tagging, a full SEO panel with a live 0–100 score and Google preview, and
+list-level quick-edit + bulk actions — all built on the Phase 8 admin
+component library.
+
+- **Multi-category articles, for real this time**: `ArticleCategory` (the
+  join table added in Phase 7 but never written to) is now populated on
+  every create/update, via a `syncArticleCategories()` transaction helper
+  in `app/lib/articles.ts` shared by `createArticle`, `updateArticle`, and
+  the list's `updateArticleCategories()` quick-edit. `Article.categorySlug`
+  (the legacy single-category text column the public site's nav/category
+  pages still read) is kept in sync as "first selected category" — so
+  multi-select works in the admin without touching the public site's
+  category-page logic. `Article`'s TS type gained `categorySlugs: string[]`
+  and `categories: string[]` (labels) alongside the existing single-value
+  fields.
+- **Rich text editor**: Tiptap (`@tiptap/react` + `starter-kit` +
+  `extension-link` + `extension-image` + `extension-placeholder`), in
+  `app/admin/articles/RichTextEditor.tsx`. Toolbar is deliberately limited
+  to exactly what `app/lib/sanitize.ts`'s existing allowlist accepts
+  (bold/italic, h2–h4, bullet/numbered lists, blockquote, link, image) —
+  no toolbar button produces a tag the sanitizer would strip back out.
+  `editor.getHTML()` feeds a hidden `<textarea name="body">` so the rest
+  of the save pipeline (`bodyInputToHtml` → `sanitizeArticleHtml`) is
+  unchanged from the old plain-textarea editor.
+- **Full SEO panel** (`SeoPanel.tsx`): SEO title/description with live
+  character counters, focus keywords, canonical URL, a separate OG image
+  upload, and a live Google-style result preview. The 0–100 score comes
+  from `app/lib/seo-score.ts` — a pure, dependency-free function (title
+  length, description length, focus-keyword presence across
+  title/description/slug/content, slug quality, image presence, content
+  length) shared verbatim between the editor's live panel (client) and
+  the articles list's SEO column (server-rendered from stored values) so
+  the number can never disagree between the two places it's shown.
+- **The editor is one `<form>`, not a wizard** — Content and SEO are tabs
+  over the *same* form, and **both tabs stay mounted** (CSS-hidden, not
+  conditionally rendered) even when inactive. This was a real bug caught
+  before shipping: SEO fields need `name` attributes to submit via
+  `FormData`, and if the SEO tab's inputs only existed in the DOM while
+  that tab was active, saving from the Content tab would silently submit
+  empty SEO values regardless of what was typed earlier. Keeping both
+  tabs mounted also means the Tiptap editor's cursor/selection survives
+  switching to the SEO tab and back.
+- **Featured image vs. OG image are separate uploads** — both go through
+  the same Vercel Blob flow as before (`ImageField.tsx`, generalized from
+  the old inline upload handler), but are independent fields
+  (`coverImageUrl` or `ogImage`) since a social-share crop and the
+  in-article/card image don't always want to be the same asset.
+- **Published date picker** is a plain `datetime-local` input, not a
+  calendar-widget library — styled to match, but no new dependency for
+  what's fundamentally "pick a date and time."
+- **Articles list**: `Featured` column is an instant-optimistic `Switch`
+  (via `useOptimistic`, same pattern as Phase 8's category delete);
+  `Categories` column is click-to-edit in place
+  (`CategoryQuickEdit.tsx` — a lighter popover than the editor's
+  `CategoryMultiSelect`, no "create new category" escape hatch, since a
+  list row is the wrong place to launch that flow); status/featured/
+  category filters plus search, all client-side over the already-fetched
+  list; row checkboxes + a bulk action bar (Publish/Unpublish/Delete)
+  that appears the moment anything is selected, also `useOptimistic` so
+  a bulk publish/delete reflects in the table instantly.
+- **New category creation, in-context**: `CategoryMultiSelect.tsx` (used
+  by the editor's sidebar) reuses Phase 8's `CategoryDialog` and
+  `createCategoryAction` directly rather than duplicating the create
+  form — "New category" in the popover opens the same dialog, and the
+  newly created category is immediately selected.
+- **Verified against the live Neon DB, not a fixture**: the full flow
+  (create with two categories + SEO fields + featured on → appears
+  correctly in the list → quick-edit categories → bulk unpublish → row
+  delete) was run against production data via Playwright. One real
+  published article got swept up in the bulk-unpublish test step and was
+  restored via direct SQL immediately after; the test admin account and
+  the test article itself were deleted afterward. No article content or
+  other site data was affected.
