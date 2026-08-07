@@ -138,6 +138,34 @@ export async function getArticleBySlug(slug: string): Promise<Article | undefine
   return row ? mapRow(row, labelBySlug) : undefined;
 }
 
+// Same category + recent first, topped up with other recent published
+// articles if the category doesn't have enough on its own — a story in a
+// thin category should still get a full rail of suggestions.
+export async function getRelatedArticles(article: Article, limit = 6): Promise<Article[]> {
+  const [sameCategoryRows, labelBySlug] = await Promise.all([
+    prisma.article.findMany({
+      where: { status: "PUBLISHED", categorySlug: article.categorySlug, id: { not: article.id } },
+      orderBy: { publishedAt: "desc" },
+      take: limit,
+    }),
+    categorySlugToLabel(),
+  ]);
+
+  const related = sameCategoryRows.map((row) => mapRow(row, labelBySlug));
+
+  if (related.length < limit) {
+    const excludeIds = [article.id, ...related.map((a) => a.id)];
+    const fillerRows = await prisma.article.findMany({
+      where: { status: "PUBLISHED", id: { notIn: excludeIds } },
+      orderBy: { publishedAt: "desc" },
+      take: limit - related.length,
+    });
+    related.push(...fillerRows.map((row) => mapRow(row, labelBySlug)));
+  }
+
+  return related;
+}
+
 export async function getArticlesByCategory(categorySlug: string): Promise<Article[]> {
   const [rows, labelBySlug] = await Promise.all([
     prisma.article.findMany({

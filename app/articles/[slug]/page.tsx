@@ -1,12 +1,19 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { headers } from "next/headers";
 import type { Metadata } from "next";
 import BreakingBar from "../../components/BreakingBar";
 import SiteHeader from "../../components/SiteHeader";
 import SiteFooter from "../../components/SiteFooter";
 import Sidebar from "../../components/Sidebar";
+import RelatedArticles from "../../components/RelatedArticles";
 import Badge from "../../components/ui/Badge";
-import { getArticleBySlug, getPublishedArticles } from "../../lib/articles";
+import LikeButton from "./LikeButton";
+import CommentSection from "./CommentSection";
+import { getArticleBySlug, getPublishedArticles, getRelatedArticles } from "../../lib/articles";
+import { getLikeCount, hasUserLiked } from "../../lib/likes";
+import { getApprovedCommentsForArticle } from "../../lib/comments";
+import { auth } from "../../lib/auth";
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -60,8 +67,24 @@ export async function generateStaticParams() {
 
 export default async function ArticlePage({ params }: Props) {
   const { slug } = await params;
-  const [article, allArticles] = await Promise.all([getArticleBySlug(slug), getPublishedArticles()]);
+  const [article, allArticles, session] = await Promise.all([
+    getArticleBySlug(slug),
+    getPublishedArticles(),
+    auth.api.getSession({ headers: await headers() }),
+  ]);
   if (!article) notFound();
+
+  const [likeCount, liked, comments, relatedArticles] = await Promise.all([
+    getLikeCount(article.id),
+    session ? hasUserLiked(article.id, session.user.id) : Promise.resolve(false),
+    getApprovedCommentsForArticle(article.id),
+    getRelatedArticles(article, 6),
+  ]);
+
+  const currentUser = session
+    ? { id: session.user.id, name: session.user.name, image: session.user.image ?? null }
+    : null;
+  const pagePath = `/articles/${article.slug}`;
 
   return (
     <>
@@ -108,6 +131,25 @@ export default async function ArticlePage({ params }: Props) {
               prose-img:rounded-control prose-img:border prose-img:border-[var(--color-hairline)]
               prose-a:transition-colors"
             dangerouslySetInnerHTML={{ __html: article.bodyHtml }}
+          />
+
+          <div className="mt-8 pt-6 border-t border-[var(--color-hairline)]">
+            <LikeButton
+              articleId={article.id}
+              initialCount={likeCount}
+              initialLiked={liked}
+              isSignedIn={Boolean(currentUser)}
+              signInRedirect={pagePath}
+            />
+          </div>
+
+          <RelatedArticles articles={relatedArticles} />
+
+          <CommentSection
+            articleId={article.id}
+            initialComments={comments}
+            currentUser={currentUser}
+            signInRedirect={pagePath}
           />
         </article>
         <div className="mt-10 lg:mt-0">
