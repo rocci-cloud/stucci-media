@@ -25,6 +25,18 @@ function isUniqueConstraintError(error: unknown): boolean {
   return error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002";
 }
 
+const MAX_LENGTHS = {
+  slug: 100,
+  headline: 200,
+  dek: 400,
+  author: 100,
+  seoTitle: 70,
+  seoDescription: 200,
+  seoKeywords: 300,
+} as const;
+
+const URL_RE = /^https?:\/\/.+/i;
+
 async function parseInput(formData: FormData): Promise<ArticleInput | { error: string }> {
   const slug = String(formData.get("slug") || "").trim();
   const categorySlugs = formData.getAll("categorySlugs").map(String).filter(Boolean);
@@ -45,6 +57,7 @@ async function parseInput(formData: FormData): Promise<ArticleInput | { error: s
   if (!slug || !/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug)) {
     return { error: "Slug must be lowercase letters, numbers, and hyphens only (e.g. my-article-title)." };
   }
+  if (slug.length > MAX_LENGTHS.slug) return { error: `Slug must be ${MAX_LENGTHS.slug} characters or fewer.` };
   if (categorySlugs.length === 0) {
     return { error: "Choose at least one category." };
   }
@@ -54,8 +67,27 @@ async function parseInput(formData: FormData): Promise<ArticleInput | { error: s
     return { error: "One or more selected categories no longer exist." };
   }
   if (!headline) return { error: "Headline is required." };
+  if (headline.length > MAX_LENGTHS.headline) {
+    return { error: `Headline must be ${MAX_LENGTHS.headline} characters or fewer.` };
+  }
   if (!dek) return { error: "Dek is required." };
+  if (dek.length > MAX_LENGTHS.dek) return { error: `Dek must be ${MAX_LENGTHS.dek} characters or fewer.` };
+  if (author.length > MAX_LENGTHS.author) {
+    return { error: `Author name must be ${MAX_LENGTHS.author} characters or fewer.` };
+  }
   if (!rawBody) return { error: "Body is required." };
+  if (seoTitle && seoTitle.length > MAX_LENGTHS.seoTitle) {
+    return { error: `SEO title must be ${MAX_LENGTHS.seoTitle} characters or fewer.` };
+  }
+  if (seoDescription && seoDescription.length > MAX_LENGTHS.seoDescription) {
+    return { error: `SEO description must be ${MAX_LENGTHS.seoDescription} characters or fewer.` };
+  }
+  if (seoKeywords && seoKeywords.length > MAX_LENGTHS.seoKeywords) {
+    return { error: `SEO keywords must be ${MAX_LENGTHS.seoKeywords} characters or fewer.` };
+  }
+  if (canonicalUrl && !URL_RE.test(canonicalUrl)) {
+    return { error: "Canonical URL must start with http:// or https://." };
+  }
 
   const bodyHtml = bodyInputToHtml(rawBody);
 

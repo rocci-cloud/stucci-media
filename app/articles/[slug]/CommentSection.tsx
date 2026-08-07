@@ -199,6 +199,12 @@ function CommentItem({
   );
 }
 
+// Mirrors MIN_COMMENT_LENGTH/MAX_COMMENT_LENGTH in actions.ts — the server
+// is the real enforcement, this is just so a user sees the limit before
+// hitting a rejected submit instead of after.
+const MIN_COMMENT_LENGTH = 2;
+const MAX_COMMENT_LENGTH = 2000;
+
 function CommentForm({
   articleId,
   parentId,
@@ -220,10 +226,14 @@ function CommentForm({
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
+  const trimmedLength = content.trim().length;
+  const tooShort = trimmedLength > 0 && trimmedLength < MIN_COMMENT_LENGTH;
+  const nearLimit = content.length > MAX_COMMENT_LENGTH - 200;
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const trimmed = content.trim();
-    if (!trimmed) return;
+    if (trimmed.length < MIN_COMMENT_LENGTH || trimmed.length > MAX_COMMENT_LENGTH) return;
     setError(null);
 
     const tempNode: CommentNode = {
@@ -259,18 +269,26 @@ function CommentForm({
         onChange={(e) => setContent(e.target.value)}
         autoFocus={autoFocus}
         required
+        maxLength={MAX_COMMENT_LENGTH}
         rows={compact ? 2 : 3}
         placeholder={parentId ? "Write a reply…" : "Share your thoughts…"}
         className="w-full rounded-control border border-[var(--color-hairline-strong)] px-3.5 py-3 font-sans text-[14px] resize-y focus:border-[var(--color-red)] transition-colors outline-none"
       />
-      <button
-        type="submit"
-        disabled={isPending || !content.trim()}
-        className="self-start min-h-11 inline-flex items-center gap-2 bg-[var(--color-red)] hover:bg-[var(--color-red-dark)] text-white text-[13px] font-bold uppercase tracking-wide px-5 rounded-control transition-colors disabled:opacity-50"
-      >
-        {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
-        {parentId ? "Post Reply" : "Post Comment"}
-      </button>
+      <div className="flex items-center justify-between gap-3">
+        <button
+          type="submit"
+          disabled={isPending || tooShort || trimmedLength === 0}
+          className="min-h-11 inline-flex items-center gap-2 bg-[var(--color-red)] hover:bg-[var(--color-red-dark)] text-white text-[13px] font-bold uppercase tracking-wide px-5 rounded-control transition-colors disabled:opacity-50"
+        >
+          {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+          {parentId ? "Post Reply" : "Post Comment"}
+        </button>
+        {nearLimit && (
+          <span className="font-sans text-[12px] text-[var(--color-gray)]">
+            {content.length}/{MAX_COMMENT_LENGTH}
+          </span>
+        )}
+      </div>
     </form>
   );
 }

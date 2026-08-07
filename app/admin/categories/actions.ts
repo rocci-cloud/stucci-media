@@ -25,6 +25,11 @@ function isUniqueConstraintError(error: unknown): boolean {
   return error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002";
 }
 
+const MAX_NAME_LENGTH = 60;
+const MAX_SLUG_LENGTH = 80;
+const MAX_DESCRIPTION_LENGTH = 300;
+const HEX_COLOR_RE = /^#[0-9a-fA-F]{6}$/;
+
 function parseInput(formData: FormData): CategoryInput | { error: string } {
   const name = String(formData.get("name") || "").trim();
   const rawSlug = String(formData.get("slug") || "").trim();
@@ -32,11 +37,19 @@ function parseInput(formData: FormData): CategoryInput | { error: string } {
   const color = String(formData.get("color") || "").trim() || null;
 
   if (!name) return { error: "Name is required." };
+  if (name.length > MAX_NAME_LENGTH) return { error: `Name must be ${MAX_NAME_LENGTH} characters or fewer.` };
+  if (description.length > MAX_DESCRIPTION_LENGTH) {
+    return { error: `Description must be ${MAX_DESCRIPTION_LENGTH} characters or fewer.` };
+  }
+  if (color && !HEX_COLOR_RE.test(color)) {
+    return { error: "Color must be a hex value like #c8102e." };
+  }
 
   const slug = slugify(rawSlug || name);
   if (!slug) {
     return { error: "Slug must contain at least one letter or number." };
   }
+  if (slug.length > MAX_SLUG_LENGTH) return { error: `Slug must be ${MAX_SLUG_LENGTH} characters or fewer.` };
 
   return { name, slug, description, color };
 }

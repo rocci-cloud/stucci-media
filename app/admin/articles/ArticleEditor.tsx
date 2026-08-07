@@ -105,6 +105,7 @@ export default function ArticleEditor({ article, categories: initialCategories, 
                 if (!slugTouched) setSlug(slugify(e.target.value));
               }}
               required
+              maxLength={200}
               placeholder="Article headline"
               className="h-auto border-none px-0 text-2xl font-bold shadow-none focus-visible:ring-0"
             />
@@ -118,6 +119,7 @@ export default function ArticleEditor({ article, categories: initialCategories, 
                   setSlugTouched(true);
                 }}
                 required
+                maxLength={100}
                 className="min-w-0 flex-1 border-b border-dashed border-transparent bg-transparent font-mono text-[13px] text-[var(--admin-fg)] outline-none hover:border-[var(--admin-border)] focus:border-[var(--admin-primary)]"
               />
             </div>
@@ -157,6 +159,7 @@ export default function ArticleEditor({ article, categories: initialCategories, 
                 value={dek}
                 onChange={(e) => setDek(e.target.value)}
                 required
+                maxLength={400}
                 rows={2}
                 placeholder="A one or two sentence summary — shown on cards and previews."
               />
@@ -171,7 +174,7 @@ export default function ArticleEditor({ article, categories: initialCategories, 
 
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="author">Author</Label>
-              <Input id="author" name="author" value={author} onChange={(e) => setAuthor(e.target.value)} />
+              <Input id="author" name="author" value={author} onChange={(e) => setAuthor(e.target.value)} maxLength={100} />
             </div>
           </div>
 
