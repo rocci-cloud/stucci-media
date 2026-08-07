@@ -26,9 +26,12 @@ import {
   AlertDialogTitle,
 } from "../components/ui/alert-dialog";
 import CategoryQuickEdit from "./CategoryQuickEdit";
+import BulkCategoryPicker from "./BulkCategoryPicker";
 import {
   bulkDeleteAction,
   bulkSetStatusAction,
+  bulkSetFeaturedAction,
+  bulkSetCategoriesAction,
   deleteArticleFromListAction,
   toggleFeaturedAction,
   updateArticleCategoriesAction,
@@ -45,6 +48,8 @@ type OptimisticAction =
   | { type: "bulkDelete"; ids: number[] }
   | { type: "featured"; id: number; value: boolean }
   | { type: "categories"; id: number; slugs: string[]; categories: Category[] }
+  | { type: "bulkCategories"; ids: number[]; slugs: string[]; categories: Category[] }
+  | { type: "bulkFeatured"; ids: number[]; value: boolean }
   | { type: "status"; ids: number[]; status: "draft" | "published" };
 
 function reducer(state: Article[], action: OptimisticAction): Article[] {
@@ -69,6 +74,22 @@ function reducer(state: Article[], action: OptimisticAction): Article[] {
             }
           : a
       );
+    case "bulkCategories":
+      return state.map((a) =>
+        action.ids.includes(a.id)
+          ? {
+              ...a,
+              categorySlugs: action.slugs,
+              categories: action.slugs.map(
+                (s) => action.categories.find((c) => c.slug === s)?.label ?? s
+              ),
+              categorySlug: action.slugs[0] ?? a.categorySlug,
+              category: action.categories.find((c) => c.slug === action.slugs[0])?.label ?? a.category,
+            }
+          : a
+      );
+    case "bulkFeatured":
+      return state.map((a) => (action.ids.includes(a.id) ? { ...a, isFeatured: action.value } : a));
     case "status":
       return state.map((a) => (action.ids.includes(a.id) ? { ...a, status: action.status } : a));
   }
@@ -222,6 +243,48 @@ export default function ArticlesClient({
     });
   }
 
+  function handleBulkFeatured(value: boolean) {
+    const ids = [...selected];
+    startTransition(async () => {
+      applyOptimistic({ type: "bulkFeatured", ids, value });
+      const result = await bulkSetFeaturedAction(ids, value);
+      if (result.success) {
+        setArticles((prev) => prev.map((a) => (ids.includes(a.id) ? { ...a, isFeatured: value } : a)));
+        toast.success(`${ids.length} article${ids.length === 1 ? "" : "s"} ${value ? "featured" : "unfeatured"}.`);
+        setSelected(new Set());
+      } else {
+        toast.error(result.error);
+      }
+    });
+  }
+
+  function handleBulkCategories(slugs: string[]) {
+    const ids = [...selected];
+    startTransition(async () => {
+      applyOptimistic({ type: "bulkCategories", ids, slugs, categories });
+      const result = await bulkSetCategoriesAction(ids, slugs);
+      if (result.success) {
+        setArticles((prev) =>
+          prev.map((a) =>
+            ids.includes(a.id)
+              ? {
+                  ...a,
+                  categorySlugs: slugs,
+                  categories: slugs.map((s) => categories.find((c) => c.slug === s)?.label ?? s),
+                  categorySlug: slugs[0] ?? a.categorySlug,
+                  category: categories.find((c) => c.slug === slugs[0])?.label ?? a.category,
+                }
+              : a
+          )
+        );
+        toast.success(`${ids.length} article${ids.length === 1 ? "" : "s"} recategorized.`);
+        setSelected(new Set());
+      } else {
+        toast.error(result.error);
+      }
+    });
+  }
+
   function confirmBulkDelete() {
     const ids = [...selected];
     setBulkDeleteOpen(false);
@@ -308,6 +371,14 @@ export default function ArticlesClient({
             </Button>
             <Button size="sm" variant="outline" onClick={() => handleBulkStatus("draft")} disabled={isPending}>
               Unpublish
+            </Button>
+            <BulkCategoryPicker categories={categories} disabled={isPending} onApply={handleBulkCategories} />
+            <Button size="sm" variant="outline" onClick={() => handleBulkFeatured(true)} disabled={isPending}>
+              <Sparkles className="h-4 w-4" />
+              Feature
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => handleBulkFeatured(false)} disabled={isPending}>
+              Unfeature
             </Button>
             <Button
               size="sm"

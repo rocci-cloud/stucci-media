@@ -307,6 +307,20 @@ export async function updateArticleCategories(id: number, categorySlugs: string[
   });
 }
 
+export async function bulkSetArticleFeatured(ids: number[], isFeatured: boolean): Promise<void> {
+  await prisma.article.updateMany({ where: { id: { in: ids } }, data: { isFeatured } });
+}
+
+export async function bulkUpdateArticleCategories(ids: number[], categorySlugs: string[]): Promise<void> {
+  if (categorySlugs.length === 0) throw new Error("Choose at least one category.");
+  await prisma.$transaction(async (tx) => {
+    await tx.article.updateMany({ where: { id: { in: ids } }, data: { categorySlug: categorySlugs[0] } });
+    for (const id of ids) {
+      await syncArticleCategories(tx, id, categorySlugs);
+    }
+  });
+}
+
 export async function bulkSetArticleStatus(ids: number[], status: "draft" | "published"): Promise<void> {
   const prismaStatus = toPrismaStatus(status);
   if (prismaStatus === "PUBLISHED") {

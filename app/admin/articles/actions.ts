@@ -10,6 +10,8 @@ import {
   toggleArticleFeatured,
   updateArticleCategories,
   bulkSetArticleStatus,
+  bulkSetArticleFeatured,
+  bulkUpdateArticleCategories,
   bulkDeleteArticles,
   type ArticleInput,
 } from "../../lib/articles";
@@ -183,5 +185,28 @@ export async function bulkDeleteAction(ids: number[]): Promise<ActionResult> {
     return { success: true };
   } catch {
     return { success: false, error: "Something went wrong deleting those articles." };
+  }
+}
+
+export async function bulkSetFeaturedAction(ids: number[], isFeatured: boolean): Promise<ActionResult> {
+  try {
+    await bulkSetArticleFeatured(ids, isFeatured);
+    revalidatePath("/", "layout");
+    return { success: true };
+  } catch {
+    return { success: false, error: "Something went wrong updating those articles." };
+  }
+}
+
+export async function bulkSetCategoriesAction(ids: number[], categorySlugs: string[]): Promise<ActionResult> {
+  if (categorySlugs.length === 0) {
+    return { success: false, error: "Choose at least one category." };
+  }
+  try {
+    await bulkUpdateArticleCategories(ids, categorySlugs);
+    revalidatePath("/", "layout");
+    return { success: true };
+  } catch {
+    return { success: false, error: "Something went wrong updating those categories." };
   }
 }
