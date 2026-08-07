@@ -26,6 +26,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title: `${category.label} | Stucci Media`,
       description: category.description,
       type: "website",
+      images: ["/og-default.png"],
     },
   };
 }
