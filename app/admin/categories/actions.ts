@@ -12,6 +12,7 @@ import {
 } from "../../lib/categories";
 import { slugify } from "../../lib/slugify";
 import { requireAdminSession } from "../../lib/require-admin";
+import { logActivity } from "../../lib/activity";
 
 export type CategoryActionResult =
   | { success: true; category: Category }
@@ -55,12 +56,14 @@ function parseInput(formData: FormData): CategoryInput | { error: string } {
 }
 
 export async function createCategoryAction(formData: FormData): Promise<CategoryActionResult> {
-  if (!(await requireAdminSession())) return UNAUTHORIZED;
+  const session = await requireAdminSession();
+  if (!session) return UNAUTHORIZED;
   const input = parseInput(formData);
   if ("error" in input) return { success: false, error: input.error };
 
   try {
     const category = await createCategory(input);
+    await logActivity({ actor: session.user, action: "category.created", targetType: "category", targetLabel: category.label });
     revalidatePath("/", "layout");
     return { success: true, category };
   } catch (error) {
@@ -75,12 +78,14 @@ export async function updateCategoryAction(
   id: string,
   formData: FormData
 ): Promise<CategoryActionResult> {
-  if (!(await requireAdminSession())) return UNAUTHORIZED;
+  const session = await requireAdminSession();
+  if (!session) return UNAUTHORIZED;
   const input = parseInput(formData);
   if ("error" in input) return { success: false, error: input.error };
 
   try {
     const category = await updateCategory(id, input);
+    await logActivity({ actor: session.user, action: "category.updated", targetType: "category", targetLabel: category.label });
     revalidatePath("/", "layout");
     return { success: true, category };
   } catch (error) {
@@ -92,7 +97,8 @@ export async function updateCategoryAction(
 }
 
 export async function deleteCategoryAction(id: string, slug: string): Promise<DeleteCategoryResult> {
-  if (!(await requireAdminSession())) return UNAUTHORIZED;
+  const session = await requireAdminSession();
+  if (!session) return UNAUTHORIZED;
   const articleCount = await getCategoryArticleCount(slug);
   if (articleCount > 0) {
     return {
@@ -103,6 +109,7 @@ export async function deleteCategoryAction(id: string, slug: string): Promise<De
 
   try {
     await deleteCategory(id);
+    await logActivity({ actor: session.user, action: "category.deleted", targetType: "category", targetLabel: slug });
     revalidatePath("/", "layout");
     return { success: true };
   } catch {

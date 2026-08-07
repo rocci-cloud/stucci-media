@@ -3,16 +3,19 @@ import { FileText, FolderTree, Mail, CheckCircle2, PenLine } from "lucide-react"
 import { getAllArticlesAdmin } from "../lib/articles";
 import { getCategories } from "../lib/categories";
 import { getAllSubscribers } from "../lib/subscribers";
+import { getRecentActivity } from "../lib/activity";
 import { Card, CardContent } from "./components/ui/card";
 import { Badge } from "./components/ui/badge";
+import ActivityFeed from "./components/ActivityFeed";
 
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
-  const [articles, categories, subscribers] = await Promise.all([
+  const [articles, categories, subscribers, activity] = await Promise.all([
     getAllArticlesAdmin(),
     getCategories(),
     getAllSubscribers(),
+    getRecentActivity(8),
   ]);
 
   const published = articles.filter((a) => a.status === "published").length;
@@ -50,40 +53,49 @@ export default async function DashboardPage() {
         })}
       </div>
 
-      <Card>
-        <div className="flex items-center justify-between border-b border-[var(--admin-border)] px-5 py-4">
-          <h2 className="text-sm font-semibold text-[var(--admin-fg)]">Recently updated</h2>
-          <Link href="/admin/articles" className="text-[13px] font-medium text-[var(--admin-primary)] hover:underline">
-            View all →
-          </Link>
-        </div>
-        {recent.length === 0 ? (
-          <div className="px-5 py-10 text-center text-[13px] text-[var(--admin-fg-muted)]">
-            No articles yet — <Link href="/admin/articles/new" className="text-[var(--admin-primary)] hover:underline">write your first one</Link>.
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <Card>
+          <div className="flex items-center justify-between border-b border-[var(--admin-border)] px-5 py-4">
+            <h2 className="text-sm font-semibold text-[var(--admin-fg)]">Recently updated</h2>
+            <Link href="/admin/articles" className="text-[13px] font-medium text-[var(--admin-primary)] hover:underline">
+              View all →
+            </Link>
           </div>
-        ) : (
-          <ul className="divide-y divide-[var(--admin-border)]">
-            {recent.map((article) => (
-              <li key={article.id}>
-                <Link
-                  href={`/admin/articles/${article.id}/edit`}
-                  className="flex items-center justify-between gap-4 px-5 py-3.5 transition-colors hover:bg-[var(--admin-bg-subtle)]/60"
-                >
-                  <div className="min-w-0">
-                    <div className="truncate text-sm font-medium text-[var(--admin-fg)]">{article.headline}</div>
-                    <div className="text-[12.5px] text-[var(--admin-fg-muted)]">
-                      {article.category} · {article.date}
+          {recent.length === 0 ? (
+            <div className="px-5 py-10 text-center text-[13px] text-[var(--admin-fg-muted)]">
+              No articles yet — <Link href="/admin/articles/new" className="text-[var(--admin-primary)] hover:underline">write your first one</Link>.
+            </div>
+          ) : (
+            <ul className="divide-y divide-[var(--admin-border)]">
+              {recent.map((article) => (
+                <li key={article.id}>
+                  <Link
+                    href={`/admin/articles/${article.id}/edit`}
+                    className="flex items-center justify-between gap-4 px-5 py-3.5 transition-colors hover:bg-[var(--admin-bg-subtle)]/60"
+                  >
+                    <div className="min-w-0">
+                      <div className="truncate text-sm font-medium text-[var(--admin-fg)]">{article.headline}</div>
+                      <div className="text-[12.5px] text-[var(--admin-fg-muted)]">
+                        {article.category} · {article.date}
+                      </div>
                     </div>
-                  </div>
-                  <Badge variant={article.status === "published" ? "success" : "outline"} className="shrink-0">
-                    {article.status}
-                  </Badge>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
-      </Card>
+                    <Badge variant={article.status === "published" ? "success" : "outline"} className="shrink-0">
+                      {article.status}
+                    </Badge>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Card>
+
+        <Card>
+          <div className="border-b border-[var(--admin-border)] px-5 py-4">
+            <h2 className="text-sm font-semibold text-[var(--admin-fg)]">Recent activity</h2>
+          </div>
+          <ActivityFeed entries={activity} />
+        </Card>
+      </div>
     </div>
   );
 }

@@ -116,3 +116,10 @@ export async function setCommentApproved(id: string, isApproved: boolean): Promi
 export async function deleteCommentAdmin(id: string): Promise<void> {
   await prisma.comment.delete({ where: { id } });
 }
+
+// Short preview for activity-log labels — not meant for display anywhere else.
+export async function getCommentPreview(id: string): Promise<string | null> {
+  const row = await prisma.comment.findUnique({ where: { id }, select: { content: true } });
+  if (!row) return null;
+  return row.content.length > 60 ? `${row.content.slice(0, 60)}…` : row.content;
+}
