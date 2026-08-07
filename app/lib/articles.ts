@@ -11,7 +11,7 @@ export type Article = {
   author: string;
   date: string;
   readTime: string;
-  body: string[];
+  bodyHtml: string;
   coverImageUrl: string | null;
   status: "draft" | "published";
 };
@@ -22,7 +22,7 @@ export type ArticleInput = {
   headline: string;
   dek: string;
   author: string;
-  body: string; // raw textarea value — paragraphs separated by a blank line
+  bodyHtml: string; // sanitized HTML — rendered as-is via dangerouslySetInnerHTML
   coverImageUrl: string | null;
   status: "draft" | "published";
 };
@@ -53,8 +53,9 @@ function formatDate(value: string | null) {
   });
 }
 
-function estimateReadTime(body: string) {
-  const words = body.trim().split(/\s+/).filter(Boolean).length;
+function estimateReadTime(bodyHtml: string) {
+  const text = bodyHtml.replace(/<[^>]+>/g, " ");
+  const words = text.trim().split(/\s+/).filter(Boolean).length;
   const minutes = Math.max(1, Math.round(words / WORDS_PER_MINUTE));
   return `${minutes} min read`;
 }
@@ -70,10 +71,7 @@ function mapRow(row: ArticleRow): Article {
     author: row.author,
     date: formatDate(row.published_at ?? row.created_at),
     readTime: estimateReadTime(row.body),
-    body: row.body
-      .split(/\n\s*\n/)
-      .map((p) => p.trim())
-      .filter(Boolean),
+    bodyHtml: row.body,
     coverImageUrl: row.cover_image_url,
     status: row.status,
   };
@@ -123,7 +121,7 @@ export async function createArticle(input: ArticleInput): Promise<Article> {
     insert into articles (slug, category_slug, headline, dek, author, body, cover_image_url, status, published_at)
     values (
       ${input.slug}, ${input.categorySlug}, ${input.headline}, ${input.dek}, ${input.author},
-      ${input.body}, ${input.coverImageUrl}, ${input.status},
+      ${input.bodyHtml}, ${input.coverImageUrl}, ${input.status},
       case when ${input.status} = 'published' then now() else null end
     )
     returning *
@@ -139,7 +137,7 @@ export async function updateArticle(id: number, input: ArticleInput): Promise<Ar
       headline = ${input.headline},
       dek = ${input.dek},
       author = ${input.author},
-      body = ${input.body},
+      body = ${input.bodyHtml},
       cover_image_url = ${input.coverImageUrl},
       status = ${input.status},
       published_at = case

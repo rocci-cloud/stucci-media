@@ -6,6 +6,7 @@ import Link from "next/link";
 const NAV_LINKS = [
   { label: "Political News", href: "/category/political-news" },
   { label: "World News", href: "/category/world-news" },
+  { label: "Opinion & Analysis", href: "/category/opinion-analysis" },
   { label: "Podcasts", href: "/category/podcasts" },
   { label: "Social Issues", href: "/category/social-issues" },
   { label: "Crime & Investigation", href: "/category/crime-investigation" },
