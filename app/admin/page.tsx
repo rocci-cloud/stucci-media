@@ -12,6 +12,9 @@ export default async function AdminDashboard() {
       <div className="flex items-center justify-between mb-8">
         <h1 className="font-headline text-[28px] font-black">Articles</h1>
         <div className="flex items-center gap-5">
+          <Link href="/admin/subscribers" className="text-sm font-bold uppercase text-[var(--color-gray)] hover:text-[var(--color-text)]">
+            Subscribers
+          </Link>
           <Link
             href="/admin/articles/new"
             className="bg-[var(--color-red)] hover:bg-[var(--color-red-dark)] text-white text-sm font-bold uppercase tracking-wide px-4 py-2.5 rounded-sm"
