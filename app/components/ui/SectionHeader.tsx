@@ -16,7 +16,7 @@ type SectionHeaderProps = {
 export default function SectionHeader({
   title,
   href,
-  linkLabel = "More",
+  linkLabel = "View All",
   variant = "underline",
   className = "",
 }: SectionHeaderProps) {
@@ -38,7 +38,7 @@ export default function SectionHeader({
       {href && (
         <Link
           href={href}
-          className="shrink-0 min-h-11 flex items-center font-sans text-[11.5px] font-bold uppercase text-[var(--color-red)] hover:text-[var(--color-red-dark)] transition-colors whitespace-nowrap"
+          className="shrink-0 min-h-11 inline-flex items-center gap-1 font-sans text-[11.5px] font-bold uppercase text-[var(--color-red)] border border-[var(--color-red)] rounded-control px-3.5 hover:bg-[var(--color-red)] hover:text-white active:bg-[var(--color-red-dark)] active:border-[var(--color-red-dark)] active:text-white transition-colors whitespace-nowrap"
         >
           {linkLabel} →
         </Link>

@@ -60,26 +60,33 @@ export default function ArticleCard({ article, variant = "grid", rank }: Article
   return (
     <Link
       href={`/articles/${article.slug}`}
-      className="block group rounded-card overflow-hidden bg-white border border-[var(--color-hairline)] shadow-card hover:shadow-card-hover transition-shadow duration-200"
+      className="min-h-11 block group rounded-card overflow-hidden bg-white border border-[var(--color-hairline)] shadow-card hover:shadow-card-hover active:shadow-card-hover transition-shadow duration-200"
     >
       {article.coverImageUrl ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={article.coverImageUrl}
           alt={article.headline}
-          className="aspect-[4/3] w-full object-cover"
+          className="aspect-[16/9] w-full object-cover"
         />
       ) : (
-        <div className="aspect-[4/3] bg-[#E5E4E0]" />
+        <div className="aspect-[16/9] bg-[#E5E4E0]" />
       )}
-      <div className="p-3.5">
-        <Badge variant="text" className="mb-1.5">
+      <div className="p-4">
+        <Badge variant="text" className="mb-2">
           {article.category}
         </Badge>
-        <div className="font-headline text-[16px] sm:text-[17px] font-bold leading-[1.25] mb-1.5 group-hover:text-[var(--color-red)] transition-colors">
+        <div className="font-headline text-[16px] sm:text-[17px] font-bold leading-[1.25] mb-1.5 line-clamp-2 group-hover:text-[var(--color-red)] transition-colors">
           {article.headline}
         </div>
-        <p className="text-[13.5px] text-[var(--color-gray)] leading-[1.5] line-clamp-2">{article.dek}</p>
+        <p className="text-[13.5px] text-[var(--color-gray)] leading-[1.5] line-clamp-2 mb-3">{article.dek}</p>
+        <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 font-sans text-[11px] text-[var(--color-gray-light)] pt-3 border-t border-[var(--color-hairline)]">
+          <span className="font-bold text-[var(--color-text)]">{article.author}</span>
+          <span>·</span>
+          <span>{article.date}</span>
+          <span>·</span>
+          <span>{article.readTime}</span>
+        </div>
       </div>
     </Link>
   );

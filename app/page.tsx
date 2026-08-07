@@ -38,11 +38,12 @@ export default async function HomePage() {
         </div>
 
         <div className="mx-auto max-w-[1280px] px-5 py-2 grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-x-10">
-          <div>
-            {categories.map((category) => (
+          <div className="flex flex-col gap-1">
+            {categories.map((category, index) => (
               <TopicRail
                 key={category.slug}
                 category={category}
+                alternate={index % 2 === 1}
                 articles={articles
                   .filter((a) => a.categorySlug === category.slug && a.slug !== lead.slug)
                   .slice(0, 4)}
