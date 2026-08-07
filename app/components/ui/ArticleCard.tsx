@@ -33,23 +33,25 @@ export default function ArticleCard({ article, variant = "grid", rank }: Article
     return (
       <Link
         href={`/articles/${article.slug}`}
-        className="flex gap-3 px-3.5 py-3 min-h-11 group active:bg-[var(--color-bg-off)] transition-colors"
+        className="flex gap-3.5 px-4 py-3.5 min-h-11 group active:bg-[var(--color-bg-off)] transition-colors"
       >
         {article.coverImageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={article.coverImageUrl}
             alt={article.headline}
-            className="w-[76px] h-[58px] object-cover rounded-control border border-[var(--color-hairline)] shrink-0"
+            className="w-[84px] h-[64px] object-cover rounded-control shadow-sm shrink-0"
           />
         ) : (
-          <div className="w-[76px] h-[58px] bg-[#E5E4E0] rounded-control border border-[var(--color-hairline)] shrink-0" />
+          <div className="w-[84px] h-[64px] bg-[#E5E4E0] rounded-control shrink-0" />
         )}
-        <div className="min-w-0">
-          <div className="font-headline text-[14.5px] font-bold leading-[1.25] group-hover:text-[var(--color-red)] transition-colors line-clamp-3">
+        <div className="min-w-0 flex flex-col justify-center">
+          <div className="font-headline text-[14.5px] font-bold leading-[1.3] tracking-[-0.005em] group-hover:text-[var(--color-red)] transition-colors line-clamp-3">
             {article.headline}
           </div>
-          <div className="font-sans text-[11px] text-[var(--color-gray-light)] mt-1">{article.date}</div>
+          <div className="font-sans text-[11px] font-medium text-[var(--color-gray-light)] mt-1.5 uppercase tracking-wide">
+            {article.date}
+          </div>
         </div>
       </Link>
     );
