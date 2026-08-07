@@ -3,11 +3,13 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import SiteHeader from "../../components/SiteHeader";
 import SiteFooter from "../../components/SiteFooter";
-import { articles, getArticleBySlug } from "../../lib/articles";
+import { getArticleBySlug, getPublishedArticles } from "../../lib/articles";
 
 type Props = {
   params: Promise<{ slug: string }>;
 };
+
+export const revalidate = 60;
 
 // --- THIS is the fix for the Base44/Lovable social-share bug ---
 // This function runs on the SERVER, per article, before the page
@@ -17,8 +19,10 @@ type Props = {
 // this had to be a Next.js/SSR app and not a client-rendered SPA.
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const article = getArticleBySlug(slug);
+  const article = await getArticleBySlug(slug);
   if (!article) return {};
+
+  const image = article.coverImageUrl ?? "/og-default.png";
 
   return {
     title: article.headline,
@@ -29,25 +33,31 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       type: "article",
       publishedTime: article.date,
       authors: [article.author],
-      // Swapped for the real per-article cover image in Phase 2
-      images: ["/og-default.png"],
+      images: [image],
     },
     twitter: {
       card: "summary_large_image",
       title: article.headline,
       description: article.dek,
-      images: ["/og-default.png"],
+      images: [image],
     },
   };
 }
 
-export function generateStaticParams() {
-  return articles.map((a) => ({ slug: a.slug }));
+export async function generateStaticParams() {
+  // If the DB isn't reachable at build time, fall back to rendering
+  // every article on-demand instead of failing the whole build.
+  try {
+    const articles = await getPublishedArticles();
+    return articles.map((a) => ({ slug: a.slug }));
+  } catch {
+    return [];
+  }
 }
 
 export default async function ArticlePage({ params }: Props) {
   const { slug } = await params;
-  const article = getArticleBySlug(slug);
+  const article = await getArticleBySlug(slug);
   if (!article) notFound();
 
   return (
@@ -73,7 +83,16 @@ export default async function ArticlePage({ params }: Props) {
           <span>{article.date}</span>
           <span>{article.readTime}</span>
         </div>
-        <div className="w-full aspect-video bg-[#E5E4E0] border border-[var(--color-hairline)] mb-7" />
+        {article.coverImageUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={article.coverImageUrl}
+            alt={article.headline}
+            className="w-full aspect-video object-cover border border-[var(--color-hairline)] mb-7"
+          />
+        ) : (
+          <div className="w-full aspect-video bg-[#E5E4E0] border border-[var(--color-hairline)] mb-7" />
+        )}
         <article className="text-[17px] sm:text-[19px] leading-[1.75]">
           {article.body.map((paragraph, i) => (
             <p key={i} className="mb-5">

@@ -92,22 +92,45 @@ a ☰ toggle below `sm`.
 Homepage, article template with per-article OG/Twitter metadata, all 6
 category pages, search, About/Contact/Privacy, deployed.
 
-## Phase 2 — next: a real article editor
+## Phase 2 — done: the article editor
 
-The goal: Rocci can write, edit, and publish articles from a browser without
-anyone touching code or running a deploy.
+Rocci can write, edit, and publish articles from `/admin` without touching
+code or running a deploy.
 
-What it needs:
-- A database for articles (replacing the array in `lib/articles.ts` — keep
-  the `Article` shape or migrate the components deliberately)
-- An admin route with login, so only Rocci can reach the editor
-- Write/edit UI: headline, dek, category picker, body, author, date, plus
-  draft vs. published state
-- Image upload for cover images — then swap the `/og-default.png` fallback
-  in `generateMetadata()` for the real per-article image, and replace the
-  `#E5E4E0` placeholder blocks
-- Revalidation so a publish shows up on the live site without a redeploy
-  (article and category pages currently use `generateStaticParams`)
+- **Database**: Neon Postgres, one `articles` table (`scripts/schema.sql`).
+  `app/lib/db.ts` opens the connection via `@neondatabase/serverless` using
+  `DATABASE_URL`. `app/lib/articles.ts` now reads/writes the DB instead of
+  exporting a hardcoded array — the `Article` type gained `id`, `status`,
+  and `coverImageUrl`, but every existing component still works against it
+  unchanged. `category` (label) and `readTime` are computed at read time
+  rather than stored.
+- **Admin auth**: single admin, no user table. `ADMIN_USERNAME` +
+  `ADMIN_PASSWORD_HASH` (generate with `npm run admin:hash-password --
+  "password"`) gate a login form at `/admin/login`. A signed JWT session
+  cookie (`app/lib/session.ts`, via `jose`) is checked by `middleware.ts`
+  for every `/admin/*` route. Password hashing (`app/lib/password.ts`,
+  Node's `scrypt`) is kept out of `session.ts` deliberately — middleware
+  runs on the edge runtime and can't use `node:crypto`.
+- **Editor UI**: `/admin` lists all articles (draft + published); `/admin/
+  articles/new` and `/admin/articles/[id]/edit` share `ArticleForm.tsx`.
+  Server actions in `app/admin/articles/actions.ts` validate and write,
+  then `revalidatePath("/", "layout")` so the change is live immediately.
+- **Image upload**: Vercel Blob. `ArticleForm.tsx` uploads client-side via
+  `@vercel/blob/client`'s `upload()`, authorized by `app/api/admin/upload/
+  route.ts` (checks the admin session before minting a token). The
+  resulting URL fills `coverImageUrl` and replaces the `/og-default.png`
+  fallback in `generateMetadata()` and the `#E5E4E0` placeholder blocks
+  when set.
+- **Revalidation**: article/category/home pages use `generateStaticParams`
+  + `revalidate = 60` as a fallback, but the real trigger is the
+  `revalidatePath` call after every admin write.
+
+Setup for a fresh environment: add the Neon and Vercel Blob integrations
+in the Vercel dashboard's Storage tab (this injects `DATABASE_URL` and
+`BLOB_READ_WRITE_TOKEN`), set `ADMIN_USERNAME`, `ADMIN_PASSWORD_HASH`, and
+`SESSION_SECRET`, then run `npm run db:migrate` (and optionally `npm run
+db:seed` to load the original placeholder articles) with those env vars
+pulled locally via `vercel env pull .env.local`.
 
 Phase 3 (later): the subscribe form in `SubscribeStrip.tsx` is inert markup
 — wire it to a subscriber list with CSV export from the admin panel.
