@@ -12,6 +12,7 @@
     "db:seed": "node --env-file=.env.local scripts/seed.mjs",
     "db:seed-categories": "node --env-file=.env.local scripts/seed-categories.mjs",
     "admin:promote": "node --env-file=.env.local scripts/promote-admin.mjs",
+    "images:rehost": "node --env-file=.env.local scripts/rehost-images.mjs",
     "prisma:generate": "prisma generate"
   },
   "dependencies": {
