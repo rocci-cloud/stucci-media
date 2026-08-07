@@ -171,7 +171,7 @@ let updated = 0;
 for (const a of articles) {
   const rows = await sql`
     insert into articles (slug, category_slug, headline, dek, author, body, cover_image_url, status, published_at)
-    values (${a.slug}, ${a.categorySlug}, ${a.headline}, ${a.dek}, 'Rocci Stucci', ${a.bodyHtml}, ${a.coverImageUrl}, 'published', ${a.publishedAt})
+    values (${a.slug}, ${a.categorySlug}, ${a.headline}, ${a.dek}, 'Rocci Stucci', ${a.bodyHtml}, ${a.coverImageUrl}, 'PUBLISHED', ${a.publishedAt})
     on conflict (slug) do update set
       category_slug = excluded.category_slug,
       headline = excluded.headline,

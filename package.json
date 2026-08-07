@@ -3,20 +3,27 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "postinstall": "prisma generate",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "db:migrate": "node --env-file=.env.local scripts/migrate.mjs",
+    "db:migrate:prisma": "node --env-file=.env.local scripts/apply-prisma-migration.mjs",
     "db:seed": "node --env-file=.env.local scripts/seed.mjs",
-    "admin:hash-password": "node scripts/hash-password.mjs"
+    "db:seed-categories": "node --env-file=.env.local scripts/seed-categories.mjs",
+    "admin:promote": "node --env-file=.env.local scripts/promote-admin.mjs",
+    "prisma:generate": "prisma generate"
   },
   "dependencies": {
     "@fontsource/oswald": "^5.3.0",
     "@neondatabase/serverless": "^1.1.0",
+    "@prisma/adapter-neon": "^6.19.3",
+    "@prisma/client": "^6.19.3",
     "@tailwindcss/typography": "^0.5.20",
     "@vercel/blob": "^2.7.0",
-    "jose": "^6.2.8",
+    "better-auth": "^1.6.26",
     "next": "16.3.0",
+    "prisma": "^6.19.3",
     "react": "19.2.8",
     "react-dom": "19.2.8"
   },

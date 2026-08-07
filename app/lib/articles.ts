@@ -1,5 +1,6 @@
-import { sql } from "./db";
-import { getCategoryBySlug } from "./categories";
+import { prisma } from "./prisma";
+import { getCategories } from "./categories";
+import type { Article as PrismaArticle, ArticleStatus } from "@prisma/client";
 
 export type Article = {
   id: number;
@@ -14,6 +15,8 @@ export type Article = {
   bodyHtml: string;
   coverImageUrl: string | null;
   status: "draft" | "published";
+  isFeatured: boolean;
+  viewCount: number;
 };
 
 export type ArticleInput = {
@@ -27,30 +30,11 @@ export type ArticleInput = {
   status: "draft" | "published";
 };
 
-type ArticleRow = {
-  id: number;
-  slug: string;
-  category_slug: string;
-  headline: string;
-  dek: string;
-  author: string;
-  body: string;
-  cover_image_url: string | null;
-  status: "draft" | "published";
-  published_at: string | null;
-  created_at: string;
-  updated_at: string;
-};
-
 const WORDS_PER_MINUTE = 200;
 
-function formatDate(value: string | null) {
+function formatDate(value: Date | null) {
   if (!value) return "";
-  return new Date(value).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
+  return value.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
 }
 
 function estimateReadTime(bodyHtml: string) {
@@ -60,98 +44,133 @@ function estimateReadTime(bodyHtml: string) {
   return `${minutes} min read`;
 }
 
-function mapRow(row: ArticleRow): Article {
+function toStatus(status: ArticleStatus): "draft" | "published" {
+  return status === "PUBLISHED" ? "published" : "draft";
+}
+
+function toPrismaStatus(status: "draft" | "published"): ArticleStatus {
+  return status === "published" ? "PUBLISHED" : "DRAFT";
+}
+
+async function categorySlugToLabel(): Promise<Map<string, string>> {
+  const cats = await getCategories();
+  return new Map(cats.map((c) => [c.slug, c.label]));
+}
+
+function mapRow(row: PrismaArticle, labelBySlug: Map<string, string>): Article {
   return {
     id: row.id,
     slug: row.slug,
-    categorySlug: row.category_slug,
-    category: getCategoryBySlug(row.category_slug)?.label ?? row.category_slug,
+    categorySlug: row.categorySlug,
+    category: labelBySlug.get(row.categorySlug) ?? row.categorySlug,
     headline: row.headline,
     dek: row.dek,
     author: row.author,
-    date: formatDate(row.published_at ?? row.created_at),
+    date: formatDate(row.publishedAt ?? row.createdAt),
     readTime: estimateReadTime(row.body),
     bodyHtml: row.body,
-    coverImageUrl: row.cover_image_url,
-    status: row.status,
+    coverImageUrl: row.coverImageUrl,
+    status: toStatus(row.status),
+    isFeatured: row.isFeatured,
+    viewCount: row.viewCount,
   };
 }
 
 // --- Public reads (published only) ---
 
 export async function getPublishedArticles(): Promise<Article[]> {
-  const rows = (await sql`
-    select * from articles where status = 'published' order by published_at desc
-  `) as ArticleRow[];
-  return rows.map(mapRow);
+  const [rows, labelBySlug] = await Promise.all([
+    prisma.article.findMany({ where: { status: "PUBLISHED" }, orderBy: { publishedAt: "desc" } }),
+    categorySlugToLabel(),
+  ]);
+  return rows.map((row) => mapRow(row, labelBySlug));
 }
 
 export async function getArticleBySlug(slug: string): Promise<Article | undefined> {
-  const rows = (await sql`
-    select * from articles where slug = ${slug} and status = 'published' limit 1
-  `) as ArticleRow[];
-  return rows[0] ? mapRow(rows[0]) : undefined;
+  const [row, labelBySlug] = await Promise.all([
+    prisma.article.findFirst({ where: { slug, status: "PUBLISHED" } }),
+    categorySlugToLabel(),
+  ]);
+  return row ? mapRow(row, labelBySlug) : undefined;
 }
 
 export async function getArticlesByCategory(categorySlug: string): Promise<Article[]> {
-  const rows = (await sql`
-    select * from articles where category_slug = ${categorySlug} and status = 'published' order by published_at desc
-  `) as ArticleRow[];
-  return rows.map(mapRow);
+  const [rows, labelBySlug] = await Promise.all([
+    prisma.article.findMany({
+      where: { categorySlug, status: "PUBLISHED" },
+      orderBy: { publishedAt: "desc" },
+    }),
+    categorySlugToLabel(),
+  ]);
+  return rows.map((row) => mapRow(row, labelBySlug));
 }
 
 // --- Admin reads (all statuses) ---
 
 export async function getAllArticlesAdmin(): Promise<Article[]> {
-  const rows = (await sql`
-    select * from articles order by updated_at desc
-  `) as ArticleRow[];
-  return rows.map(mapRow);
+  const [rows, labelBySlug] = await Promise.all([
+    prisma.article.findMany({ orderBy: { updatedAt: "desc" } }),
+    categorySlugToLabel(),
+  ]);
+  return rows.map((row) => mapRow(row, labelBySlug));
 }
 
 export async function getArticleByIdAdmin(id: number): Promise<Article | undefined> {
-  const rows = (await sql`select * from articles where id = ${id} limit 1`) as ArticleRow[];
-  return rows[0] ? mapRow(rows[0]) : undefined;
+  const [row, labelBySlug] = await Promise.all([
+    prisma.article.findUnique({ where: { id } }),
+    categorySlugToLabel(),
+  ]);
+  return row ? mapRow(row, labelBySlug) : undefined;
 }
 
 // --- Admin writes ---
 
 export async function createArticle(input: ArticleInput): Promise<Article> {
-  const rows = (await sql`
-    insert into articles (slug, category_slug, headline, dek, author, body, cover_image_url, status, published_at)
-    values (
-      ${input.slug}, ${input.categorySlug}, ${input.headline}, ${input.dek}, ${input.author},
-      ${input.bodyHtml}, ${input.coverImageUrl}, ${input.status},
-      case when ${input.status} = 'published' then now() else null end
-    )
-    returning *
-  `) as ArticleRow[];
-  return mapRow(rows[0]);
+  const status = toPrismaStatus(input.status);
+  const [row, labelBySlug] = await Promise.all([
+    prisma.article.create({
+      data: {
+        slug: input.slug,
+        categorySlug: input.categorySlug,
+        headline: input.headline,
+        dek: input.dek,
+        author: input.author,
+        body: input.bodyHtml,
+        coverImageUrl: input.coverImageUrl,
+        status,
+        publishedAt: status === "PUBLISHED" ? new Date() : null,
+      },
+    }),
+    categorySlugToLabel(),
+  ]);
+  return mapRow(row, labelBySlug);
 }
 
 export async function updateArticle(id: number, input: ArticleInput): Promise<Article> {
-  const rows = (await sql`
-    update articles set
-      slug = ${input.slug},
-      category_slug = ${input.categorySlug},
-      headline = ${input.headline},
-      dek = ${input.dek},
-      author = ${input.author},
-      body = ${input.bodyHtml},
-      cover_image_url = ${input.coverImageUrl},
-      status = ${input.status},
-      published_at = case
-        when ${input.status} = 'published' and published_at is null then now()
-        when ${input.status} = 'published' then published_at
-        else null
-      end,
-      updated_at = now()
-    where id = ${id}
-    returning *
-  `) as ArticleRow[];
-  return mapRow(rows[0]);
+  const status = toPrismaStatus(input.status);
+  const existing = await prisma.article.findUnique({ where: { id }, select: { publishedAt: true } });
+  const publishedAt = status === "PUBLISHED" ? existing?.publishedAt ?? new Date() : null;
+
+  const [row, labelBySlug] = await Promise.all([
+    prisma.article.update({
+      where: { id },
+      data: {
+        slug: input.slug,
+        categorySlug: input.categorySlug,
+        headline: input.headline,
+        dek: input.dek,
+        author: input.author,
+        body: input.bodyHtml,
+        coverImageUrl: input.coverImageUrl,
+        status,
+        publishedAt,
+      },
+    }),
+    categorySlugToLabel(),
+  ]);
+  return mapRow(row, labelBySlug);
 }
 
 export async function deleteArticle(id: number): Promise<void> {
-  await sql`delete from articles where id = ${id}`;
+  await prisma.article.delete({ where: { id } });
 }

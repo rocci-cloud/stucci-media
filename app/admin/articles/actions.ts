@@ -2,13 +2,18 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { Prisma } from "@prisma/client";
 import { createArticle, updateArticle, deleteArticle, type ArticleInput } from "../../lib/articles";
-import { categories } from "../../lib/categories";
+import { getCategories } from "../../lib/categories";
 import { bodyInputToHtml } from "../../lib/sanitize";
 
 export type ArticleFormState = { error?: string };
 
-function parseInput(formData: FormData): ArticleInput | { error: string } {
+function isUniqueConstraintError(error: unknown): boolean {
+  return error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002";
+}
+
+async function parseInput(formData: FormData): Promise<ArticleInput | { error: string }> {
   const slug = String(formData.get("slug") || "").trim();
   const categorySlug = String(formData.get("categorySlug") || "");
   const headline = String(formData.get("headline") || "").trim();
@@ -21,6 +26,7 @@ function parseInput(formData: FormData): ArticleInput | { error: string } {
   if (!slug || !/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug)) {
     return { error: "Slug must be lowercase letters, numbers, and hyphens only (e.g. my-article-title)." };
   }
+  const categories = await getCategories();
   if (!categories.some((c) => c.slug === categorySlug)) {
     return { error: "Choose a valid category." };
   }
@@ -37,13 +43,13 @@ export async function createArticleAction(
   _prevState: ArticleFormState,
   formData: FormData
 ): Promise<ArticleFormState> {
-  const input = parseInput(formData);
+  const input = await parseInput(formData);
   if ("error" in input) return input;
 
   try {
     await createArticle(input);
   } catch (error) {
-    if (error instanceof Error && /duplicate key/i.test(error.message)) {
+    if (isUniqueConstraintError(error)) {
       return { error: `Slug "${input.slug}" is already in use.` };
     }
     return { error: "Something went wrong saving the article." };
@@ -58,13 +64,13 @@ export async function updateArticleAction(
   _prevState: ArticleFormState,
   formData: FormData
 ): Promise<ArticleFormState> {
-  const input = parseInput(formData);
+  const input = await parseInput(formData);
   if ("error" in input) return input;
 
   try {
     await updateArticle(id, input);
   } catch (error) {
-    if (error instanceof Error && /duplicate key/i.test(error.message)) {
+    if (isUniqueConstraintError(error)) {
       return { error: `Slug "${input.slug}" is already in use.` };
     }
     return { error: "Something went wrong saving the article." };

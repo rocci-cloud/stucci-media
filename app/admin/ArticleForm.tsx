@@ -2,12 +2,13 @@
 
 import { useActionState, useState } from "react";
 import { upload } from "@vercel/blob/client";
-import { categories } from "../lib/categories";
 import type { Article } from "../lib/articles";
+import type { Category } from "../lib/categories";
 import type { ArticleFormState } from "./articles/actions";
 
 type Props = {
   article?: Article;
+  categories: Category[];
   action: (prevState: ArticleFormState, formData: FormData) => Promise<ArticleFormState>;
 };
 
@@ -22,7 +23,7 @@ function slugify(value: string) {
 
 const fieldClass = "border border-[var(--color-hairline-strong)] px-3 py-2 font-normal";
 
-export default function ArticleForm({ article, action }: Props) {
+export default function ArticleForm({ article, categories, action }: Props) {
   const [state, formAction, pending] = useActionState(action, {});
   const [headline, setHeadline] = useState(article?.headline ?? "");
   const [slug, setSlug] = useState(article?.slug ?? "");

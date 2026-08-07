@@ -88,7 +88,7 @@ for (const a of seedArticles) {
   const body = a.body.join("\n\n");
   await sql`
     insert into articles (slug, category_slug, headline, dek, author, body, status, published_at)
-    values (${a.slug}, ${a.categorySlug}, ${a.headline}, ${a.dek}, ${a.author}, ${body}, 'published', ${a.publishedAt})
+    values (${a.slug}, ${a.categorySlug}, ${a.headline}, ${a.dek}, ${a.author}, ${body}, 'PUBLISHED', ${a.publishedAt})
     on conflict (slug) do nothing
   `;
   inserted += 1;

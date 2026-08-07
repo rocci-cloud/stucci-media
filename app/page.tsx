@@ -6,12 +6,12 @@ import Sidebar from "./components/Sidebar";
 import SubscribeStrip from "./components/SubscribeStrip";
 import SiteFooter from "./components/SiteFooter";
 import { getPublishedArticles } from "./lib/articles";
-import { categories } from "./lib/categories";
+import { getCategories } from "./lib/categories";
 
 export const revalidate = 60;
 
 export default async function HomePage() {
-  const articles = await getPublishedArticles();
+  const [articles, categories] = await Promise.all([getPublishedArticles(), getCategories()]);
 
   if (articles.length === 0) {
     return (

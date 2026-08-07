@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import { SESSION_COOKIE, verifySessionToken } from "../../../../lib/session";
+import { requireAdminSession } from "../../../../lib/require-admin";
 import { getAllSubscribers } from "../../../../lib/subscribers";
 
 function toCsv(rows: { email: string; subscribedAt: string }[]) {
@@ -10,10 +9,8 @@ function toCsv(rows: { email: string; subscribedAt: string }[]) {
 }
 
 export async function GET() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get(SESSION_COOKIE)?.value;
-  const valid = token ? await verifySessionToken(token) : false;
-  if (!valid) {
+  const session = await requireAdminSession();
+  if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

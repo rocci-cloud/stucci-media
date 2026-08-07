@@ -5,7 +5,7 @@ import SiteHeader from "../../components/SiteHeader";
 import ArticleGrid from "../../components/ArticleGrid";
 import Sidebar from "../../components/Sidebar";
 import SiteFooter from "../../components/SiteFooter";
-import { categories, getCategoryBySlug } from "../../lib/categories";
+import { getCategories, getCategoryBySlug } from "../../lib/categories";
 import { getArticlesByCategory, getPublishedArticles } from "../../lib/articles";
 
 type Props = {
@@ -16,7 +16,7 @@ export const revalidate = 60;
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const category = getCategoryBySlug(slug);
+  const category = await getCategoryBySlug(slug);
   if (!category) return {};
 
   return {
@@ -30,13 +30,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export function generateStaticParams() {
+export async function generateStaticParams() {
+  const categories = await getCategories();
   return categories.map((c) => ({ slug: c.slug }));
 }
 
 export default async function CategoryPage({ params }: Props) {
   const { slug } = await params;
-  const category = getCategoryBySlug(slug);
+  const category = await getCategoryBySlug(slug);
   if (!category) notFound();
 
   const [categoryArticles, allArticles] = await Promise.all([
