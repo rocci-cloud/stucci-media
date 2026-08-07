@@ -93,13 +93,16 @@ export default async function ArticlePage({ params }: Props) {
         ) : (
           <div className="w-full aspect-video bg-[#E5E4E0] border border-[var(--color-hairline)] mb-7" />
         )}
-        <article className="text-[17px] sm:text-[19px] leading-[1.75]">
-          {article.body.map((paragraph, i) => (
-            <p key={i} className="mb-5">
-              {paragraph}
-            </p>
-          ))}
-        </article>
+        <article
+          className="prose prose-neutral max-w-none text-[17px] sm:text-[19px] leading-[1.75]
+            prose-headings:font-headline prose-headings:font-bold prose-headings:tracking-[-0.01em]
+            prose-h2:text-[24px] prose-h2:mt-10 prose-h3:text-[21px] prose-h3:mt-8
+            prose-p:mb-5 prose-a:text-[var(--color-red)] prose-a:no-underline hover:prose-a:underline
+            prose-strong:text-[var(--color-text)] prose-blockquote:border-l-[var(--color-red)]
+            prose-blockquote:font-headline prose-blockquote:text-[22px] prose-blockquote:not-italic
+            prose-img:border prose-img:border-[var(--color-hairline)]"
+          dangerouslySetInnerHTML={{ __html: article.bodyHtml }}
+        />
       </main>
       <SiteFooter />
     </>

@@ -112,13 +112,18 @@ export default function ArticleForm({ article, action }: Props) {
       </label>
 
       <label className="flex flex-col gap-1.5 text-sm font-bold">
-        Body (separate paragraphs with a blank line)
+        Body
+        <span className="font-normal text-xs text-[var(--color-gray)]">
+          Plain paragraphs separated by a blank line, or HTML (
+          <code>&lt;h2&gt;</code>, <code>&lt;b&gt;</code>, <code>&lt;a&gt;</code>, <code>&lt;img&gt;</code>, etc.)
+          for richer formatting — it&apos;s sanitized on save either way.
+        </span>
         <textarea
           name="body"
-          defaultValue={article?.body.join("\n\n")}
+          defaultValue={article?.bodyHtml}
           required
           rows={14}
-          className={`${fieldClass} leading-relaxed`}
+          className={`${fieldClass} leading-relaxed font-mono text-[13px]`}
         />
       </label>
 

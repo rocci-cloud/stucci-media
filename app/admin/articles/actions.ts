@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createArticle, updateArticle, deleteArticle, type ArticleInput } from "../../lib/articles";
 import { categories } from "../../lib/categories";
+import { bodyInputToHtml } from "../../lib/sanitize";
 
 export type ArticleFormState = { error?: string };
 
@@ -13,7 +14,7 @@ function parseInput(formData: FormData): ArticleInput | { error: string } {
   const headline = String(formData.get("headline") || "").trim();
   const dek = String(formData.get("dek") || "").trim();
   const author = String(formData.get("author") || "").trim() || "Rocci Stucci";
-  const body = String(formData.get("body") || "").trim();
+  const rawBody = String(formData.get("body") || "").trim();
   const coverImageUrl = String(formData.get("coverImageUrl") || "").trim() || null;
   const status = formData.get("status") === "published" ? "published" : "draft";
 
@@ -25,9 +26,11 @@ function parseInput(formData: FormData): ArticleInput | { error: string } {
   }
   if (!headline) return { error: "Headline is required." };
   if (!dek) return { error: "Dek is required." };
-  if (!body) return { error: "Body is required." };
+  if (!rawBody) return { error: "Body is required." };
 
-  return { slug, categorySlug, headline, dek, author, body, coverImageUrl, status };
+  const bodyHtml = bodyInputToHtml(rawBody);
+
+  return { slug, categorySlug, headline, dek, author, bodyHtml, coverImageUrl, status };
 }
 
 export async function createArticleAction(

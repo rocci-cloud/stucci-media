@@ -14,7 +14,8 @@ Deployed on Vercel, connected to GitHub (`main` is the deploy branch).
 - Tailwind CSS v4 (`@import "tailwindcss"` + `@theme` in `app/globals.css` —
   no `tailwind.config.js`)
 - `@fontsource/source-serif-4` for the headline face
-- No database, no CMS, no auth yet — article content lives in a TS file
+- Neon Postgres for content, Vercel Blob for images, `/admin` for editing —
+  see Phase 2 below
 
 **Why Next.js and not a site builder:** per-article social share previews.
 `generateMetadata()` in `app/articles/[slug]/page.tsx` runs on the server
@@ -40,16 +41,18 @@ app/
   lib/categories.ts       Category type + the 6 categories + lookup helper
 ```
 
-`app/lib/articles.ts` is the single data source. Every component is written
-against the `Article` type, so swapping the array for real database reads in
-Phase 2 shouldn't require touching the UI.
+`app/lib/articles.ts` is the single data source — every component is written
+against the `Article` type, reading/writing Postgres underneath.
 
-`Article`: `slug`, `categorySlug`, `category`, `headline`, `dek`, `author`,
-`date`, `readTime`, `body` (array of paragraph strings).
+`Article`: `id`, `slug`, `categorySlug`, `category`, `headline`, `dek`,
+`author`, `date`, `readTime`, `bodyHtml` (sanitized HTML, rendered via
+`dangerouslySetInnerHTML` with `@tailwindcss/typography` prose styling —
+see `app/lib/sanitize.ts`), `coverImageUrl`, `status`.
 
-Categories (slug → label): `political-news`, `world-news`, `podcasts`,
-`social-issues`, `crime-investigation`, `veterans`. The nav in
-`SiteHeader.tsx` and the list in `lib/categories.ts` must stay in sync.
+Categories (slug → label): `political-news`, `world-news`,
+`opinion-analysis`, `podcasts`, `social-issues`, `crime-investigation`,
+`veterans`. The nav in `SiteHeader.tsx` and the list in `lib/categories.ts`
+must stay in sync.
 
 ## Design system
 
@@ -72,8 +75,8 @@ Colors (CSS vars on `:root`, used as `text-[var(--color-red)]` etc.):
 | `--color-bg` | `#ffffff` | page background |
 | `--color-bg-off` | `#f7f7f5` | subscribe strip background |
 
-Image placeholders are `#E5E4E0` blocks with a hairline border — real
-photos land in Phase 2.
+Image placeholders are `#E5E4E0` blocks with a hairline border, shown when
+an article has no `coverImageUrl`.
 
 Type:
 - Headlines: `font-headline` (Source Serif 4, weights 600/700/900).
@@ -147,5 +150,34 @@ hitting `app/api/admin/subscribers/export/route.ts` — that route isn't
 covered by `middleware.ts`'s matcher, so it re-checks the session cookie
 itself before streaming the CSV.
 
-Phase 3 (later): the subscribe form in `SubscribeStrip.tsx` is inert markup
-— wire it to a subscriber list with CSV export from the admin panel.
+## Phase 4 — done: real content, rich body rendering
+
+The site now runs on Rocci's actual articles instead of placeholders.
+
+- **WordPress import**: `scripts/import-wordpress.mjs` takes a WXR export
+  (`Tools → Export` from wp-admin) and loads it into Postgres. Run once via
+  `node --env-file=.env.local scripts/import-wordpress.mjs <path-to-export.xml>`.
+  It filters out the "JNews" theme's Lorem-ipsum demo filler posts (matched
+  by content fingerprint, not category — WP category assignment on this
+  site is inconsistent), maps WordPress categories onto the 7 site
+  categories via a best-effort priority list (falls back to
+  `opinion-analysis`, the catch-all bucket for the dominant "Current Events
+  & News Analysis" WP category), and replaces the Phase 2 placeholder
+  articles (matched by slug). Featured images resolve via the WXR
+  attachment graph (`_thumbnail_id` → attachment `wp:post_id`), falling
+  back to the first `<img>` in the post body. It's idempotent — re-running
+  it against the same export upserts by slug rather than duplicating.
+  Since WP category tagging was inconsistent, some articles may have
+  landed in the wrong category — that's expected, re-file from `/admin`
+  as needed.
+- **Rich body rendering**: `Article.bodyHtml` replaced the old
+  paragraph-array `body` field. WordPress content has real headings, bold,
+  links, and inline images that a plain-paragraph model couldn't represent.
+  `app/lib/sanitize.ts` sanitizes HTML (`sanitize-html`, tag/attribute
+  allowlist) both for the WordPress import and for `ArticleForm.tsx`'s
+  body textarea — `bodyInputToHtml()` auto-wraps plain paragraph text
+  (blank line between paragraphs, the old authoring convention) in `<p>`
+  tags if no HTML is detected, or sanitizes as-is if it is. The article
+  page renders it with `@tailwindcss/typography`'s `prose` classes,
+  themed to match the site (serif headline font on headings, red links,
+  bordered images) rather than the plugin's defaults.
