@@ -631,3 +631,62 @@ one of those links broke — the app never owned copies of the images.
   run reported "success" while 100% of uploads had actually failed (an
   invalid `BLOB_READ_WRITE_TOKEN` secret). Always read the job's actual
   logged output/summary counts, not just the run conclusion.
+
+## Phase 12 — done: reader engagement (likes, threaded comments, related articles)
+
+Registered readers (not just admins) can now sign in, like an article, and
+leave threaded comments — the `User`/`Like`/`Comment` models Phase 7 added
+but never wired up now have a public UI. Every article also ends with a
+"You May Also Like" rail instead of just stopping after the body.
+
+- **Reader auth reuses Phase 7's Better Auth setup as-is** — `/login` and
+  `/register` were already public and role-agnostic (only `/admin` checks
+  `role === "ADMIN"`), so no new auth plumbing was needed; liking/commenting
+  just gate on "is there a session" via `auth.api.getSession({ headers:
+  await headers() })` in `app/articles/[slug]/actions.ts`'s server actions.
+  Both actions return a typed `{ success: false, error }` rather than
+  throwing when signed out, so the client components can show an inline
+  message instead of a crashed form.
+- **Likes**: `app/lib/likes.ts` (`getLikeCount`, `hasUserLiked`,
+  `toggleLike` — keyed on Prisma's `@@unique([userId, articleId])`
+  compound constraint) backs `LikeButton.tsx`, a client component using
+  `useOptimistic` for instant heart-fill + count change on click, reverting
+  automatically if the server action fails. Signed-out visitors see a
+  "Sign in to like" link in the same slot instead of a dead button.
+- **Comments**: `app/lib/comments.ts` builds a nested reply tree
+  (`buildTree()`, flat DB rows → `CommentNode[]` via parent-id lookup) for
+  `CommentSection.tsx` — a recursive `CommentItem` renders each comment
+  plus its replies, with a per-comment "Reply" toggle reusing the same
+  `CommentForm` sub-component as the top-level composer. New comments
+  auto-approve (`isApproved: true` at creation) — `isApproved` is for
+  *post*-moderation (admin taking something down after the fact via
+  `/admin/comments`), not a pending queue. Optimistic posting shows the
+  new comment immediately at reduced opacity while the server action is
+  in flight, keyed with a temp `temp-${Date.now()}` id.
+- **Admin moderation**: `/admin/comments` (previously a "coming soon"
+  placeholder) now lists every comment across the site
+  (`getAllCommentsAdmin()`) with search, an approved/hidden filter, and
+  approve-toggle + delete actions — same `useOptimistic` + `sonner`-toast
+  pattern as Phase 8/9's other admin tables.
+- **Related articles**: `getRelatedArticles()` in `app/lib/articles.ts`
+  prefers same-category published articles (most recent first), and backfills
+  from the newest published articles sitewide if the category doesn't have
+  enough to fill the rail — so it's never sparse even for a lightly-populated
+  category. `RelatedArticles.tsx` reuses the existing `ArticleCard`
+  `variant="grid"` (no new card design needed) in a responsive grid below
+  the article body.
+- **`app/articles/[slug]/page.tsx` is now a dynamic route**: it calls
+  `auth.api.getSession()` to know whether to show the liked/filled heart or
+  the sign-in prompt, which opts the page out of the static/ISR path it
+  used before (`revalidate = 60` is still declared but no longer the
+  effective caching mechanism for this route specifically — `generateStaticParams`
+  still pre-builds the article shell for `generateMetadata`/OG tags, but the
+  page body itself now always renders per-request).
+- **Verified locally against the live Neon DB**: build + typecheck pass,
+  and the article page was fetched directly (signed-out state) to confirm
+  the like button's sign-in prompt, the comment section's empty state, and
+  the "You May Also Like" rail all render with real data — this was done
+  from the sandboxed dev environment (no browser available there), so the
+  signed-in interactive flows (posting a comment, liking, nested replies)
+  have not been through a live click-through and are worth a manual pass
+  after this deploys.
