@@ -361,11 +361,11 @@ export default function ArticlesClient({
       </div>
 
       {selectedCount > 0 && (
-        <div className="flex items-center gap-3 rounded-lg border border-[var(--admin-border)] bg-[var(--admin-bg-subtle)] px-4 py-2.5">
-          <span className="text-[13px] font-medium text-[var(--admin-fg)]">
+        <div className="flex flex-col gap-2 rounded-lg border border-[var(--admin-border)] bg-[var(--admin-bg-subtle)] px-4 py-2.5 sm:flex-row sm:items-center sm:gap-3">
+          <span className="shrink-0 text-[13px] font-medium text-[var(--admin-fg)]">
             {selectedCount} selected
           </span>
-          <div className="ml-auto flex items-center gap-2">
+          <div className="flex items-center gap-2 overflow-x-auto sm:ml-auto [&>*]:shrink-0">
             <Button size="sm" variant="outline" onClick={() => handleBulkStatus("published")} disabled={isPending}>
               Publish
             </Button>
@@ -473,11 +473,14 @@ export default function ArticlesClient({
                         )}
                       </div>
                     </TableCell>
-                    <TableCell className="max-w-[280px]">
+                    <TableCell className="max-w-[140px] sm:max-w-[280px]">
                       <Link href={`/admin/articles/${article.id}/edit`} className="flex items-center gap-1.5 truncate font-medium hover:underline">
                         {article.isFeatured && <Sparkles className="h-3.5 w-3.5 shrink-0 text-[var(--admin-primary)]" />}
                         <span className="truncate">{article.headline}</span>
                       </Link>
+                      <span className="mt-0.5 block text-[11px] text-[var(--admin-fg-muted)] sm:hidden">
+                        {article.date}
+                      </span>
                     </TableCell>
                     <TableCell className="hidden lg:table-cell">
                       <CategoryQuickEdit
