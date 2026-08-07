@@ -14,7 +14,16 @@ export default function Hero({
         <span className="font-sans block text-xs font-bold uppercase tracking-wide text-[var(--color-red)] mb-2.5">
           {lead.category}
         </span>
-        <div className="w-full aspect-video bg-[#E5E4E0] border border-[var(--color-hairline)] mb-4" />
+        {lead.coverImageUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={lead.coverImageUrl}
+            alt={lead.headline}
+            className="w-full aspect-video object-cover border border-[var(--color-hairline)] mb-4"
+          />
+        ) : (
+          <div className="w-full aspect-video bg-[#E5E4E0] border border-[var(--color-hairline)] mb-4" />
+        )}
         <h1 className="font-headline text-[27px] sm:text-[38px] font-bold leading-[1.1] tracking-[-0.01em] mb-3 group-hover:underline">
           {lead.headline}
         </h1>

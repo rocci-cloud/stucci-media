@@ -11,6 +11,8 @@ type Props = {
   params: Promise<{ slug: string }>;
 };
 
+export const revalidate = 60;
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const category = getCategoryBySlug(slug);
@@ -36,7 +38,7 @@ export default async function CategoryPage({ params }: Props) {
   const category = getCategoryBySlug(slug);
   if (!category) notFound();
 
-  const categoryArticles = getArticlesByCategory(slug);
+  const categoryArticles = await getArticlesByCategory(slug);
 
   return (
     <>

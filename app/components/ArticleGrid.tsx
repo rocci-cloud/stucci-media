@@ -22,7 +22,16 @@ export default function ArticleGrid({
         <section className="mx-auto max-w-[1200px] px-5 pt-5 pb-14 grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-7">
           {articles.map((a) => (
             <Link key={a.slug} href={`/articles/${a.slug}`} className="block group">
-              <div className="aspect-[4/3] bg-[#E5E4E0] border border-[var(--color-hairline)] mb-3" />
+              {a.coverImageUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={a.coverImageUrl}
+                  alt={a.headline}
+                  className="aspect-[4/3] w-full object-cover border border-[var(--color-hairline)] mb-3"
+                />
+              ) : (
+                <div className="aspect-[4/3] bg-[#E5E4E0] border border-[var(--color-hairline)] mb-3" />
+              )}
               <span className="font-sans block text-[11px] font-bold uppercase tracking-wide text-[var(--color-red)] mb-1.5">
                 {a.category}
               </span>

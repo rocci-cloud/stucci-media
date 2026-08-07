@@ -4,9 +4,25 @@ import Hero from "./components/Hero";
 import ArticleGrid from "./components/ArticleGrid";
 import SubscribeStrip from "./components/SubscribeStrip";
 import SiteFooter from "./components/SiteFooter";
-import { articles } from "./lib/articles";
+import { getPublishedArticles } from "./lib/articles";
 
-export default function HomePage() {
+export const revalidate = 60;
+
+export default async function HomePage() {
+  const articles = await getPublishedArticles();
+
+  if (articles.length === 0) {
+    return (
+      <>
+        <SiteHeader />
+        <main className="mx-auto max-w-[1200px] px-5 py-20 text-center font-sans text-[var(--color-gray)]">
+          No published stories yet.
+        </main>
+        <SiteFooter />
+      </>
+    );
+  }
+
   const [lead, ...rest] = articles;
 
   return (
