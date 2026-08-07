@@ -1,5 +1,8 @@
 import Link from "next/link";
+import { Download, Mail } from "lucide-react";
 import { getAllSubscribers } from "../../lib/subscribers";
+import { Button } from "../components/ui/button";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../components/ui/table";
 
 export const dynamic = "force-dynamic";
 
@@ -7,50 +10,63 @@ export default async function SubscribersPage() {
   const subscribers = await getAllSubscribers();
 
   return (
-    <main className="max-w-[900px] mx-auto px-5 py-10 font-sans">
-      <div className="flex items-center justify-between mb-8">
+    <div className="flex flex-col gap-5">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <Link href="/admin" className="text-sm text-[var(--color-gray)] hover:underline">
-            ← Articles
+          <Link
+            href="/admin"
+            className="text-[13px] font-medium text-[var(--admin-fg-muted)] hover:text-[var(--admin-fg)]"
+          >
+            ← Dashboard
           </Link>
-          <h1 className="font-headline text-[28px] font-black mt-2">
-            Subscribers <span className="text-[var(--color-gray)] font-normal">({subscribers.length})</span>
-          </h1>
+          <p className="mt-1 text-[13px] text-[var(--admin-fg-muted)]">
+            {subscribers.length} subscriber{subscribers.length === 1 ? "" : "s"}
+          </p>
         </div>
-        <a
-          href="/api/admin/subscribers/export"
-          className="bg-[var(--color-red)] hover:bg-[var(--color-red-dark)] text-white text-sm font-bold uppercase tracking-wide px-4 py-2.5 rounded-control"
-        >
-          Export CSV
-        </a>
+        <Button asChild size="sm">
+          <a href="/api/admin/subscribers/export">
+            <Download className="h-4 w-4" />
+            Export CSV
+          </a>
+        </Button>
       </div>
 
       {subscribers.length === 0 ? (
-        <p className="text-sm text-[var(--color-gray)]">No subscribers yet.</p>
+        <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-[var(--admin-border)] bg-[var(--admin-surface)] px-6 py-16 text-center">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--admin-bg-subtle)] text-[var(--admin-fg-muted)]">
+            <Mail className="h-6 w-6" />
+          </div>
+          <p className="text-sm font-semibold text-[var(--admin-fg)]">No subscribers yet</p>
+          <p className="text-[13px] text-[var(--admin-fg-muted)]">
+            They&apos;ll show up here as readers sign up on the site.
+          </p>
+        </div>
       ) : (
-        <table className="w-full text-sm border-collapse">
-          <thead>
-            <tr className="border-b-2 border-[var(--color-hairline-strong)] text-left">
-              <th className="py-2 pr-4">Email</th>
-              <th className="py-2 pr-4">Subscribed</th>
-            </tr>
-          </thead>
-          <tbody>
-            {subscribers.map((s) => (
-              <tr key={s.id} className="border-b border-[var(--color-hairline)]">
-                <td className="py-3 pr-4">{s.email}</td>
-                <td className="py-3 pr-4">
-                  {new Date(s.subscribedAt).toLocaleDateString("en-US", {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div className="overflow-hidden rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)]">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Email</TableHead>
+                <TableHead>Subscribed</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {subscribers.map((s) => (
+                <TableRow key={s.id}>
+                  <TableCell className="font-medium">{s.email}</TableCell>
+                  <TableCell className="text-[var(--admin-fg-muted)]">
+                    {new Date(s.subscribedAt).toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    })}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       )}
-    </main>
+    </div>
   );
 }

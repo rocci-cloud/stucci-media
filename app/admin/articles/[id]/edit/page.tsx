@@ -3,6 +3,8 @@ import ArticleForm from "../../../ArticleForm";
 import { updateArticleAction, deleteArticleAction } from "../../actions";
 import { getArticleByIdAdmin } from "../../../../lib/articles";
 import { getCategories } from "../../../../lib/categories";
+import { Button } from "../../../components/ui/button";
+import { Trash2 } from "lucide-react";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -22,19 +24,17 @@ export default async function EditArticlePage({ params }: Props) {
   const boundDelete = deleteArticleAction.bind(null, article.id);
 
   return (
-    <main className="max-w-[720px] mx-auto px-5 py-10">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="font-headline text-[28px] font-black">Edit Article</h1>
+    <div className="max-w-[720px]">
+      <div className="mb-6 flex items-center justify-between">
+        <h2 className="text-lg font-semibold text-[var(--admin-fg)]">Edit article</h2>
         <form action={boundDelete}>
-          <button
-            type="submit"
-            className="font-sans text-sm font-bold uppercase text-[var(--color-red)] hover:underline"
-          >
+          <Button type="submit" variant="outline" size="sm" className="text-[var(--admin-danger)] hover:bg-[var(--admin-danger-bg)]">
+            <Trash2 className="h-4 w-4" />
             Delete
-          </button>
+          </Button>
         </form>
       </div>
       <ArticleForm article={article} categories={categories} action={boundUpdate} />
-    </main>
+    </div>
   );
 }
