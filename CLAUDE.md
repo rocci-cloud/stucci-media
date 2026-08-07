@@ -750,3 +750,80 @@ admin tooling to keep it clean going forward.
   confirm both the DB and the UI updated correctly. The test account,
   test articles, and Playwright scratch install were all removed afterward
   — nothing test-related was left in the repo or the database.
+
+## Phase 14 — done: production hardening pass (admin + engagement system)
+
+A systematic audit-and-fix pass across the whole admin panel and the
+Phase 12 engagement features, aimed at closing real production gaps rather
+than cosmetic polish.
+
+- **Server action authorization, the headline fix**: `app/admin/layout.tsx`'s
+  session/role check only runs when a page renders — it does NOT gate a
+  direct POST to a Server Action's endpoint, which is independently
+  reachable once deployed (the action ID is visible in the client bundle).
+  Every mutating action in `admin/articles/actions.ts`,
+  `admin/categories/actions.ts`, and `admin/comments/actions.ts` now calls
+  the existing `requireAdminSession()` helper (previously only used by the
+  upload/CSV-export API routes) before doing anything. Also hardened the
+  public engagement actions (`app/articles/[slug]/actions.ts`): wrapped in
+  try/catch instead of letting DB errors throw unhandled, verify the
+  target article is published before allowing a like/comment, and verify a
+  reply's `parentId` actually belongs to the article being commented on.
+- **Loading and error states**: the app had zero `loading.tsx`/`error.tsx`
+  files anywhere despite an unused `Skeleton` primitive already sitting in
+  the admin component library — every async page showed a frozen blank
+  screen on navigation or DB failure. Added shaped-to-match skeletons for
+  every admin data page and the public article/category pages, plus
+  `admin/error.tsx` and a public `app/error.tsx` in the site's visual
+  language, both with a "Try again" reset button.
+- **Mobile admin audit**: verified in an actual 375px-wide browser
+  (throwaway admin account) rather than guessed. Most of the admin was
+  already solid (nav drawer, dashboard, categories, comments, the article
+  editor). Two real breakages fixed: the articles list's bulk action bar
+  (6+ buttons in one unwrapped row) now stacks its label and scrolls its
+  buttons instead of overflowing, and the table's title column was wide
+  enough to push the Status badge and actions menu off-screen — narrowed
+  it below `sm:` and moved the date into a secondary line under the
+  headline so Status stays visible without horizontal scrolling.
+- **SEO score accuracy**: fixed a real bug where a stray leading comma in
+  `seoKeywords` silently produced an empty focus keyword. Added two new
+  advisory checks — image alt-text coverage and keyword-stuffing density —
+  deliberately WITHOUT folding them into the 100-point score, since doing
+  so would have retroactively changed the number for every one of the 89
+  articles just hand-scored in Phase 13.
+- **Image upload optimization**: `ImageField.tsx` previously uploaded
+  whatever the browser file picker returned, untouched — a straight-from-
+  camera photo would become the actual served cover/OG image with zero
+  optimization. `image-compression.ts` now resizes to a 2000px longer-side
+  cap and re-encodes to JPEG (quality 0.85) via Canvas before upload,
+  skipping animated GIFs and already-small files. Verified directly in a
+  browser: a synthetic 4000×3000 12.18MB test image compressed to
+  2000×1500 at 61.7KB (99.5% reduction). Also added client-side file-type
+  validation matching the server's allowlist.
+- **Form validation**: neither the article nor category admin forms had
+  any server-side length bound — added explicit max lengths (checked
+  against every existing row first; nothing in the live DB violated the
+  new caps) plus format checks for `canonicalUrl` (must be a real URL) and
+  category `color` (must be a hex value). Mirrored the same caps as
+  `maxLength` client-side so a user hits the limit while typing, not only
+  on a rejected submit. The public comment form got the same treatment —
+  `maxLength`, a live counter near the limit, and the submit button now
+  disables on a too-short (post-trim) comment.
+- **Activity logging**: new `ActivityLog` model
+  (`prisma/migrations/20260807220000_activity_log`) plus
+  `app/lib/activity.ts`, wired into every admin mutation — article
+  create/update/delete (single + bulk), featured/category changes,
+  category CRUD, comment moderation. Each entry snapshots the actor's
+  name/email at write time rather than only storing a user-id foreign key,
+  so it still reads sensibly if an account is later renamed or removed.
+  Surfaced on the dashboard as a "Recent activity" panel alongside
+  "Recently updated". Toast coverage was already solid everywhere
+  (checked, no gaps found) — this adds the persistent record toasts alone
+  don't provide.
+- **Verification throughout**: every fix in this phase that touched
+  user-facing behavior was checked in a real browser against the live dev
+  server and live Neon DB — a temporary Playwright install against the
+  sandbox's pre-installed Chromium, throwaway admin accounts, and
+  throwaway test articles/images, all created fresh and fully cleaned up
+  (deleted test users, test articles, test activity-log rows) after each
+  check. Nothing test-related was left behind in the repo or the database.
