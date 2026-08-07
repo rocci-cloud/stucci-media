@@ -126,11 +126,26 @@ code or running a deploy.
   `revalidatePath` call after every admin write.
 
 Setup for a fresh environment: add the Neon and Vercel Blob integrations
-in the Vercel dashboard's Storage tab (this injects `DATABASE_URL` and
-`BLOB_READ_WRITE_TOKEN`), set `ADMIN_USERNAME`, `ADMIN_PASSWORD_HASH`, and
-`SESSION_SECRET`, then run `npm run db:migrate` (and optionally `npm run
+in the Vercel dashboard's Storage tab (this injects `DATABASE_URL` plus
+`BLOB_STORE_ID` — Blob auth is OIDC-based on this SDK version, no static
+`BLOB_READ_WRITE_TOKEN` needed), set `ADMIN_USERNAME`, `ADMIN_PASSWORD_HASH`,
+and `SESSION_SECRET`, then run `npm run db:migrate` (and optionally `npm run
 db:seed` to load the original placeholder articles) with those env vars
 pulled locally via `vercel env pull .env.local`.
+
+## Phase 3 — done: subscriber list + CSV export
+
+The `SubscribeStrip.tsx` form now writes to a real `subscribers` table
+(`scripts/schema.sql`, `app/lib/subscribers.ts`) via a public server action
+(`app/lib/subscribe-actions.ts`) — validates the email, dedupes on conflict,
+and swaps the form for a confirmation message on success. No auth needed
+since it's a public opt-in form.
+
+`/admin/subscribers` lists everyone who's signed up (protected by the same
+`/admin/*` middleware as the article editor) with an "Export CSV" button
+hitting `app/api/admin/subscribers/export/route.ts` — that route isn't
+covered by `middleware.ts`'s matcher, so it re-checks the session cookie
+itself before streaming the CSV.
 
 Phase 3 (later): the subscribe form in `SubscribeStrip.tsx` is inert markup
 — wire it to a subscriber list with CSV export from the admin panel.

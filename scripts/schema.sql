@@ -15,3 +15,9 @@ create table if not exists articles (
 
 create index if not exists articles_category_slug_idx on articles (category_slug);
 create index if not exists articles_status_published_at_idx on articles (status, published_at desc);
+
+create table if not exists subscribers (
+  id serial primary key,
+  email text not null unique,
+  subscribed_at timestamptz not null default now()
+);
