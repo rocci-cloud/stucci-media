@@ -56,39 +56,60 @@ must stay in sync.
 
 ## Design system
 
-Newspaper look: serif body, black/white/red, hairline rules, no rounded
-cards, no shadows, no dark mode (`color-scheme: light only` — there are
-`!important` overrides in `globals.css` guarding against browser dark mode).
+Dense mainstream-news-portal look (Fox News / Daily Mail, not a minimal
+blog) as of Phase 5: navy/red/white, bold condensed sans headlines, sticky
+nav, ticker, sidebar rails. Still no rounded cards/shadows, still no dark
+mode (`color-scheme: light only` — there are `!important` overrides in
+`globals.css` guarding against browser dark mode).
 
 Colors (CSS vars on `:root`, used as `text-[var(--color-red)]` etc.):
 
 | Token | Value | Use |
 |---|---|---|
-| `--color-black` | `#181818` | breaking bar background |
-| `--color-text` | `#1a1a1a` | body text |
-| `--color-gray` | `#595959` | deks, bylines, metadata |
-| `--color-gray-light` | `#767676` | footer, timestamps |
-| `--color-hairline` | `#dfdfdf` | light rules and borders |
-| `--color-hairline-strong` | `#181818` | heavy section rules |
-| `--color-red` | `#b31217` | kickers, links, Subscribe button |
-| `--color-red-dark` | `#8f0e12` | red hover state |
+| `--color-black` | `#0a2a55` | masthead accent, nav bar, sidebar headers — a navy despite the name (kept the original token so existing utility classes didn't need touching) |
+| `--color-text` | `#171717` | body text |
+| `--color-gray` | `#55606c` | deks, bylines, metadata |
+| `--color-gray-light` | `#8a94a0` | footer, timestamps |
+| `--color-hairline` | `#e2e5e9` | light rules and borders |
+| `--color-hairline-strong` | `#0a2a55` | heavy section rules (navy) |
+| `--color-red` | `#d0021b` | breaking bar, kickers, links, Subscribe button |
+| `--color-red-dark` | `#a00115` | red hover state |
+| `--color-blue` | `#1c5aa6` | secondary accent, used sparingly |
 | `--color-bg` | `#ffffff` | page background |
-| `--color-bg-off` | `#f7f7f5` | subscribe strip background |
+| `--color-bg-off` | `#f3f4f6` | sidebar/module panel background |
 
 Image placeholders are `#E5E4E0` blocks with a hairline border, shown when
 an article has no `coverImageUrl`.
 
 Type:
-- Headlines: `font-headline` (Source Serif 4, weights 600/700/900).
-  Wordmark and page H1s are `font-black` with `tracking-[-0.02em]`.
+- Headlines: `font-headline` (Oswald, condensed bold sans — weights
+  400/500/600/700 loaded in `layout.tsx`; there's no 900 weight available
+  from `@fontsource/oswald`, so `font-black` headings fall back to
+  browser-synthesized bold, which is fine visually). Most headlines are
+  `uppercase`.
 - Body: Georgia / Times New Roman serif, set inline on `<body>` in
-  `layout.tsx`. Article body is `text-[17px] sm:text-[19px] leading-[1.75]`.
+  `layout.tsx` — kept serif for article body readability even though
+  headlines moved to sans, a deliberate Daily-Mail-style contrast.
+  Article body is `text-[17px] sm:text-[19px] leading-[1.75]`.
 - UI chrome (nav, bylines, metadata, buttons, forms): `font-sans`, small
   sizes, `uppercase tracking-wide font-bold` for kickers and nav.
 
-Layout: `max-w-[1200px]` for grids and nav, `max-w-[720px]` for article and
-search pages, `px-5` gutters throughout. Mobile-first — the nav collapses to
-a ☰ toggle below `sm`.
+**Cascade layering gotcha**: the global `a { color: inherit; text-decoration:
+none; }` reset in `globals.css` is wrapped in `@layer base`. If it isn't,
+it becomes "unlayered" CSS, which beats every Tailwind utility class
+(including `text-white`, `text-[var(--color-red)]`, etc.) regardless of
+specificity — this silently broke the nav bar and every red "More" link
+during the Phase 5 redesign (white/red text rendered as inherited dark
+body text) until traced to this. Any future plain CSS rule targeting an
+element Tailwind utilities also style needs the same `@layer base` (or
+`components`/`utilities`) wrapping.
+
+Layout: `max-w-[1280px]` for dense pages (home, category, article — up
+from `1200px`) with a `[1fr_320px]` two-column grid on `lg:` for the
+`Sidebar` (Trending Now + Subscribe + podcast promo), `max-w-[720px]` for
+search/about/contact/privacy, `px-5` gutters throughout. Mobile-first —
+the nav collapses to a ☰ toggle below `sm`, sidebar stacks below main
+content below `lg`.
 
 ## Phase 1 — done
 
@@ -181,3 +202,37 @@ The site now runs on Rocci's actual articles instead of placeholders.
   page renders it with `@tailwindcss/typography`'s `prose` classes,
   themed to match the site (serif headline font on headings, red links,
   bordered images) rather than the plugin's defaults.
+
+## Phase 5 — done: mainstream-portal redesign
+
+The minimal single-column newspaper layout read as "a blog" rather than a
+news network — Rocci wanted it to compete visually with Fox News / Daily
+Mail. This was a structural + brand overhaul, not just a color swap. See
+the Design system section above for the new palette/type.
+
+- **New components**: `Sidebar.tsx` (Trending Now — recency-based, no
+  view-count tracking yet — plus a compact Subscribe box and a podcast
+  promo box; used on home/category/article pages), `TopicRail.tsx` (one
+  per-category module: 4-across thumbnail grid + "More →" link, stacked
+  down the homepage for every category), `BreakingTicker.tsx` (client
+  component that rotates through the latest few headlines every 5s,
+  rendered inside the now-async `BreakingBar.tsx` which fetches real
+  articles instead of showing one hardcoded line).
+- **SiteHeader**: sticky navy nav bar, bold two-tone wordmark
+  (`Stucci`+red `Media`), red masthead accent line.
+- **SiteFooter**: expanded from one thin line to a full navy multi-column
+  footer (sections, company links, follow).
+- **Homepage**: `Hero.tsx`'s "Also Developing" rail gained thumbnails; the
+  page is now a `[1fr_320px]` grid — main column stacks a `TopicRail` per
+  category, `Sidebar` alongside.
+- **Category/article pages**: same `[1fr_320px]` + `Sidebar` treatment.
+  `ArticleGrid.tsx` lost its own outer container (parent pages provide it
+  now, since it needs to share width with the sidebar column).
+- **Fonts**: `@fontsource/source-serif-4` swapped for `@fontsource/oswald`
+  (condensed bold sans, only goes up to weight 700 — see the Design
+  system note on `font-black` fallback). Article body stayed serif
+  (Georgia, inline on `<body>`) for a deliberate bold-sans-headline /
+  serif-body contrast.
+- **`SubscribeForm.tsx`**: extracted from `SubscribeStrip.tsx` so the
+  same server-action-backed form could be reused compact in the sidebar
+  (`compact` prop) without duplicating the `useActionState` wiring.

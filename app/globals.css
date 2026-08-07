@@ -2,22 +2,27 @@
 @plugin "@tailwindcss/typography";
 
 @theme {
-  --font-headline: "Source Serif 4", Georgia, serif;
+  --font-headline: "Oswald", "Arial Narrow", sans-serif;
 }
 
 :root {
   color-scheme: light only;
 
-  --color-black: #181818;
-  --color-text: #1a1a1a;
-  --color-gray: #595959;
-  --color-gray-light: #767676;
-  --color-hairline: #dfdfdf;
-  --color-hairline-strong: #181818;
-  --color-red: #b31217;
-  --color-red-dark: #8f0e12;
+  /* --color-black holds the primary dark surface (masthead/nav/heavy
+     rules) — kept as the original token name so existing utility classes
+     don't need touching, repointed to the network-news navy. */
+  --color-black: #0a2a55;
+  --color-navy-dark: #071b38;
+  --color-text: #171717;
+  --color-gray: #55606c;
+  --color-gray-light: #8a94a0;
+  --color-hairline: #e2e5e9;
+  --color-hairline-strong: #0a2a55;
+  --color-red: #d0021b;
+  --color-red-dark: #a00115;
+  --color-blue: #1c5aa6;
   --color-bg: #ffffff;
-  --color-bg-off: #f7f7f5;
+  --color-bg-off: #f3f4f6;
 }
 
 html,
@@ -40,14 +45,31 @@ body {
   box-sizing: border-box;
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
+/* @layer base gives this lower cascade priority than Tailwind's utility
+   layer, so `text-white`/`text-[var(--color-red)]` etc. on a link still
+   win — an unlayered rule here would otherwise beat utility classes
+   regardless of specificity. */
+@layer base {
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
 }
 
 :focus-visible {
   outline: 3px solid #1a73e8;
   outline-offset: 2px;
+}
+
+@keyframes fadein {
+  from {
+    opacity: 0;
+    transform: translateY(2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
