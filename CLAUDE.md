@@ -690,3 +690,63 @@ but never wired up now have a public UI. Every article also ends with a
   signed-in interactive flows (posting a comment, liking, nested replies)
   have not been through a live click-through and are worth a manual pass
   after this deploys.
+
+## Phase 13 — done: article data cleanup (categorization, bulk admin tools, SEO backfill)
+
+A full content-quality pass on the 89 WordPress-imported articles, plus new
+admin tooling to keep it clean going forward.
+
+- **Category corrections**: content review (headline + dek + body excerpt,
+  not just the WordPress-assigned category) found 25 articles filed wrong —
+  mostly things the Phase 4 import's best-effort mapping had dumped into the
+  `opinion-analysis` catch-all (archaeology/science stories, book reviews,
+  human-interest features with no real opinion/analysis angle) plus a few
+  filed by surface keyword rather than actual subject (a mass-shooting story
+  under opinion-analysis, a fugitive-from-justice story under
+  political-news, someone else's podcast content under the site's own
+  `podcasts` category). `scripts/data/category-corrections.json` is the
+  full 89-article review; `scripts/recategorize-articles.mjs` applies only
+  the `changed: true` rows. Already run — 25/25 corrected, 0 failures.
+- **`article_categories` join table was silently incomplete for 64 of 89
+  articles** — `syncArticleCategories()` (Phase 9) only ever runs from the
+  admin editor's save path, so anything inserted directly (the original
+  WordPress import, `scripts/seed.mjs`) never got a join-table row, only the
+  legacy `category_slug` column. `mapRow()`'s existing fallback
+  (`categorySlugs.length > 0 ? categorySlugs : [row.categorySlug]`) meant
+  nothing was visibly broken, but the multi-category feature's actual data
+  was thin. Backfilled a matching join row (from `category_slug`) for all
+  64 — no code change needed, this was a one-time data fix.
+- **Bulk category reassignment + bulk Feature/Unfeature**: the articles
+  list's bulk action bar (Phase 9: Publish/Unpublish/Delete) gained "Set
+  category" (`BulkCategoryPicker.tsx` — a multi-select popover mirroring
+  the existing per-row `CategoryQuickEdit`, with an explicit "Apply to
+  selected" rather than close-to-apply, since a bulk action needs a clearer
+  confirm point than a one-row quick-edit) and "Feature"/"Unfeature",
+  backed by new `bulkUpdateArticleCategories`/`bulkSetArticleFeatured` in
+  `app/lib/articles.ts`. Re-filing or featuring articles in bulk no longer
+  requires opening each one individually.
+- **SEO fields backfilled for all 89 articles**: every article had null
+  `seoTitle`/`seoDescription`/`seoKeywords` (the SEO panel's fallback logic
+  meant the admin's SEO score column still showed a number, but a low one —
+  no focus keyword, no dedicated title/description independent of the
+  headline/dek). `scripts/data/seo-backfill.json` holds generated values
+  calibrated against `app/lib/seo-score.ts`'s actual scoring rules (title
+  ≤60 chars, description ~120–160 chars, a focus keyword appearing in at
+  least 3 of {title, description, slug, body}) rather than generic filler —
+  `scripts/backfill-seo.mjs` applies it. Verified post-run: scores across
+  all 89 articles now range 90–100 (average 99), up from a near-zero
+  baseline.
+- **Featured curation**: 0 articles were marked Featured before this pass
+  (Phase 10's `FeaturedSection` was silently running in fallback "Latest
+  Stories" mode). Hand-picked 4 diverse, high-impact recent articles
+  (political, world, crime, veterans) and set `isFeatured`, so the homepage
+  now shows real editorial curation with the "Featured" badge instead of
+  the honest-but-generic fallback.
+- **New bulk-action UI verified end-to-end in a real browser**, not just
+  code-reviewed: a temporary Playwright install (`playwright-core` against
+  the sandbox's pre-installed Chromium) plus a throwaway admin test account
+  and throwaway draft articles were used to click through the actual
+  bulk-category and bulk-feature flows against the live dev server and
+  confirm both the DB and the UI updated correctly. The test account,
+  test articles, and Playwright scratch install were all removed afterward
+  — nothing test-related was left in the repo or the database.
