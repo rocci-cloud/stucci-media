@@ -597,3 +597,37 @@ marked Featured via Phase 9's toggle.
   rails and the sidebar's Trending Now list, same exclusion pattern the
   old Hero used for its single lead story, just generalized to a set of
   up to 4 slugs instead of one.
+
+## Phase 11 — done: image re-host fix (post-domain-activation incident)
+
+`scripts/import-wordpress.mjs` (Phase 4) had imported every article's
+`coverImageUrl` and inline body `<img>` URLs as direct hotlinks to the
+original WordPress install's own media library, not this app's storage.
+That quietly worked as long as stuccimedia.com still pointed at the old
+WordPress host. Once the domain was repointed at this Next.js app, every
+one of those links broke — the app never owned copies of the images.
+
+- **Fix**: `scripts/rehost-images.mjs` — fetches every broken image, uploads
+  it to this app's own Vercel Blob store, and rewrites the DB (`cover_image_url`
+  and inline `<img src>` in `body`) to point at the new permanent Blob URLs.
+  Matches each broken URL against a fresh WordPress export
+  (`scripts/data/wordpress-export.xml`, kept locally, not committed — see
+  below) by post slug/filename for a verified-correct source, falling back
+  to a naive domain swap only when nothing matches. Idempotent: only touches
+  rows still referencing the broken host.
+- **Delivery mechanism**: run once via `.github/workflows/rehost-images.yml`,
+  a manual `workflow_dispatch` Action (Actions tab → "Re-host article images"
+  → Run workflow), so it could be triggered from GitHub's web UI with no
+  local dev environment needed. Requires two repo secrets (`DATABASE_URL`,
+  `BLOB_READ_WRITE_TOKEN`) — the workflow file and script are kept in the
+  repo as a reference/reusable tool but the XML export used to seed the
+  first run was intentionally **not** committed (real content data, no
+  reason to keep it in git history).
+- **Result**: 89/89 cover images and 315/315 inline body images fixed, 0
+  failures.
+- **Lesson**: a green "success" check on this kind of script only means the
+  Node process exited 0 — it doesn't mean the work succeeded. The script
+  catches per-image errors internally rather than throwing, so the first
+  run reported "success" while 100% of uploads had actually failed (an
+  invalid `BLOB_READ_WRITE_TOKEN` secret). Always read the job's actual
+  logged output/summary counts, not just the run conclusion.
