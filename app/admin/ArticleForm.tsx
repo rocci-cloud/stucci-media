@@ -158,7 +158,7 @@ export default function ArticleForm({ article, action }: Props) {
       <button
         type="submit"
         disabled={pending || uploading}
-        className="bg-[var(--color-red)] hover:bg-[var(--color-red-dark)] text-white text-sm font-bold uppercase tracking-wide px-5 py-3 rounded-sm disabled:opacity-50 self-start"
+        className="bg-[var(--color-red)] hover:bg-[var(--color-red-dark)] text-white text-sm font-bold uppercase tracking-wide px-5 py-3 rounded-control disabled:opacity-50 self-start"
       >
         {pending ? "Saving…" : "Save"}
       </button>

@@ -13,7 +13,7 @@ Deployed on Vercel, connected to GitHub (`main` is the deploy branch).
 - Next.js 16 (App Router, React 19, TypeScript)
 - Tailwind CSS v4 (`@import "tailwindcss"` + `@theme` in `app/globals.css` —
   no `tailwind.config.js`)
-- `@fontsource/source-serif-4` for the headline face
+- `@fontsource/oswald` for the headline face
 - Neon Postgres for content, Vercel Blob for images, `/admin` for editing —
   see Phase 2 below
 
@@ -32,13 +32,16 @@ app/
   page.tsx                homepage: BreakingBar → Hero → ArticleGrid → Subscribe
   globals.css             design tokens + Tailwind import
   articles/[slug]/        article template + generateMetadata + generateStaticParams
-  category/[slug]/        all 6 category pages from one route
+  category/[slug]/        all 7 category pages from one route
   search/                 client-side filter over the articles array
   about/ contact/ privacy/
-  components/             BreakingBar, SiteHeader, Hero, ArticleGrid,
-                          SubscribeStrip, SiteFooter
-  lib/articles.ts         Article type + article data + lookup helpers
-  lib/categories.ts       Category type + the 6 categories + lookup helper
+  admin/                  article editor + subscriber list (see Phase 2/3)
+  components/             BreakingBar, SiteHeader, Hero, TopicRail, Sidebar,
+                          ArticleGrid, SubscribeStrip/Form, SiteFooter
+  components/ui/          ArticleCard, SectionHeader, Badge — shared
+                          primitives, see Design system below
+  lib/articles.ts         Article type + DB reads/writes + lookup helpers
+  lib/categories.ts       Category type + the 7 categories + lookup helper
 ```
 
 `app/lib/articles.ts` is the single data source — every component is written
@@ -56,30 +59,41 @@ must stay in sync.
 
 ## Design system
 
-Dense mainstream-news-portal look (Fox News / Daily Mail, not a minimal
-blog) as of Phase 5: navy/red/white, bold condensed sans headlines, sticky
-nav, ticker, sidebar rails. Still no rounded cards/shadows, still no dark
-mode (`color-scheme: light only` — there are `!important` overrides in
+Premium independent-media look as of Phase 6 (Free Press / Semafor / Axios
+polish, Stucci's navy/red/white identity underneath): soft card shadows +
+radius, a real spacing/radius/shadow scale, mobile-first throughout, 44px
+minimum touch targets on every interactive element. No dark mode
+(`color-scheme: light only` — there are `!important` overrides in
 `globals.css` guarding against browser dark mode).
 
 Colors (CSS vars on `:root`, used as `text-[var(--color-red)]` etc.):
 
 | Token | Value | Use |
 |---|---|---|
-| `--color-black` | `#0a2a55` | masthead accent, nav bar, sidebar headers — a navy despite the name (kept the original token so existing utility classes didn't need touching) |
-| `--color-text` | `#171717` | body text |
+| `--color-navy` | `#0a1628` | masthead accent, nav bar, sidebar/card panel headers |
+| `--color-text` | `#14181f` | body text |
 | `--color-gray` | `#55606c` | deks, bylines, metadata |
 | `--color-gray-light` | `#8a94a0` | footer, timestamps |
-| `--color-hairline` | `#e2e5e9` | light rules and borders |
-| `--color-hairline-strong` | `#0a2a55` | heavy section rules (navy) |
-| `--color-red` | `#d0021b` | breaking bar, kickers, links, Subscribe button |
-| `--color-red-dark` | `#a00115` | red hover state |
+| `--color-hairline` | `#e5e7eb` | light rules and borders |
+| `--color-hairline-strong` | `#0a1628` | heavy section rules (navy) |
+| `--color-red` | `#c8102e` | breaking bar, kickers, links, Subscribe button |
+| `--color-red-dark` | `#9c0c23` | red hover/active state |
 | `--color-blue` | `#1c5aa6` | secondary accent, used sparingly |
 | `--color-bg` | `#ffffff` | page background |
-| `--color-bg-off` | `#f3f4f6` | sidebar/module panel background |
+| `--color-bg-off` | `#f7f8fa` | sidebar/module panel background |
 
-Image placeholders are `#E5E4E0` blocks with a hairline border, shown when
-an article has no `coverImageUrl`.
+Radius/shadow scale lives in `@theme` in `globals.css` (Tailwind v4's
+`--radius-*`/`--shadow-*` theme namespace generates real utilities from
+these — `rounded-control`, `rounded-card`, `shadow-card`,
+`shadow-card-hover`, `shadow-pop`). Use these instead of ad hoc
+`rounded-[Npx]`/arbitrary shadow values so the whole site's depth reads
+as one system. Cards (`ArticleCard`'s `grid` variant, Hero's "Also
+Developing" panel, `Sidebar` panels) are `rounded-card` + `shadow-card`,
+brightening to `shadow-card-hover` on hover; form controls and buttons
+are `rounded-control`.
+
+Image placeholders are `#E5E4E0` blocks, shown when an article has no
+`coverImageUrl`.
 
 Type:
 - Headlines: `font-headline` (Oswald, condensed bold sans — weights
@@ -89,10 +103,24 @@ Type:
   `uppercase`.
 - Body: Georgia / Times New Roman serif, set inline on `<body>` in
   `layout.tsx` — kept serif for article body readability even though
-  headlines moved to sans, a deliberate Daily-Mail-style contrast.
+  headlines moved to sans, a deliberate bold-headline/serif-body contrast.
   Article body is `text-[17px] sm:text-[19px] leading-[1.75]`.
 - UI chrome (nav, bylines, metadata, buttons, forms): `font-sans`, small
   sizes, `uppercase tracking-wide font-bold` for kickers and nav.
+
+**Reusable primitives** (`app/components/ui/`): every article-preview,
+section-heading, and kicker-label treatment on the site should go through
+these rather than reimplementing markup inline — that's what keeps the
+whole site visually consistent instead of drifting page to page.
+- `ArticleCard` — `variant="grid"` (the shadowed/rounded card used in
+  `ArticleGrid` and `TopicRail`), `variant="list"` (thumbnail + headline,
+  Hero's "Also Developing" rail), `variant="ranked"` (numbered, no image,
+  `Sidebar`'s Trending Now).
+- `SectionHeader` — `variant="underline"` (kicker + red rule + optional
+  "More →" link, above grids/rails) or `variant="panel"` (solid navy bar,
+  atop sidebar/rail panels).
+- `Badge` — `variant="text"` (plain colored-uppercase category kicker,
+  the common case), `"red"`/`"navy"` (solid pill tags — BREAKING, LIVE).
 
 **Cascade layering gotcha**: the global `a { color: inherit; text-decoration:
 none; }` reset in `globals.css` is wrapped in `@layer base`. If it isn't,
@@ -104,12 +132,23 @@ body text) until traced to this. Any future plain CSS rule targeting an
 element Tailwind utilities also style needs the same `@layer base` (or
 `components`/`utilities`) wrapping.
 
-Layout: `max-w-[1280px]` for dense pages (home, category, article — up
-from `1200px`) with a `[1fr_320px]` two-column grid on `lg:` for the
-`Sidebar` (Trending Now + Subscribe + podcast promo), `max-w-[720px]` for
-search/about/contact/privacy, `px-5` gutters throughout. Mobile-first —
-the nav collapses to a ☰ toggle below `sm`, sidebar stacks below main
-content below `lg`.
+**Comment-inside-`@theme` gotcha**: a CSS comment whose *text* contains the
+literal two-character sequence `*/` (not intended as the comment's close)
+closes the comment early, and the leftover text becomes real CSS —
+`Unclosed block` errors follow. Hit during Phase 6 with a comment reading
+`--radius-*/--shadow-*`. Watch for this in any comment mentioning multiple
+`--foo-*`-style wildcard token names next to each other.
+
+Layout: `max-w-[1280px]` for dense pages (home, category, article) with a
+`[1fr_320px]` two-column grid on `lg:` for the `Sidebar` (Trending Now +
+Subscribe + podcast promo), `max-w-[720px]`/`max-w-[560px]` for
+search/about/contact/privacy, `px-5` gutters throughout. Mobile-first
+throughout — every component's unprefixed (base) classes are the mobile
+layout, `sm:`/`lg:` are enhancements on top, never the reverse. The nav
+collapses to a ☰ toggle below `sm`; the sidebar stacks below main content
+below `lg`. Every tappable element (nav links, buttons, card links, form
+inputs) carries `min-h-11` (44px) for touch targets, even where the
+visual content is shorter.
 
 ## Phase 1 — done
 
@@ -236,3 +275,26 @@ the Design system section above for the new palette/type.
 - **`SubscribeForm.tsx`**: extracted from `SubscribeStrip.tsx` so the
   same server-action-backed form could be reused compact in the sidebar
   (`compact` prop) without duplicating the `useActionState` wiring.
+
+## Phase 6 — done: premium design system pass
+
+Phase 5 nailed the mainstream-portal *structure* but Rocci wanted the
+finish to read as premium editorial (Free Press/Semafor/Axios), not a
+flat tabloid grid — softer depth, real component reuse, disciplined
+mobile-first/touch-target hygiene. See the Design system section above
+for the token/component details; this section is the "what changed."
+
+- Exact navy/red/white/light-gray palette per Rocci's spec, replacing
+  Phase 5's approximated Fox-News colors. `--color-black` renamed to
+  `--color-navy` sitewide (it was always navy, not black — the old name
+  was a carried-over hack from Phase 5, not worth perpetuating once every
+  usage needed touching anyway).
+- New `app/components/ui/` primitives (`ArticleCard`, `SectionHeader`,
+  `Badge`) replace duplicated inline card/heading markup that had drifted
+  slightly across `ArticleGrid`, `TopicRail`, `Hero`, and `Sidebar`.
+- Cards gained `rounded-card` + `shadow-card` (brightening to
+  `shadow-card-hover` on hover) — the flat/bordered Phase 5 treatment now
+  reads as "premium," not "cheap."
+- Touch-target pass: every button/link/input across the public site
+  (including `SubscribeForm`, `SiteHeader`'s hamburger/search/subscribe,
+  `contact/page.tsx`'s form) got `min-h-11`.

@@ -1,6 +1,8 @@
 import Link from "next/link";
 import type { Article } from "../lib/articles";
 import SubscribeForm from "./SubscribeForm";
+import SectionHeader from "./ui/SectionHeader";
+import ArticleCard from "./ui/ArticleCard";
 
 export default function Sidebar({
   articles,
@@ -14,28 +16,19 @@ export default function Sidebar({
   return (
     <aside className="flex flex-col gap-7">
       {trending.length > 0 && (
-        <div className="bg-[var(--color-bg-off)] border border-[var(--color-hairline)]">
-          <div className="bg-[var(--color-black)] text-white font-headline uppercase font-bold text-[15px] tracking-wide px-4 py-2.5">
-            Trending Now
-          </div>
+        <div className="rounded-card overflow-hidden border border-[var(--color-hairline)] shadow-card bg-white">
+          <SectionHeader title="Trending Now" variant="panel" />
           <ol className="divide-y divide-[var(--color-hairline)]">
             {trending.map((a, i) => (
               <li key={a.slug}>
-                <Link href={`/articles/${a.slug}`} className="flex gap-3 px-4 py-3.5 group">
-                  <span className="font-headline text-[26px] font-bold text-[var(--color-red)]/30 leading-none shrink-0 w-[26px]">
-                    {i + 1}
-                  </span>
-                  <span className="font-sans text-[13.5px] font-bold leading-[1.35] group-hover:text-[var(--color-red)]">
-                    {a.headline}
-                  </span>
-                </Link>
+                <ArticleCard article={a} variant="ranked" rank={i + 1} />
               </li>
             ))}
           </ol>
         </div>
       )}
 
-      <div className="border border-[var(--color-hairline)] px-5 py-6">
+      <div className="rounded-card border border-[var(--color-hairline)] shadow-card px-5 py-6 bg-white">
         <h3 className="font-headline uppercase font-bold text-[17px] mb-1.5">Get The Real Story</h3>
         <p className="font-sans text-[13px] text-[var(--color-gray)] mb-4">
           Independent reporting, straight to your inbox.
@@ -43,14 +36,14 @@ export default function Sidebar({
         <SubscribeForm compact />
       </div>
 
-      <div className="border border-[var(--color-hairline)] px-5 py-6 bg-[var(--color-black)] text-white">
+      <div className="rounded-card border border-[var(--color-hairline)] shadow-card px-5 py-6 bg-[var(--color-navy)] text-white">
         <h3 className="font-headline uppercase font-bold text-[17px] mb-1.5">The Rocci Stucci Show</h3>
         <p className="font-sans text-[13px] text-white/70 mb-4">
           New episodes weekly — the stories mainstream media won&apos;t run.
         </p>
         <Link
           href="/category/podcasts"
-          className="inline-block bg-[var(--color-red)] hover:bg-[var(--color-red-dark)] text-white text-[11.5px] font-bold uppercase tracking-wide px-4 py-2.5 rounded-sm"
+          className="inline-flex items-center min-h-11 bg-[var(--color-red)] hover:bg-[var(--color-red-dark)] text-white text-[11.5px] font-bold uppercase tracking-wide px-4 rounded-control transition-colors"
         >
           Listen Now
         </Link>

@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react";
 import Link from "next/link";
 import type { Article } from "../lib/articles";
+import Badge from "../components/ui/Badge";
 
 export default function SearchClient({ articles }: { articles: Article[] }) {
   const [query, setQuery] = useState("");
@@ -26,7 +27,7 @@ export default function SearchClient({ articles }: { articles: Article[] }) {
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder="Search articles..."
-        className="font-sans w-full px-4 py-3.5 border-2 border-[var(--color-hairline-strong)] rounded-sm text-base mb-8"
+        className="font-sans w-full min-h-11 px-4 py-3.5 border-2 border-[var(--color-hairline-strong)] rounded-control text-base mb-8 focus:border-[var(--color-red)] transition-colors"
         aria-label="Search articles"
       />
 
@@ -38,11 +39,15 @@ export default function SearchClient({ articles }: { articles: Article[] }) {
 
       <div className="flex flex-col gap-6">
         {results.map((a) => (
-          <Link key={a.slug} href={`/articles/${a.slug}`} className="block group border-b border-[var(--color-hairline)] pb-6">
-            <span className="font-sans block text-[11px] font-bold uppercase tracking-wide text-[var(--color-red)] mb-1.5">
+          <Link
+            key={a.slug}
+            href={`/articles/${a.slug}`}
+            className="block group border-b border-[var(--color-hairline)] pb-6 min-h-11"
+          >
+            <Badge variant="text" className="mb-1.5">
               {a.category}
-            </span>
-            <div className="font-headline text-[20px] font-bold leading-[1.3] mb-1.5 group-hover:underline">
+            </Badge>
+            <div className="font-headline text-[20px] font-bold leading-[1.3] mb-1.5 group-hover:text-[var(--color-red)] transition-colors">
               {a.headline}
             </div>
             <p className="text-sm text-[var(--color-gray)] leading-[1.5]">{a.dek}</p>

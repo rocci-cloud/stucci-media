@@ -17,7 +17,7 @@ export default async function AdminDashboard() {
           </Link>
           <Link
             href="/admin/articles/new"
-            className="bg-[var(--color-red)] hover:bg-[var(--color-red-dark)] text-white text-sm font-bold uppercase tracking-wide px-4 py-2.5 rounded-sm"
+            className="bg-[var(--color-red)] hover:bg-[var(--color-red-dark)] text-white text-sm font-bold uppercase tracking-wide px-4 py-2.5 rounded-control"
           >
             New Article
           </Link>

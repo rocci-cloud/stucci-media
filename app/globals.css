@@ -3,26 +3,32 @@
 
 @theme {
   --font-headline: "Oswald", "Arial Narrow", sans-serif;
+
+  /* radius/shadow vars in the Tailwind v4 @theme namespace become real
+     utilities (rounded-card, shadow-card, ...) — this is the site's
+     full radius/shadow scale, used consistently instead of ad hoc values. */
+  --radius-control: 8px;
+  --radius-card: 12px;
+  --shadow-card: 0 1px 3px rgba(10, 22, 40, 0.08), 0 1px 2px rgba(10, 22, 40, 0.04);
+  --shadow-card-hover: 0 12px 28px rgba(10, 22, 40, 0.14), 0 2px 8px rgba(10, 22, 40, 0.06);
+  --shadow-pop: 0 4px 14px rgba(10, 22, 40, 0.1);
 }
 
 :root {
   color-scheme: light only;
 
-  /* --color-black holds the primary dark surface (masthead/nav/heavy
-     rules) — kept as the original token name so existing utility classes
-     don't need touching, repointed to the network-news navy. */
-  --color-black: #0a2a55;
-  --color-navy-dark: #071b38;
-  --color-text: #171717;
+  --color-navy: #0a1628;
+  --color-navy-dark: #050b15;
+  --color-text: #14181f;
   --color-gray: #55606c;
   --color-gray-light: #8a94a0;
-  --color-hairline: #e2e5e9;
-  --color-hairline-strong: #0a2a55;
-  --color-red: #d0021b;
-  --color-red-dark: #a00115;
+  --color-hairline: #e5e7eb;
+  --color-hairline-strong: #0a1628;
+  --color-red: #c8102e;
+  --color-red-dark: #9c0c23;
   --color-blue: #1c5aa6;
   --color-bg: #ffffff;
-  --color-bg-off: #f3f4f6;
+  --color-bg-off: #f7f8fa;
 }
 
 html,

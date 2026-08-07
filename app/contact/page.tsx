@@ -31,7 +31,7 @@ export default function ContactPage() {
               id="name"
               type="text"
               required
-              className="w-full px-3.5 py-3 border border-[#B9B9B9] rounded-sm text-sm"
+              className="w-full px-3.5 py-3 border border-[#B9B9B9] rounded-control text-sm min-h-11"
             />
           </div>
           <div>
@@ -42,7 +42,7 @@ export default function ContactPage() {
               id="email"
               type="email"
               required
-              className="w-full px-3.5 py-3 border border-[#B9B9B9] rounded-sm text-sm"
+              className="w-full px-3.5 py-3 border border-[#B9B9B9] rounded-control text-sm min-h-11"
             />
           </div>
           <div>
@@ -53,12 +53,12 @@ export default function ContactPage() {
               id="message"
               required
               rows={6}
-              className="w-full px-3.5 py-3 border border-[#B9B9B9] rounded-sm text-sm resize-y"
+              className="w-full px-3.5 py-3 border border-[#B9B9B9] rounded-control text-sm resize-y"
             />
           </div>
           <button
             type="submit"
-            className="self-start bg-[var(--color-red)] hover:bg-[var(--color-red-dark)] text-white text-[13px] font-bold uppercase tracking-wide px-6 py-3 rounded-sm"
+            className="self-start bg-[var(--color-red)] hover:bg-[var(--color-red-dark)] text-white text-[13px] font-bold uppercase tracking-wide px-6 py-3 min-h-11 rounded-control transition-colors"
           >
             Send Message
           </button>

@@ -3,7 +3,7 @@ import { categories } from "../lib/categories";
 
 export default function SiteFooter() {
   return (
-    <footer className="font-sans bg-[var(--color-black)] text-white mt-4">
+    <footer className="font-sans bg-[var(--color-navy)] text-white mt-4">
       <div className="mx-auto max-w-[1280px] px-5 py-10 grid grid-cols-2 sm:grid-cols-4 gap-8">
         <div className="col-span-2 sm:col-span-1">
           <div className="font-headline text-[22px] font-bold uppercase mb-2.5">

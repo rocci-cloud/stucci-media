@@ -1,5 +1,6 @@
 import { getPublishedArticles } from "../lib/articles";
 import BreakingTicker from "./BreakingTicker";
+import Badge from "./ui/Badge";
 
 export default async function BreakingBar() {
   const articles = await getPublishedArticles();
@@ -9,10 +10,10 @@ export default async function BreakingBar() {
 
   return (
     <div className="bg-[var(--color-red)]">
-      <div className="mx-auto max-w-[1280px] px-5 py-[9px] flex items-center gap-2.5 text-[13px] font-sans">
-        <span className="bg-[var(--color-black)] text-white font-bold text-[11px] tracking-wide uppercase px-2 py-[3px] rounded-sm shrink-0">
+      <div className="mx-auto max-w-[1280px] px-5 py-2.5 flex items-center gap-2.5 text-[13px] font-sans min-h-11">
+        <Badge variant="navy" className="shrink-0">
           Breaking
-        </span>
+        </Badge>
         <div className="min-w-0 flex-1">
           <BreakingTicker items={items} />
         </div>
