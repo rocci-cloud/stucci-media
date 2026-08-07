@@ -562,3 +562,38 @@ component library.
   restored via direct SQL immediately after; the test admin account and
   the test article itself were deleted afterward. No article content or
   other site data was affected.
+
+## Phase 10 — done: homepage Featured section
+
+`Hero.tsx` (which just used "most recent published article" as the lead,
+regardless of any curation) is replaced by `FeaturedSection.tsx` — the
+homepage's first content section now shows only what an editor explicitly
+marked Featured via Phase 9's toggle.
+
+- **Query is a straight filter, no cleverness**: `getFeaturedArticles()`
+  in `app/lib/articles.ts` is `where: { status: "PUBLISHED", isFeatured:
+  true }`, ordered by `publishedAt desc` — same shape as the other public
+  read functions.
+- **Graceful fallback, honestly labeled**: if nothing is marked Featured
+  yet, `FeaturedSection` falls back to the latest published articles
+  instead of rendering an empty box — but the section header reads
+  "Latest Stories" (not "Featured Stories") and the navy "Featured" pill
+  badge is suppressed on the lead story in fallback mode, so a visitor is
+  never told something is curated when it isn't. This was verified
+  against the live site both ways: with zero featured articles (the
+  actual current state) and with three real articles temporarily marked
+  featured via direct SQL to confirm the true layout, then reverted.
+- **Layout**: large cinematic lead (full-bleed image, gradient scrim,
+  overlaid headline — the same treatment the old Hero used, since it
+  already worked well) alongside up to 3 secondary cards. A new
+  `ArticleCard` variant, `"featured"`, was added for those — a horizontal
+  card (image left, content right) showing image, category badge, title,
+  excerpt, author, and date, matching this task's explicit per-card
+  requirements. The old Hero's rail used `variant="list"`, which only
+  showed image + title + date — not enough for this section, hence the
+  new variant rather than reusing what was there.
+- **No duplicate stories directly below**: whichever articles the section
+  ends up showing (curated or fallback) are excluded from the category
+  rails and the sidebar's Trending Now list, same exclusion pattern the
+  old Hero used for its single lead story, just generalized to a set of
+  up to 4 slugs instead of one.
