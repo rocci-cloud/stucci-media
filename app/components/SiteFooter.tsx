@@ -10,7 +10,7 @@ export default function SiteFooter() {
             Stucci<span className="text-[var(--color-red)]">Media</span>
           </div>
           <p className="text-[13px] text-white/60 leading-[1.5]">
-            Independent news from Hammond, WI — the stories mainstream media won&apos;t run.
+            Independent news from Florida — the stories mainstream media won&apos;t run.
           </p>
         </div>
 
@@ -64,7 +64,7 @@ export default function SiteFooter() {
       <div className="border-t border-white/10">
         <div className="mx-auto max-w-[1280px] px-5 py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-[12px] text-white/50">
           <div>© 2026 Stucci Media — All Rights Reserved</div>
-          <div>Hammond, Wisconsin</div>
+          <div>Florida</div>
         </div>
       </div>
     </footer>

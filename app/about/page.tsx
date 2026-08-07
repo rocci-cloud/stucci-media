@@ -5,7 +5,7 @@ import SiteFooter from "../components/SiteFooter";
 
 export const metadata: Metadata = {
   title: "About",
-  description: "About Stucci Media — independent news and analysis from Hammond, WI.",
+  description: "About Stucci Media — independent news and analysis from Florida.",
 };
 
 export default function AboutPage() {
@@ -19,7 +19,7 @@ export default function AboutPage() {
         </h1>
         <div className="text-[17px] sm:text-[19px] leading-[1.75]">
           <p className="mb-5">
-            Stucci Media is an independent news outlet based in Hammond, Wisconsin, covering
+            Stucci Media is an independent news outlet based in Florida, covering
             political news, world events, social issues, and the stories mainstream outlets
             won&apos;t run.
           </p>

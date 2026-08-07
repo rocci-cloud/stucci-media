@@ -2,7 +2,7 @@
 
 # Stucci Media
 
-Independent news site for Rocci Stucci (Hammond, WI) — news analysis, world
+Independent news site for Rocci Stucci (Florida) — news analysis, world
 coverage, social issues, crime investigation, veterans, and The Rocci Stucci
 Show podcast. Tagline: "the stories mainstream media won't run."
 
