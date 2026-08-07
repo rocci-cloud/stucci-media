@@ -9,7 +9,7 @@ export default function ArticleGrid({
   title?: string;
 }) {
   return (
-    <>
+    <div>
       <div className="flex items-center gap-3.5 mb-5">
         <h2 className="font-headline uppercase text-[20px] font-bold border-l-4 border-[var(--color-red)] pl-3 whitespace-nowrap">
           {title}
@@ -45,6 +45,6 @@ export default function ArticleGrid({
           ))}
         </section>
       )}
-    </>
+    </div>
   );
 }
