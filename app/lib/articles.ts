@@ -119,6 +119,17 @@ export async function getPublishedArticles(): Promise<Article[]> {
   return rows.map((row) => mapRow(row, labelBySlug));
 }
 
+export async function getFeaturedArticles(): Promise<Article[]> {
+  const [rows, labelBySlug] = await Promise.all([
+    prisma.article.findMany({
+      where: { status: "PUBLISHED", isFeatured: true },
+      orderBy: { publishedAt: "desc" },
+    }),
+    categorySlugToLabel(),
+  ]);
+  return rows.map((row) => mapRow(row, labelBySlug));
+}
+
 export async function getArticleBySlug(slug: string): Promise<Article | undefined> {
   const [row, labelBySlug] = await Promise.all([
     prisma.article.findFirst({ where: { slug, status: "PUBLISHED" } }),

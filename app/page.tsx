@@ -1,17 +1,21 @@
 import BreakingBar from "./components/BreakingBar";
 import SiteHeader from "./components/SiteHeader";
-import Hero from "./components/Hero";
+import FeaturedSection from "./components/FeaturedSection";
 import TopicRail from "./components/TopicRail";
 import Sidebar from "./components/Sidebar";
 import SubscribeStrip from "./components/SubscribeStrip";
 import SiteFooter from "./components/SiteFooter";
-import { getPublishedArticles } from "./lib/articles";
+import { getPublishedArticles, getFeaturedArticles } from "./lib/articles";
 import { getCategories } from "./lib/categories";
 
 export const revalidate = 60;
 
 export default async function HomePage() {
-  const [articles, categories] = await Promise.all([getPublishedArticles(), getCategories()]);
+  const [articles, featuredArticles, categories] = await Promise.all([
+    getPublishedArticles(),
+    getFeaturedArticles(),
+    getCategories(),
+  ]);
 
   if (articles.length === 0) {
     return (
@@ -25,8 +29,13 @@ export default async function HomePage() {
     );
   }
 
-  const [lead, ...rest] = articles;
-  const railItems = rest.filter((a) => a.slug !== lead.slug);
+  // The Featured section shows up to 4 stories (curated, or — if nothing's
+  // marked Featured yet — the most recent as a graceful fallback; see
+  // FeaturedSection). Whichever it ends up showing gets excluded from the
+  // rails/sidebar below so the same story doesn't appear twice in a row.
+  const featuredForSection = featuredArticles.length > 0 ? featuredArticles : articles;
+  const shownSlugs = new Set(featuredForSection.slice(0, 4).map((a) => a.slug));
+  const railItems = articles.filter((a) => !shownSlugs.has(a.slug));
 
   return (
     <>
@@ -34,7 +43,7 @@ export default async function HomePage() {
       <SiteHeader />
       <main>
         <div className="mx-auto max-w-[1280px] px-5 pt-6">
-          <Hero lead={lead} rail={railItems.slice(0, 4)} />
+          <FeaturedSection featured={featuredArticles.slice(0, 4)} fallback={articles.slice(0, 4)} />
         </div>
 
         <div className="mx-auto max-w-[1280px] px-5 py-2 grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-x-10">
@@ -44,14 +53,12 @@ export default async function HomePage() {
                 key={category.slug}
                 category={category}
                 alternate={index % 2 === 1}
-                articles={articles
-                  .filter((a) => a.categorySlug === category.slug && a.slug !== lead.slug)
-                  .slice(0, 4)}
+                articles={railItems.filter((a) => a.categorySlug === category.slug).slice(0, 4)}
               />
             ))}
           </div>
           <div className="pt-6 lg:pt-6">
-            <Sidebar articles={railItems} excludeSlug={lead.slug} />
+            <Sidebar articles={railItems} />
           </div>
         </div>
 
