@@ -7,6 +7,7 @@ import {
   createArticle,
   updateArticle,
   deleteArticle,
+  getArticleByIdAdmin,
   toggleArticleFeatured,
   updateArticleCategories,
   bulkSetArticleStatus,
@@ -17,12 +18,26 @@ import {
 } from "../../lib/articles";
 import { getCategories } from "../../lib/categories";
 import { bodyInputToHtml } from "../../lib/sanitize";
+import { requireAdminSession } from "../../lib/require-admin";
+import { logActivity } from "../../lib/activity";
 
 export type ArticleFormState = { error?: string };
 
 function isUniqueConstraintError(error: unknown): boolean {
   return error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002";
 }
+
+const MAX_LENGTHS = {
+  slug: 100,
+  headline: 200,
+  dek: 400,
+  author: 100,
+  seoTitle: 70,
+  seoDescription: 200,
+  seoKeywords: 300,
+} as const;
+
+const URL_RE = /^https?:\/\/.+/i;
 
 async function parseInput(formData: FormData): Promise<ArticleInput | { error: string }> {
   const slug = String(formData.get("slug") || "").trim();
@@ -44,6 +59,7 @@ async function parseInput(formData: FormData): Promise<ArticleInput | { error: s
   if (!slug || !/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug)) {
     return { error: "Slug must be lowercase letters, numbers, and hyphens only (e.g. my-article-title)." };
   }
+  if (slug.length > MAX_LENGTHS.slug) return { error: `Slug must be ${MAX_LENGTHS.slug} characters or fewer.` };
   if (categorySlugs.length === 0) {
     return { error: "Choose at least one category." };
   }
@@ -53,8 +69,27 @@ async function parseInput(formData: FormData): Promise<ArticleInput | { error: s
     return { error: "One or more selected categories no longer exist." };
   }
   if (!headline) return { error: "Headline is required." };
+  if (headline.length > MAX_LENGTHS.headline) {
+    return { error: `Headline must be ${MAX_LENGTHS.headline} characters or fewer.` };
+  }
   if (!dek) return { error: "Dek is required." };
+  if (dek.length > MAX_LENGTHS.dek) return { error: `Dek must be ${MAX_LENGTHS.dek} characters or fewer.` };
+  if (author.length > MAX_LENGTHS.author) {
+    return { error: `Author name must be ${MAX_LENGTHS.author} characters or fewer.` };
+  }
   if (!rawBody) return { error: "Body is required." };
+  if (seoTitle && seoTitle.length > MAX_LENGTHS.seoTitle) {
+    return { error: `SEO title must be ${MAX_LENGTHS.seoTitle} characters or fewer.` };
+  }
+  if (seoDescription && seoDescription.length > MAX_LENGTHS.seoDescription) {
+    return { error: `SEO description must be ${MAX_LENGTHS.seoDescription} characters or fewer.` };
+  }
+  if (seoKeywords && seoKeywords.length > MAX_LENGTHS.seoKeywords) {
+    return { error: `SEO keywords must be ${MAX_LENGTHS.seoKeywords} characters or fewer.` };
+  }
+  if (canonicalUrl && !URL_RE.test(canonicalUrl)) {
+    return { error: "Canonical URL must start with http:// or https://." };
+  }
 
   const bodyHtml = bodyInputToHtml(rawBody);
 
@@ -81,6 +116,9 @@ export async function createArticleAction(
   _prevState: ArticleFormState,
   formData: FormData
 ): Promise<ArticleFormState> {
+  const session = await requireAdminSession();
+  if (!session) return { error: "You must be signed in as an admin to do that." };
+
   const input = await parseInput(formData);
   if ("error" in input) return input;
 
@@ -93,6 +131,7 @@ export async function createArticleAction(
     return { error: "Something went wrong saving the article." };
   }
 
+  await logActivity({ actor: session.user, action: "article.created", targetType: "article", targetLabel: input.headline });
   revalidatePath("/", "layout");
   redirect("/admin/articles");
 }
@@ -102,6 +141,9 @@ export async function updateArticleAction(
   _prevState: ArticleFormState,
   formData: FormData
 ): Promise<ArticleFormState> {
+  const session = await requireAdminSession();
+  if (!session) return { error: "You must be signed in as an admin to do that." };
+
   const input = await parseInput(formData);
   if ("error" in input) return input;
 
@@ -114,12 +156,22 @@ export async function updateArticleAction(
     return { error: "Something went wrong saving the article." };
   }
 
+  await logActivity({ actor: session.user, action: "article.updated", targetType: "article", targetLabel: input.headline });
   revalidatePath("/", "layout");
   redirect("/admin/articles");
 }
 
 export async function deleteArticleAction(id: number) {
+  const session = await requireAdminSession();
+  if (!session) redirect("/login?from=/admin/articles");
+  const article = await getArticleByIdAdmin(id);
   await deleteArticle(id);
+  await logActivity({
+    actor: session.user,
+    action: "article.deleted",
+    targetType: "article",
+    targetLabel: article?.headline ?? `#${id}`,
+  });
   revalidatePath("/", "layout");
   redirect("/admin/articles");
 }
@@ -129,9 +181,20 @@ export async function deleteArticleAction(id: number) {
 
 export type ActionResult = { success: true } | { success: false; error: string };
 
+const UNAUTHORIZED: ActionResult = { success: false, error: "You must be signed in as an admin to do that." };
+
 export async function deleteArticleFromListAction(id: number): Promise<ActionResult> {
+  const session = await requireAdminSession();
+  if (!session) return UNAUTHORIZED;
   try {
+    const article = await getArticleByIdAdmin(id);
     await deleteArticle(id);
+    await logActivity({
+      actor: session.user,
+      action: "article.deleted",
+      targetType: "article",
+      targetLabel: article?.headline ?? `#${id}`,
+    });
     revalidatePath("/", "layout");
     return { success: true };
   } catch {
@@ -140,8 +203,17 @@ export async function deleteArticleFromListAction(id: number): Promise<ActionRes
 }
 
 export async function toggleFeaturedAction(id: number, isFeatured: boolean): Promise<ActionResult> {
+  const session = await requireAdminSession();
+  if (!session) return UNAUTHORIZED;
   try {
     await toggleArticleFeatured(id, isFeatured);
+    const article = await getArticleByIdAdmin(id);
+    await logActivity({
+      actor: session.user,
+      action: isFeatured ? "article.featured" : "article.unfeatured",
+      targetType: "article",
+      targetLabel: article?.headline ?? `#${id}`,
+    });
     revalidatePath("/", "layout");
     return { success: true };
   } catch {
@@ -153,11 +225,20 @@ export async function updateArticleCategoriesAction(
   id: number,
   categorySlugs: string[]
 ): Promise<ActionResult> {
+  const session = await requireAdminSession();
+  if (!session) return UNAUTHORIZED;
   if (categorySlugs.length === 0) {
     return { success: false, error: "An article needs at least one category." };
   }
   try {
     await updateArticleCategories(id, categorySlugs);
+    const article = await getArticleByIdAdmin(id);
+    await logActivity({
+      actor: session.user,
+      action: "article.recategorized",
+      targetType: "article",
+      targetLabel: article?.headline ?? `#${id}`,
+    });
     revalidatePath("/", "layout");
     return { success: true };
   } catch {
@@ -169,8 +250,16 @@ export async function bulkSetStatusAction(
   ids: number[],
   status: "draft" | "published"
 ): Promise<ActionResult> {
+  const session = await requireAdminSession();
+  if (!session) return UNAUTHORIZED;
   try {
     await bulkSetArticleStatus(ids, status);
+    await logActivity({
+      actor: session.user,
+      action: status === "published" ? "article.bulk_published" : "article.bulk_unpublished",
+      targetType: "article",
+      targetLabel: `${ids.length} article${ids.length === 1 ? "" : "s"}`,
+    });
     revalidatePath("/", "layout");
     return { success: true };
   } catch {
@@ -179,8 +268,16 @@ export async function bulkSetStatusAction(
 }
 
 export async function bulkDeleteAction(ids: number[]): Promise<ActionResult> {
+  const session = await requireAdminSession();
+  if (!session) return UNAUTHORIZED;
   try {
     await bulkDeleteArticles(ids);
+    await logActivity({
+      actor: session.user,
+      action: "article.bulk_deleted",
+      targetType: "article",
+      targetLabel: `${ids.length} article${ids.length === 1 ? "" : "s"}`,
+    });
     revalidatePath("/", "layout");
     return { success: true };
   } catch {
@@ -189,8 +286,16 @@ export async function bulkDeleteAction(ids: number[]): Promise<ActionResult> {
 }
 
 export async function bulkSetFeaturedAction(ids: number[], isFeatured: boolean): Promise<ActionResult> {
+  const session = await requireAdminSession();
+  if (!session) return UNAUTHORIZED;
   try {
     await bulkSetArticleFeatured(ids, isFeatured);
+    await logActivity({
+      actor: session.user,
+      action: isFeatured ? "article.bulk_featured" : "article.bulk_unfeatured",
+      targetType: "article",
+      targetLabel: `${ids.length} article${ids.length === 1 ? "" : "s"}`,
+    });
     revalidatePath("/", "layout");
     return { success: true };
   } catch {
@@ -199,11 +304,19 @@ export async function bulkSetFeaturedAction(ids: number[], isFeatured: boolean):
 }
 
 export async function bulkSetCategoriesAction(ids: number[], categorySlugs: string[]): Promise<ActionResult> {
+  const session = await requireAdminSession();
+  if (!session) return UNAUTHORIZED;
   if (categorySlugs.length === 0) {
     return { success: false, error: "Choose at least one category." };
   }
   try {
     await bulkUpdateArticleCategories(ids, categorySlugs);
+    await logActivity({
+      actor: session.user,
+      action: "article.bulk_recategorized",
+      targetType: "article",
+      targetLabel: `${ids.length} article${ids.length === 1 ? "" : "s"}`,
+    });
     revalidatePath("/", "layout");
     return { success: true };
   } catch {

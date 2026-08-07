@@ -104,6 +104,7 @@ export default function SeoPanel(props: Props) {
           name="seoTitle"
           value={props.seoTitle}
           onChange={(e) => props.onSeoTitleChange(e.target.value)}
+          maxLength={70}
           placeholder={props.headline || "Defaults to the headline"}
         />
       </div>
@@ -119,6 +120,7 @@ export default function SeoPanel(props: Props) {
           value={props.seoDescription}
           onChange={(e) => props.onSeoDescriptionChange(e.target.value)}
           rows={3}
+          maxLength={200}
           placeholder={props.dek || "Defaults to the dek"}
         />
       </div>
@@ -130,6 +132,7 @@ export default function SeoPanel(props: Props) {
           name="seoKeywords"
           value={props.seoKeywords}
           onChange={(e) => props.onSeoKeywordsChange(e.target.value)}
+          maxLength={300}
           placeholder="e.g. veteran owned business, comma-separated"
         />
       </div>

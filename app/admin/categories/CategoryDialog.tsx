@@ -93,6 +93,7 @@ export default function CategoryDialog({ open, onOpenChange, category, onSubmit,
               value={name}
               required
               autoFocus
+              maxLength={60}
               onChange={(e) => {
                 setName(e.target.value);
                 if (!slugTouched) setSlug(slugify(e.target.value));
@@ -107,6 +108,7 @@ export default function CategoryDialog({ open, onOpenChange, category, onSubmit,
               id="cat-slug"
               value={slug}
               required
+              maxLength={80}
               onChange={(e) => {
                 setSlug(slugify(e.target.value));
                 setSlugTouched(true);
@@ -123,6 +125,7 @@ export default function CategoryDialog({ open, onOpenChange, category, onSubmit,
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={3}
+              maxLength={300}
               placeholder="Shown at the top of the category page."
             />
           </div>

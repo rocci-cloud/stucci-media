@@ -201,3 +201,20 @@ model Subscriber {
 
   @@map("subscribers")
 }
+
+// Lightweight admin audit trail — who did what, when. actorName/actorEmail
+// are snapshotted at write time (not just a relation to User) so the log
+// still reads sensibly if an admin account is later deleted or renamed.
+model ActivityLog {
+  id          String   @id @default(cuid())
+  actorId     String?  @map("actor_id")
+  actorName   String   @map("actor_name")
+  actorEmail  String   @map("actor_email")
+  action      String
+  targetType  String   @map("target_type")
+  targetLabel String   @map("target_label")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@index([createdAt(sort: Desc)])
+  @@map("activity_logs")
+}

@@ -4,6 +4,10 @@ import { useState } from "react";
 import { upload } from "@vercel/blob/client";
 import { ImageOff, Loader2, Upload, X } from "lucide-react";
 import { Button } from "../components/ui/button";
+import { compressImageIfNeeded } from "./image-compression";
+
+const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
+const MAX_UPLOAD_BYTES = 10 * 1024 * 1024; // matches the server's onBeforeGenerateToken limit
 
 export default function ImageField({
   label,
@@ -20,10 +24,22 @@ export default function ImageField({
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    setUploading(true);
     setError(null);
+
+    if (!ALLOWED_TYPES.has(file.type)) {
+      setError("Please choose a JPEG, PNG, WebP, or GIF image.");
+      e.target.value = "";
+      return;
+    }
+
+    setUploading(true);
     try {
-      const blob = await upload(file.name, file, { access: "public", handleUploadUrl: "/api/admin/upload" });
+      const optimized = await compressImageIfNeeded(file);
+      if (optimized.size > MAX_UPLOAD_BYTES) {
+        setError("That image is too large even after compression — try a smaller file (max 10MB).");
+        return;
+      }
+      const blob = await upload(optimized.name, optimized, { access: "public", handleUploadUrl: "/api/admin/upload" });
       onChange(blob.url);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Upload failed.");
