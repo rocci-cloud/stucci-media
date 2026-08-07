@@ -11,12 +11,15 @@ import {
   type CategoryInput,
 } from "../../lib/categories";
 import { slugify } from "../../lib/slugify";
+import { requireAdminSession } from "../../lib/require-admin";
 
 export type CategoryActionResult =
   | { success: true; category: Category }
   | { success: false; error: string };
 
 export type DeleteCategoryResult = { success: true } | { success: false; error: string };
+
+const UNAUTHORIZED = { success: false as const, error: "You must be signed in as an admin to do that." };
 
 function isUniqueConstraintError(error: unknown): boolean {
   return error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002";
@@ -39,6 +42,7 @@ function parseInput(formData: FormData): CategoryInput | { error: string } {
 }
 
 export async function createCategoryAction(formData: FormData): Promise<CategoryActionResult> {
+  if (!(await requireAdminSession())) return UNAUTHORIZED;
   const input = parseInput(formData);
   if ("error" in input) return { success: false, error: input.error };
 
@@ -58,6 +62,7 @@ export async function updateCategoryAction(
   id: string,
   formData: FormData
 ): Promise<CategoryActionResult> {
+  if (!(await requireAdminSession())) return UNAUTHORIZED;
   const input = parseInput(formData);
   if ("error" in input) return { success: false, error: input.error };
 
@@ -74,6 +79,7 @@ export async function updateCategoryAction(
 }
 
 export async function deleteCategoryAction(id: string, slug: string): Promise<DeleteCategoryResult> {
+  if (!(await requireAdminSession())) return UNAUTHORIZED;
   const articleCount = await getCategoryArticleCount(slug);
   if (articleCount > 0) {
     return {

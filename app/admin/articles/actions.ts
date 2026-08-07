@@ -17,6 +17,7 @@ import {
 } from "../../lib/articles";
 import { getCategories } from "../../lib/categories";
 import { bodyInputToHtml } from "../../lib/sanitize";
+import { requireAdminSession } from "../../lib/require-admin";
 
 export type ArticleFormState = { error?: string };
 
@@ -81,6 +82,8 @@ export async function createArticleAction(
   _prevState: ArticleFormState,
   formData: FormData
 ): Promise<ArticleFormState> {
+  if (!(await requireAdminSession())) return { error: "You must be signed in as an admin to do that." };
+
   const input = await parseInput(formData);
   if ("error" in input) return input;
 
@@ -102,6 +105,8 @@ export async function updateArticleAction(
   _prevState: ArticleFormState,
   formData: FormData
 ): Promise<ArticleFormState> {
+  if (!(await requireAdminSession())) return { error: "You must be signed in as an admin to do that." };
+
   const input = await parseInput(formData);
   if ("error" in input) return input;
 
@@ -119,6 +124,7 @@ export async function updateArticleAction(
 }
 
 export async function deleteArticleAction(id: number) {
+  if (!(await requireAdminSession())) redirect("/login?from=/admin/articles");
   await deleteArticle(id);
   revalidatePath("/", "layout");
   redirect("/admin/articles");
@@ -129,7 +135,10 @@ export async function deleteArticleAction(id: number) {
 
 export type ActionResult = { success: true } | { success: false; error: string };
 
+const UNAUTHORIZED: ActionResult = { success: false, error: "You must be signed in as an admin to do that." };
+
 export async function deleteArticleFromListAction(id: number): Promise<ActionResult> {
+  if (!(await requireAdminSession())) return UNAUTHORIZED;
   try {
     await deleteArticle(id);
     revalidatePath("/", "layout");
@@ -140,6 +149,7 @@ export async function deleteArticleFromListAction(id: number): Promise<ActionRes
 }
 
 export async function toggleFeaturedAction(id: number, isFeatured: boolean): Promise<ActionResult> {
+  if (!(await requireAdminSession())) return UNAUTHORIZED;
   try {
     await toggleArticleFeatured(id, isFeatured);
     revalidatePath("/", "layout");
@@ -153,6 +163,7 @@ export async function updateArticleCategoriesAction(
   id: number,
   categorySlugs: string[]
 ): Promise<ActionResult> {
+  if (!(await requireAdminSession())) return UNAUTHORIZED;
   if (categorySlugs.length === 0) {
     return { success: false, error: "An article needs at least one category." };
   }
@@ -169,6 +180,7 @@ export async function bulkSetStatusAction(
   ids: number[],
   status: "draft" | "published"
 ): Promise<ActionResult> {
+  if (!(await requireAdminSession())) return UNAUTHORIZED;
   try {
     await bulkSetArticleStatus(ids, status);
     revalidatePath("/", "layout");
@@ -179,6 +191,7 @@ export async function bulkSetStatusAction(
 }
 
 export async function bulkDeleteAction(ids: number[]): Promise<ActionResult> {
+  if (!(await requireAdminSession())) return UNAUTHORIZED;
   try {
     await bulkDeleteArticles(ids);
     revalidatePath("/", "layout");
@@ -189,6 +202,7 @@ export async function bulkDeleteAction(ids: number[]): Promise<ActionResult> {
 }
 
 export async function bulkSetFeaturedAction(ids: number[], isFeatured: boolean): Promise<ActionResult> {
+  if (!(await requireAdminSession())) return UNAUTHORIZED;
   try {
     await bulkSetArticleFeatured(ids, isFeatured);
     revalidatePath("/", "layout");
@@ -199,6 +213,7 @@ export async function bulkSetFeaturedAction(ids: number[], isFeatured: boolean):
 }
 
 export async function bulkSetCategoriesAction(ids: number[], categorySlugs: string[]): Promise<ActionResult> {
+  if (!(await requireAdminSession())) return UNAUTHORIZED;
   if (categorySlugs.length === 0) {
     return { success: false, error: "Choose at least one category." };
   }
