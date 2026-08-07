@@ -14,7 +14,7 @@ export default function PrivacyPage() {
       <BreakingBar />
       <SiteHeader />
       <main className="max-w-[720px] mx-auto px-5 pt-10 pb-20">
-        <h1 className="font-headline text-[32px] sm:text-[42px] font-black tracking-[-0.01em] mb-6">
+        <h1 className="font-headline text-[32px] sm:text-[42px] font-bold uppercase tracking-[-0.005em] mb-6">
           Privacy Policy
         </h1>
         <div className="text-[17px] leading-[1.75] text-[var(--color-gray)]">

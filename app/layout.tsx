@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
-import "@fontsource/source-serif-4/600.css";
-import "@fontsource/source-serif-4/700.css";
-import "@fontsource/source-serif-4/900.css";
+import "@fontsource/oswald/400.css";
+import "@fontsource/oswald/500.css";
+import "@fontsource/oswald/600.css";
+import "@fontsource/oswald/700.css";
 import "./globals.css";
 
 export const metadata: Metadata = {
