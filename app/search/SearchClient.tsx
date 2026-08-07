@@ -5,8 +5,14 @@ import Link from "next/link";
 import type { Article } from "../lib/articles";
 import Badge from "../components/ui/Badge";
 
-export default function SearchClient({ articles }: { articles: Article[] }) {
-  const [query, setQuery] = useState("");
+export default function SearchClient({
+  articles,
+  initialQuery = "",
+}: {
+  articles: Article[];
+  initialQuery?: string;
+}) {
+  const [query, setQuery] = useState(initialQuery);
 
   const results = useMemo(() => {
     const q = query.trim().toLowerCase();

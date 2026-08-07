@@ -6,8 +6,12 @@ import SearchClient from "./SearchClient";
 
 export const revalidate = 60;
 
-export default async function SearchPage() {
-  const articles = await getPublishedArticles();
+type Props = {
+  searchParams: Promise<{ q?: string }>;
+};
+
+export default async function SearchPage({ searchParams }: Props) {
+  const [articles, { q }] = await Promise.all([getPublishedArticles(), searchParams]);
 
   return (
     <>
@@ -17,7 +21,7 @@ export default async function SearchPage() {
         <h1 className="font-headline text-[32px] sm:text-[42px] font-bold uppercase tracking-[-0.005em] mb-6">
           Search
         </h1>
-        <SearchClient articles={articles} />
+        <SearchClient articles={articles} initialQuery={q ?? ""} />
       </main>
       <SiteFooter />
     </>
