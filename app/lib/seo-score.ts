@@ -40,10 +40,18 @@ function plainText(html: string): string {
   return html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
 }
 
+// First non-empty comma-separated entry — `input.seoKeywords` being
+// something like ", focus keyword" (stray leading comma) shouldn't read as
+// "no focus keyword set" just because index 0 happened to be blank.
+function firstKeyword(raw: string | null): string {
+  const parts = (raw || "").split(",").map((p) => p.trim()).filter(Boolean);
+  return (parts[0] ?? "").toLowerCase();
+}
+
 export function computeSeoScore(input: SeoInput): SeoResult {
   const title = (input.seoTitle || input.headline || "").trim();
   const description = (input.seoDescription || input.dek || "").trim();
-  const keyword = (input.seoKeywords || "").split(",")[0]?.trim().toLowerCase() ?? "";
+  const keyword = firstKeyword(input.seoKeywords);
   const slug = input.slug.trim();
   const bodyText = plainText(input.bodyHtml || "");
   const wordCount = bodyText ? bodyText.split(/\s+/).filter(Boolean).length : 0;
@@ -127,6 +135,45 @@ export function computeSeoScore(input: SeoInput): SeoResult {
   } else {
     checks.push({ id: "content", label: "Content length", status: "good", detail: `${wordCount} words.` });
     score += POINTS.content;
+  }
+
+  // --- Advisory checks below: shown in the checklist for guidance, but
+  // deliberately don't add/subtract points. Both are real SEO/accessibility
+  // factors the 6 scored checks above don't cover, but folding them into
+  // the score would retroactively change the number for every article
+  // that's already been scored (and hand-tuned to it) without them —
+  // surfacing the issue is more useful here than moving the score.
+
+  // Image alt text (accessibility + image search ranking factor)
+  const imgTags = input.bodyHtml.match(/<img[^>]*>/gi) ?? [];
+  if (imgTags.length > 0) {
+    const missingAlt = imgTags.filter((tag) => !/\balt\s*=\s*["'][^"']+["']/i.test(tag)).length;
+    if (missingAlt === 0) {
+      checks.push({ id: "imageAlt", label: "Image alt text", status: "good", detail: `All ${imgTags.length} image${imgTags.length === 1 ? "" : "s"} have alt text.` });
+    } else {
+      checks.push({
+        id: "imageAlt",
+        label: "Image alt text",
+        status: "warning",
+        detail: `${missingAlt} of ${imgTags.length} image${imgTags.length === 1 ? "" : "s"} missing alt text.`,
+      });
+    }
+  }
+
+  // Keyword stuffing — the score above only rewards keyword presence and
+  // would otherwise have no way to flag overuse.
+  if (keyword && wordCount > 0) {
+    const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const occurrences = (bodyText.toLowerCase().match(new RegExp(`\\b${escaped}\\b`, "g")) ?? []).length;
+    const density = occurrences / wordCount;
+    if (density > 0.03) {
+      checks.push({
+        id: "keywordDensity",
+        label: "Keyword density",
+        status: "warning",
+        detail: `"${keyword}" appears ${occurrences} times (${Math.round(density * 100)}% of content) — may read as keyword stuffing.`,
+      });
+    }
   }
 
   return { score: Math.round(score), checks };
