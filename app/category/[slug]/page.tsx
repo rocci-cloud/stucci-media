@@ -24,6 +24,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: category.label,
     description: category.description,
+    alternates: {
+      canonical: `/category/${category.slug}`,
+    },
     openGraph: {
       title: `${category.label} | Stucci Media`,
       description: category.description,
@@ -55,8 +58,22 @@ export default async function CategoryPage({ params }: Props) {
   const leadArticles = categoryArticles.slice(0, 4);
   const remainingArticles = categoryArticles.slice(4);
 
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://stuccimedia.com";
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: siteUrl },
+      { "@type": "ListItem", position: 2, name: category.label, item: `${siteUrl}/category/${category.slug}` },
+    ],
+  };
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
       <BreakingBar />
       <SiteHeader />
       <main>

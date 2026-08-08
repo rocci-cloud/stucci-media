@@ -1835,3 +1835,83 @@ unchanged from before this phase).
   kicker/header hierarchy, the prominent clickable email card, the
   refined form fields, and that mobile keeps both the email card and
   every form field comfortably tappable with tight, clean spacing.
+
+## Phase 31 — done: sitewide SEO upgrade
+
+A technical/on-page SEO pass across the whole site. The headline finding:
+Phase 9 built a full per-article SEO panel (`seoTitle`, `seoDescription`,
+`seoKeywords`, `ogImage`, `canonicalUrl`) and Phase 13 hand-backfilled
+all 89 articles with scores averaging 99/100 — but the article page's
+actual `generateMetadata()` never read any of those fields. The data
+existed, scored well, and did nothing. No `robots.txt` or sitemap
+existed at all, and there was zero structured data anywhere on the
+site. No design/layout changes in this phase — purely metadata,
+structured data, and two new route files.
+
+- **Article page `generateMetadata()` now actually uses the SEO panel's
+  fields**: `seoTitle`/`seoDescription`/`ogImage`/`canonicalUrl` are
+  preferred over the raw `headline`/`dek`/`coverImageUrl`, falling back
+  to those for the rare article without them set. Verified directly:
+  an article's rendered `<title>` now differs from its on-page `<h1>`
+  text specifically because the hand-tuned `seoTitle` is the one
+  actually rendering.
+- **Real bug fixed**: `openGraph.publishedTime` was set to
+  `article.date` — the human-formatted display string ("July 10,
+  2026"), not valid ISO 8601, which OpenGraph's spec requires. Switched
+  to `article.publishedAt` (the raw ISO timestamp already on the
+  `Article` type, previously unused for this purpose).
+- **`alternates.canonical` added** to every page with a `metadata`
+  export: homepage (in the root layout), article pages (respecting a
+  per-article custom `canonicalUrl` override, falling back to the
+  article's own URL), category pages, about, contact, subscribe,
+  privacy, search, login, register.
+- **`app/robots.ts` and `app/sitemap.ts`** (neither existed before):
+  robots.txt disallows only `/admin/` and `/api/` (the genuinely
+  private/functional paths) and points to the sitemap; the sitemap is
+  fully dynamic — every published article, every category, and the
+  handful of static pages, pulled live from the same `getPublishedArticles
+  `/`getCategories` functions the rest of the site uses, so it can
+  never drift out of sync with what's actually live. Verified the
+  generated sitemap contains 101 URLs (89 articles + 7 categories + 5
+  static pages) matching the live DB.
+- **`noindex` added to non-editorial pages** (`search`, `login`,
+  `register`) via `robots: { index: false, follow: true }` — query-
+  string search results are inherently thin/duplicate content, and
+  auth pages have no content worth ranking; `follow: true` keeps link
+  equity flowing rather than dead-ending crawlers. Each still has its
+  own real `alternates.canonical` pointing at itself (not just
+  inheriting the homepage's), since canonical/robots are independent
+  signals even though `noindex` makes the canonical moot for these
+  specific pages.
+- **Structured data (JSON-LD) added, none existed before**:
+  `NewsMediaOrganization` schema sitewide (root `layout.tsx`, present
+  on every page); `NewsArticle` schema (headline, description, image,
+  `datePublished`/`dateModified` from the real `publishedAt`, author,
+  publisher) plus `BreadcrumbList` (Home → Category → Article) on every
+  article page; `BreadcrumbList` (Home → Category) on every category
+  page. Verified via a real rendered page that all three schema types
+  parse correctly as JSON and carry real data, not placeholders.
+- **Heading hierarchy and alt-text audited, not changed**: every
+  template already has exactly one `<h1>` (verified via a live DOM
+  query on the homepage, an article page, and a category page — each
+  returned `h1s: 1`), and every real content `<img>` sitewide already
+  uses a dynamic, descriptive `alt` (the article/card headline) rather
+  than empty or generic text — both were already correct from Phase 4
+  (rich body rendering) and Phase 9 (Tiptap editor) onward, so nothing
+  needed to change here; confirmed rather than assumed.
+- **Scoped out, noted rather than silently done**: migrating `<img>` to
+  `next/image` sitewide (a real performance lever, but a much larger
+  architectural change — remote-pattern config, layout implications
+  across every image consumer — than this pass's "clean, modern SEO
+  practices" scope implied) and wiring the Contact form to real email
+  delivery (a backend/provider decision, not an SEO one). Both are
+  reasonable follow-ups, not silently attempted here.
+- **Verified in a real production build** (`next build && next start`):
+  `/robots.txt` and `/sitemap.xml` both registered as real routes and
+  returned correct live content via `curl`; a live article page's
+  rendered `<head>` was checked directly (canonical, title/description
+  sourced from the SEO fields, `og:image` resolving to the real hosted
+  Blob URL, exactly one `<h1>`, and all three JSON-LD `@type`s present)
+  as were the homepage, a category page, the search page, and the
+  login page (confirming `noindex` renders correctly where expected and
+  not where it shouldn't).
