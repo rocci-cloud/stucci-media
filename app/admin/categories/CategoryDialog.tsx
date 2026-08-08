@@ -14,27 +14,43 @@ import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Textarea } from "../components/ui/textarea";
-import { Switch } from "../components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
 import ImageField from "../articles/ImageField";
 import { slugify } from "../../lib/slugify";
-import type { Category } from "../../lib/categories";
+import type { Category, NavPlacement } from "../../lib/categories";
 import type { CategoryActionResult } from "./actions";
+
+const MAIN_NAV_RECOMMENDED_MAX = 5;
+
+const NAV_PLACEMENT_OPTIONS: { value: NavPlacement; label: string }[] = [
+  { value: "MAIN", label: "Main menu" },
+  { value: "MORE", label: "More dropdown" },
+  { value: "HIDDEN", label: "Hidden from nav" },
+];
 
 type Props = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   category?: Category | null;
+  currentMainNavCount: number;
   onSubmit: (formData: FormData) => Promise<CategoryActionResult>;
   onSuccess: (category: Category) => void;
 };
 
-export default function CategoryDialog({ open, onOpenChange, category, onSubmit, onSuccess }: Props) {
+export default function CategoryDialog({
+  open,
+  onOpenChange,
+  category,
+  currentMainNavCount,
+  onSubmit,
+  onSuccess,
+}: Props) {
   const isEdit = Boolean(category);
   const [name, setName] = useState(category?.label ?? "");
   const [slug, setSlug] = useState(category?.slug ?? "");
   const [slugTouched, setSlugTouched] = useState(isEdit);
   const [description, setDescription] = useState(category?.description ?? "");
-  const [showInNav, setShowInNav] = useState(category?.showInNav ?? true);
+  const [navPlacement, setNavPlacement] = useState<NavPlacement>(category?.navPlacement ?? "MAIN");
   const [navOrder, setNavOrder] = useState(String(category?.navOrder ?? 0));
   const [shareImage, setShareImage] = useState<string | null>(category?.shareImage ?? null);
   const [error, setError] = useState<string | null>(null);
@@ -46,13 +62,17 @@ export default function CategoryDialog({ open, onOpenChange, category, onSubmit,
       setSlug(category?.slug ?? "");
       setSlugTouched(isEdit);
       setDescription(category?.description ?? "");
-      setShowInNav(category?.showInNav ?? true);
+      setNavPlacement(category?.navPlacement ?? "MAIN");
       setNavOrder(String(category?.navOrder ?? 0));
       setShareImage(category?.shareImage ?? null);
       setError(null);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, category?.id]);
+
+  const wouldExceedMainCap =
+    navPlacement === "MAIN" &&
+    currentMainNavCount + (category?.navPlacement === "MAIN" ? 0 : 1) > MAIN_NAV_RECOMMENDED_MAX;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -63,7 +83,7 @@ export default function CategoryDialog({ open, onOpenChange, category, onSubmit,
     formData.set("name", name);
     formData.set("slug", slug);
     formData.set("description", description);
-    formData.set("showInNav", String(showInNav));
+    formData.set("navPlacement", navPlacement);
     formData.set("navOrder", navOrder);
     formData.set("shareImage", shareImage ?? "");
 
@@ -145,7 +165,22 @@ export default function CategoryDialog({ open, onOpenChange, category, onSubmit,
 
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="cat-nav-order">Nav order</Label>
+              <Label htmlFor="cat-nav-placement">Nav placement</Label>
+              <Select value={navPlacement} onValueChange={(v) => setNavPlacement(v as NavPlacement)}>
+                <SelectTrigger id="cat-nav-placement">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {NAV_PLACEMENT_OPTIONS.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="cat-nav-order">Order</Label>
               <Input
                 id="cat-nav-order"
                 type="number"
@@ -153,11 +188,14 @@ export default function CategoryDialog({ open, onOpenChange, category, onSubmit,
                 onChange={(e) => setNavOrder(e.target.value)}
               />
             </div>
-            <div className="flex items-center gap-2 pt-5">
-              <Switch id="cat-show-in-nav" checked={showInNav} onCheckedChange={setShowInNav} />
-              <Label htmlFor="cat-show-in-nav">Show in main nav</Label>
-            </div>
           </div>
+
+          {wouldExceedMainCap && (
+            <p className="rounded-md border border-[var(--admin-border)] bg-[var(--admin-bg-subtle)] px-3 py-2 text-[12px] text-[var(--admin-fg-muted)]">
+              The main menu already has {MAIN_NAV_RECOMMENDED_MAX} categories — consider &ldquo;More
+              dropdown&rdquo; instead to keep the top nav from getting crowded.
+            </p>
+          )}
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={pending}>

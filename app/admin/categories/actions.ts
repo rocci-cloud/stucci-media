@@ -9,6 +9,7 @@ import {
   getCategoryArticleCount,
   type Category,
   type CategoryInput,
+  type NavPlacement,
 } from "../../lib/categories";
 import { slugify } from "../../lib/slugify";
 import { requireAdminSession } from "../../lib/require-admin";
@@ -30,13 +31,14 @@ const MAX_NAME_LENGTH = 60;
 const MAX_SLUG_LENGTH = 80;
 const MAX_DESCRIPTION_LENGTH = 300;
 const HEX_COLOR_RE = /^#[0-9a-fA-F]{6}$/;
+const VALID_NAV_PLACEMENTS = new Set(["MAIN", "MORE", "HIDDEN"]);
 
 function parseInput(formData: FormData): CategoryInput | { error: string } {
   const name = String(formData.get("name") || "").trim();
   const rawSlug = String(formData.get("slug") || "").trim();
   const description = String(formData.get("description") || "").trim();
   const color = String(formData.get("color") || "").trim() || null;
-  const showInNav = formData.get("showInNav") === "true";
+  const navPlacement = String(formData.get("navPlacement") || "MAIN");
   const navOrderRaw = String(formData.get("navOrder") || "0").trim();
   const shareImage = String(formData.get("shareImage") || "").trim() || null;
 
@@ -48,6 +50,9 @@ function parseInput(formData: FormData): CategoryInput | { error: string } {
   if (color && !HEX_COLOR_RE.test(color)) {
     return { error: "Color must be a hex value like #c8102e." };
   }
+  if (!VALID_NAV_PLACEMENTS.has(navPlacement)) {
+    return { error: "Choose a valid nav placement." };
+  }
 
   const navOrder = Number.parseInt(navOrderRaw, 10);
   if (!Number.isFinite(navOrder)) return { error: "Nav order must be a number." };
@@ -58,7 +63,7 @@ function parseInput(formData: FormData): CategoryInput | { error: string } {
   }
   if (slug.length > MAX_SLUG_LENGTH) return { error: `Slug must be ${MAX_SLUG_LENGTH} characters or fewer.` };
 
-  return { name, slug, description, color, showInNav, navOrder, shareImage };
+  return { name, slug, description, color, navPlacement: navPlacement as NavPlacement, navOrder, shareImage };
 }
 
 export async function createCategoryAction(formData: FormData): Promise<CategoryActionResult> {

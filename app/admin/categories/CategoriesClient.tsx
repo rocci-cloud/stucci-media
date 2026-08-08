@@ -194,11 +194,13 @@ export default function CategoriesClient({ initialCategories }: { initialCategor
                     </Badge>
                   </TableCell>
                   <TableCell className="hidden sm:table-cell">
-                    {category.showInNav ? (
-                      <Badge variant="success">#{category.navOrder}</Badge>
-                    ) : (
-                      <Badge variant="outline">Hidden</Badge>
+                    {category.navPlacement === "MAIN" && (
+                      <Badge variant="success">Main #{category.navOrder}</Badge>
                     )}
+                    {category.navPlacement === "MORE" && (
+                      <Badge variant="default">More #{category.navOrder}</Badge>
+                    )}
+                    {category.navPlacement === "HIDDEN" && <Badge variant="outline">Hidden</Badge>}
                   </TableCell>
                   <TableCell>
                     {deletingId === category.id ? (
@@ -237,6 +239,7 @@ export default function CategoriesClient({ initialCategories }: { initialCategor
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         category={editingCategory}
+        currentMainNavCount={optimisticCategories.filter((c) => c.navPlacement === "MAIN").length}
         onSubmit={(formData) =>
           editingCategory ? updateCategoryAction(editingCategory.id, formData) : createCategoryAction(formData)
         }

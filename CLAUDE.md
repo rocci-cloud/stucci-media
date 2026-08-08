@@ -2332,3 +2332,65 @@ remaining real gaps.
   entries cleared, and the one real article touched during testing
   (`veteran-owned-roofing-company-georgia-tom-and-jerrys`) restored to
   its exact original `publishedAt`/`tags`.
+
+## Phase 38 — done: capped main nav + "More" dropdown
+
+Phase 37 made the nav admin-controlled but still rendered every
+`showInNav` category as one flat row — fine at 7 categories, but nothing
+stopped it from growing unbounded and crowding the top bar as more
+categories get added. This phase caps the primary menu and gives
+overflow categories a real home.
+
+- **`Category.showInNav` (boolean) replaced with `navPlacement`**
+  (`MAIN` / `MORE` / `HIDDEN` enum) — a category now has three real
+  states instead of just in/out. `navOrder` is meaningful within its own
+  placement group, not globally.
+- **Nav structure is now: Featured, up to 5 MAIN categories, More** —
+  "Featured" is a hardcoded first entry linking to `/` (the homepage's
+  curated `FeaturedSection`), not a real `Category` row — there's no
+  "Featured" content type to file articles under, so inventing a fake
+  category for it would have been wrong. `getMainNavCategories()`/
+  `getMoreNavCategories()` (`lib/categories.ts`) are the two queries the
+  nav reads; `getFooterNavCategories()` (MAIN + MORE, excluding HIDDEN)
+  backs `SiteFooter`'s Sections list, since the footer is a full sitemap
+  and isn't space-constrained the way the top bar is.
+- **Live categories re-placed to match this task's exact requested
+  order**: MAIN = Political News, Crime & Investigation, Veterans, World
+  News, Opinion & Analysis (in that order); MORE = Podcasts, Social
+  Issues. Applied via `scripts/seed-categories.mjs` (updated to write
+  `nav_placement`/`nav_order` instead of the now-removed `show_in_nav`)
+  and verified live.
+- **New "More" dropdown** (`SiteHeaderClient.tsx`'s `MoreNavDropdown`) —
+  a small hand-rolled dropdown (click-to-open, click-outside-to-close,
+  Escape-to-close), not a new dependency, styled to match the navy nav
+  bar exactly (same hover/active-link language as the rest of the bar,
+  same `overlayPop` entrance keyframe the search overlay already uses).
+  Highlights active (red) when the current page is any MORE category, so
+  a visitor on `/category/podcasts` sees "More" lit up the same way a
+  MAIN item would.
+- **Mobile drawer mirrors the exact same hierarchy**: Featured, the MAIN
+  categories, then a quiet uppercase "More" label, then the MORE
+  categories — no dropdown needed on mobile (vertical space isn't the
+  constraint there), just the same order or place as desktop.
+- **`SiteHeader.tsx` now fetches both groups** and passes them to
+  `SiteHeaderClient`/`MobileMenu` as two props (`mainCategories`/
+  `moreCategories`) instead of one flat list — every existing
+  `<SiteHeader />` call site across the site still needed zero changes,
+  same server-wrapper pattern Phase 37 established.
+- **Admin UX for staying under the cap**: `CategoryDialog.tsx`'s old
+  "Show in main nav" toggle became a real "Nav placement" select (Main
+  menu / More dropdown / Hidden from nav). When Main menu is selected
+  and 5 categories are already there, a soft advisory notice suggests
+  "More dropdown" instead — not a hard block (an admin can still
+  deliberately go to 6+ if they choose), just a nudge against the top
+  bar silently getting crowded as categories are added. The categories
+  list's Nav column now shows `Main #N` / `More #N` / `Hidden` instead of
+  a single order number.
+- **Verified end-to-end** against the live Neon DB and a real production
+  build: confirmed the desktop nav renders exactly the requested 7 items
+  in the requested order (Featured highlighted active on `/`), the More
+  dropdown opens showing Podcasts/Social Issues, the mobile drawer shows
+  the identical hierarchy, and the admin "New category" dialog's
+  main-menu-cap warning appears correctly once 5 MAIN categories already
+  exist. A throwaway admin account used for the admin-UI checks was
+  removed afterward.
