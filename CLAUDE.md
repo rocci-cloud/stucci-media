@@ -2006,3 +2006,71 @@ the only route that renders an article, so it was the only place
   page isn't an article). No design, layout, or performance changes —
   this was a data-correctness pass on existing `<script type=
   "application/ld+json">` tags only.
+
+## Phase 34 — done: meta title/description upgrade (homepage + categories + contact)
+
+A follow-up content pass on top of Phase 31 (technical SEO plumbing) and
+Phase 33 (schema correctness) — this phase is the actual copywriting:
+tightening the homepage's title/description to the brand's exact wording
+and upgrading the 7 category descriptions, which were originally
+one-liners under 65 characters (well short of a real meta description)
+that also double as the visible on-page dek under each category `<h1>`.
+
+- **Homepage title changed to the exact brand format**: `"Stucci Media —
+  Independent News That Matters"` → `"Stucci Media | Independent News
+  That Matters"` (pipe, brand-first — matches the exact title every
+  other page's `%s | Stucci Media` template already produces, so the
+  homepage's one hardcoded `default` title now reads consistently with
+  every generated one).
+- **Homepage description rewritten** to name the actual coverage areas
+  (politics, world events, crime, veterans, social issues, free speech)
+  instead of the previous generic "news, analysis, and podcasts" line —
+  155 characters, in the sweet spot for a full, un-truncated SERP
+  snippet. Since `layout.tsx`'s `description` constant also backs the
+  sitewide `Organization` schema's `description` field, this one change
+  updates both the `<meta name="description">` tag and the JSON-LD in
+  the same place — verified the rendered Organization schema picked up
+  the new copy automatically.
+- **All 7 category descriptions rewritten**, ~104–145 characters each
+  (up from the original ~43–61-character one-liners) — real, distinct
+  meta descriptions per category rather than a sentence fragment, still
+  in the site's direct/no-corporate-spin voice and free of keyword
+  stuffing. These aren't just `<meta>` copy: `category.description` is
+  the same string rendered as the visible dek paragraph under each
+  category page's `<h1>` (`app/category/[slug]/page.tsx`), so the
+  richer copy is a real on-page content improvement, not just an
+  invisible SEO tag — confirmed the meta description and the visible
+  page text stay identical by construction, one field.
+  `scripts/seed-categories.mjs` (the documented source of truth for
+  category seed data) was updated to match and re-run against the live
+  DB via `node --env-file=.env.local scripts/seed-categories.mjs` — safe
+  to re-run, upserts by slug.
+- **Verified brand-name correctness sitewide**: queried the live DB for
+  "Rocci Stucci Media" (the incorrect variant) across every article's
+  headline/dek/`seoTitle`/`seoDescription` and found zero matches — the
+  brand name was already correct everywhere from prior phases, confirmed
+  rather than assumed for this pass.
+- **Article title format confirmed already correct, no code change
+  needed**: `generateMetadata()` sets `title: article.seoTitle ||
+  article.headline` as a plain string, which flows through the root
+  layout's `"%s | Stucci Media"` template automatically — verified
+  against a live article that the rendered `<title>` is exactly
+  `"{headline} | Stucci Media"` with no double-branding (confirmed none
+  of the 89 articles' stored `seoTitle` values already contain "Stucci
+  Media", which would have produced a duplicate suffix).
+- **Contact page gained an explicit `openGraph` block** (title +
+  description + image) — it previously had none, silently inheriting
+  the homepage's OG tags from the root layout on share, which would have
+  shown the wrong title/description if the page were ever shared
+  directly.
+- **NewsArticle and Organization schema themselves were not re-touched**
+  in this phase — Phase 33 already fixed their correctness (real
+  `dateModified`, `mainEntityOfPage` matching canonical, `publisher.name`
+  exactly `"Stucci Media"`, `Organization`+`NewsMediaOrganization`
+  `@type`) and this phase's DB verification confirmed nothing had
+  regressed since.
+- **Verified in a real production build** (`next build && next start`):
+  fetched the homepage, a category page, the contact page, the about
+  page, and a live article directly and confirmed every rendered
+  `<title>` and `<meta name="description">` matches this phase's exact
+  copy, with no double-branding or truncation issues.
