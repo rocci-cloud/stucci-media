@@ -8,7 +8,9 @@ import { getActiveBanners, type Banner, type BannerPlacement } from "../lib/bann
 // box or placeholder in the layout. "Multiple active" is handled by
 // simply stacking each one in order, not a rotation widget — no
 // client-side JS, no ad-server complexity, matching this feature's
-// explicit "keep it simple" scope.
+// explicit "keep it simple" scope. The gap between them is deliberately
+// generous (not a tight card list) so multiple ads read as separate
+// placements encountered while reading, not a single stacked ad wall.
 export default async function BannerSlot({
   placement,
   className = "",
@@ -20,7 +22,7 @@ export default async function BannerSlot({
   if (banners.length === 0) return null;
 
   return (
-    <div className={`flex flex-col gap-4 ${className}`}>
+    <div className={`flex flex-col gap-10 sm:gap-14 ${className}`}>
       {banners.map((banner) => (
         <BannerCard key={banner.id} banner={banner} />
       ))}

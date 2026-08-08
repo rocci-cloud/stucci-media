@@ -2479,3 +2479,38 @@ an almost seamless result — no visible seam between the real logo and
 its extended backdrop. Verified in a real production build that all 3
 banners now render together on the homepage in the correct order, and
 that the new one links to `https://stuccimarketing.com`.
+
+## Phase 42 — done: banner spacing fix + broken-image report investigated
+
+Rocci reported the two Stucci Apparel banners appearing as broken
+images on the live site right after Phase 40 merged, plus feedback that
+multiple banners in one slot ("stacked") needed real spacing between
+them.
+
+- **Broken-image report investigated, no code bug found**: re-verified
+  from scratch — `public/banners/*.png` are present on `main`, are
+  valid non-corrupt PNGs (checked via `sharp` metadata, not just `file`),
+  and their filenames match the `image_url` values in the live `banners`
+  table exactly. A local `next build && next start` served all 3 banner
+  images with real `200`/`image/png` responses and rendered correctly
+  end-to-end. Everything code/data-side is confirmed correct; the most
+  likely explanation for what Rocci saw is Vercel's build/deploy for
+  that merge not having finished yet (or a CDN cache not having
+  propagated) at the moment he checked, immediately after merging — not
+  something fixable in this repo. Worth a re-check on his end; if it
+  recurs after a deploy has clearly finished, that would point to an
+  actual Vercel-side issue instead.
+- **Real fix: spacing between multiple banners in one slot** —
+  `BannerSlot.tsx`'s gap between stacked banner cards went from `gap-4`
+  (16px, reads as one continuous ad block once 2-3 banners are active in
+  the same placement) to `gap-10 sm:gap-14` (40px/56px) — enough that
+  multiple ads in the homepage or article slot now read as separate
+  placements encountered while reading, not a stacked wall. No limit was
+  added on how many banners can be active per slot — that's still an
+  editorial choice from `/admin/banners`, this only changed the spacing
+  between them.
+- **Verified in a real production build** via Playwright: confirmed all
+  3 currently-active homepage banners render with clear visual
+  separation between each, and re-confirmed (via direct `curl` against
+  the local production server) that every banner image serves
+  correctly, ruling out a code-side cause for the broken-image report.
