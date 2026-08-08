@@ -2463,3 +2463,19 @@ and article ("blog") slots, using two product graphics supplied directly.
   and confirmed via the rendered HTML that both link to
   `https://stucciapparel.com` with `target="_blank"` and
   `rel="noopener noreferrer sponsored"`.
+
+## Phase 41 — done: Stucci Marketing Group banner
+
+A third cross-promotion banner, for Stucci Marketing Group
+(stuccimarketing.com), added the same way as Phase 40's two Stucci
+Apparel banners — `scripts/add-marketing-group-banner.mjs` (same
+upsert-by-`(image_url, placement)` pattern), `sortOrder: 2` in both the
+`HOMEPAGE` and `ARTICLE` placements so it sits after the two Apparel
+banners rather than displacing them. Source logo image was already
+close to a wide banner shape (1648×624, not square like the Apparel
+photos), and its background was already near-black, so the same
+blurred-extension-to-1600×400 compositing technique (`sharp`) produced
+an almost seamless result — no visible seam between the real logo and
+its extended backdrop. Verified in a real production build that all 3
+banners now render together on the homepage in the correct order, and
+that the new one links to `https://stuccimarketing.com`.
