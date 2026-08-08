@@ -5,6 +5,7 @@ import { upload } from "@vercel/blob/client";
 import { ImageOff, Loader2, Upload, X } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { compressImageIfNeeded } from "./image-compression";
+import { recordMediaAssetAction } from "../media/actions";
 
 const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
 const MAX_UPLOAD_BYTES = 10 * 1024 * 1024; // matches the server's onBeforeGenerateToken limit
@@ -41,6 +42,10 @@ export default function ImageField({
       }
       const blob = await upload(optimized.name, optimized, { access: "public", handleUploadUrl: "/api/admin/upload" });
       onChange(blob.url);
+      // Fire-and-forget — every upload through this field should show up
+      // in the Media Library, but indexing must never block or fail the
+      // actual image field UX.
+      recordMediaAssetAction(blob.url, optimized.name).catch(() => {});
     } catch (err) {
       setError(err instanceof Error ? err.message : "Upload failed.");
     } finally {

@@ -2216,3 +2216,119 @@ upload an image, set a link, and choose where/when it shows.
   risk. The test admin account, its sessions (cascade-deleted with the
   user), all 4 test banner rows, and their activity-log entries were all
   removed afterward — nothing test-related was left in the database.
+
+## Phase 37 — done: full CMS control pass (nav, tags, scheduling, preview, media library, redirects)
+
+A broad admin-control upgrade covering everything short of a developer
+that was still missing: real nav management, scheduled publishing that
+actually hides content until its date, a genuine draft preview, tags, a
+media library, and simple redirects. The article editor's image upload/
+insert, meta title/description, share image, and slug editing already
+existed from Phases 9/13/31 and weren't rebuilt — this phase closed the
+remaining real gaps.
+
+- **The site's main nav is no longer a hardcoded list** —
+  `SiteHeader.tsx`'s `NAV_LINKS` array and `MobileMenu.tsx`'s duplicate
+  copy (both manually kept in sync with the category table since Phase 1,
+  per the old CLAUDE.md warning under "Categories") are gone. `Category`
+  gained `showInNav`/`navOrder`/`shareImage`; `getNavCategories()`
+  (`lib/categories.ts`) is the one query the nav now reads from
+  everywhere. **Real architecture change to make this possible**:
+  `SiteHeader.tsx` became an async server component that fetches nav
+  categories and renders a new `SiteHeaderClient.tsx` (the old client
+  logic, unchanged) with them as a prop — every existing `<SiteHeader
+  />` call site across the whole site needed zero changes. `MobileMenu`
+  and `SiteFooter` (which already fetched categories for its Sections
+  list) both take/use the same nav-filtered set now, so a category
+  hidden from nav is consistently hidden everywhere, not just the top bar.
+  **Real regression caught before shipping**: all 7 existing categories
+  would have defaulted to `navOrder: 0`, silently reordering the nav
+  alphabetically instead of the original curated order — fixed by
+  backfilling explicit `navOrder` values (0–6, matching the old hardcoded
+  array exactly) via `scripts/seed-categories.mjs`, verified against a
+  live homepage fetch that nav order was byte-identical to before this
+  phase.
+- **Scheduled publishing now actually works**: `status: PUBLISHED` alone
+  used to make an article live immediately regardless of its
+  `publishedAt` date. Every public read in `lib/articles.ts`
+  (`getPublishedArticles`, `getFeaturedArticles`, `getArticleBySlug`,
+  `getRelatedArticles`, `getArticlesByCategory` — and by extension
+  `sitemap.ts`/`search`, which both call `getPublishedArticles`) now
+  filters through a shared `publishedWhere()` helper requiring
+  `publishedAt <= now`. A derived (not stored) `Article.isScheduled`
+  flag drives a "Scheduled — hidden until {date}" notice in the editor
+  and a `Scheduled` badge in the admin articles list. Verified live: set
+  a real article's `publishedAt` a month out, confirmed the public URL
+  immediately started rendering the site's actual 404 page while the
+  admin/preview views still showed it fine, then reverted.
+- **Real draft/scheduled preview**: `/preview/articles/[id]`
+  (deliberately outside `/admin` so it renders the real public site
+  chrome — `BreakingBar`/`SiteHeader`/`SiteFooter` — instead of the
+  dashboard shell), gated by `requireAdminSession()` directly since it's
+  not covered by `admin/layout.tsx`'s protection. Reuses the real
+  article hero/prose markup so it's a faithful preview, with a "Draft
+  preview — not visible to the public" banner and a link back to the
+  editor. `ArticleEditor`'s Publish card gained a Preview button
+  (disabled for a not-yet-created article, since there's no id to
+  preview).
+- **Tags**: `Article.tags` (native Postgres `text[]`, no join table —
+  this is lightweight and editorial-only, categories already own real
+  taxonomy). Admin enters comma-separated tags with or without `#`;
+  `admin/articles/actions.ts`'s `parseTags()` normalizes, dedupes, and
+  caps at 15. Rendered as clickable `#tag` chips at the end of the
+  article body (both the real article page and the preview), linking to
+  `/search?q=tag` — `SearchClient.tsx`'s filter was extended to match
+  tags, not just headline/dek/category, so clicking one actually
+  surfaces results.
+- **Media Library** (`/admin/media`): new `MediaAsset` table, indexed
+  automatically — `ImageField.tsx` (the one upload component already
+  shared by article covers, OG images, category share images, and
+  banners) fires a small fire-and-forget `recordMediaAssetAction()` call
+  right after every successful Vercel Blob upload. This is deliberately
+  client-side, not Blob's own `onUploadCompleted` webhook (already
+  wired in `api/admin/upload/route.ts` but a no-op) — that webhook only
+  fires against a real deployed environment, never a local dev server,
+  so it would have made the library silently empty in this sandbox and
+  unreliable to test. The library page itself also has its own direct
+  upload button for adding an image with no specific field in mind.
+  Delete removes both the Blob object (`@vercel/blob`'s `del()`) and the
+  index row — a real deletion of the library's own file, not just
+  hiding a link to it.
+- **Redirects** (`/admin/redirects`): new `Redirect` model
+  (`fromPath`/`toPath`/`statusCode`/`isActive`), resolved by a new
+  catch-all `app/[...path]/page.tsx` — Next.js only reaches a catch-all
+  after every real static and dynamic route has already failed to
+  match, which is exactly the right moment to check for a configured
+  redirect, and (unlike `proxy.ts`'s edge middleware) a normal server
+  component can actually reach Postgres. **Deliberately only offers
+  307/308 status codes, not the full 301/302/307/308 set** — Next.js's
+  App Router `redirect()`/`permanentRedirect()` can only ever produce
+  those two real behaviors under the hood; offering 301/302 in the admin
+  UI would have been a label lying about the actual HTTP response.
+  Verified live: created a redirect from a fake old path to a real
+  article, confirmed `curl` followed it with a real `308` and the
+  correct `Location`, and confirmed a genuinely nonexistent path still
+  cleanly 404s.
+- **Basic post performance**: `incrementArticleViewCount()` fires
+  fire-and-forget from the real article page on every view (never
+  awaited, so a slow write can't delay rendering) — `Article.viewCount`
+  existed since Phase 7 but was never actually incremented anywhere
+  until now. The admin articles list gained a right-aligned Views
+  column. Verified live: view count incremented by exactly 1 per page
+  fetch.
+- **Verified end-to-end against the live Neon DB and a real production
+  build**, not just code-reviewed: a throwaway admin account (registered
+  via the real `/api/auth/sign-up/email` endpoint directly — the
+  Playwright-driven `/register` UI flow itself was unreliable in this
+  sandbox for unrelated reasons, a Chromium chunk-loading flakiness
+  confirmed unrelated to this phase's code by checking the same signup
+  succeeded instantly via a raw `curl` POST) drove the real
+  `/admin/categories`, `/admin/media`, `/admin/redirects`, and article
+  editor UIs via injected session cookies. Every mutation (category nav
+  fields, a real redirect, article tags/scheduling) was verified against
+  the live DB and, where relevant, the live public site's actual
+  rendered output — then fully reverted: the test redirect deleted, the
+  test admin and its cascade-deleted sessions removed, its activity-log
+  entries cleared, and the one real article touched during testing
+  (`veteran-owned-roofing-company-georgia-tom-and-jerrys`) restored to
+  its exact original `publishedAt`/`tags`.

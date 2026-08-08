@@ -19,6 +19,7 @@ export type Article = {
   status: "draft" | "published";
   isFeatured: boolean;
   viewCount: number;
+  tags: string[];
   seoTitle: string | null;
   seoDescription: string | null;
   seoKeywords: string | null;
@@ -26,6 +27,11 @@ export type Article = {
   canonicalUrl: string | null;
   publishedAt: string | null; // raw ISO, for the date picker — `date` above is the formatted display version
   updatedAt: string; // raw ISO — used for NewsArticle dateModified structured data
+  // Derived, not stored: status is PUBLISHED but publishedAt is still in
+  // the future — the article exists and is "published" in the admin's
+  // eyes, but every public read query (see PUBLISHED_WHERE below) filters
+  // it out until that moment, so it's not actually live yet.
+  isScheduled: boolean;
 };
 
 export type ArticleInput = {
@@ -38,6 +44,7 @@ export type ArticleInput = {
   coverImageUrl: string | null;
   status: "draft" | "published";
   isFeatured: boolean;
+  tags: string[];
   seoTitle: string | null;
   seoDescription: string | null;
   seoKeywords: string | null;
@@ -83,6 +90,7 @@ function mapRow(row: PrismaArticle | ArticleWithCategories, labelBySlug: Map<str
   const categorySlugs =
     "categories" in row ? row.categories.map((ac) => ac.category.slug) : [row.categorySlug];
   const categories = categorySlugs.map((slug) => labelBySlug.get(slug) ?? slug);
+  const isScheduled = row.status === "PUBLISHED" && row.publishedAt !== null && row.publishedAt > new Date();
 
   return {
     id: row.id,
@@ -101,6 +109,7 @@ function mapRow(row: PrismaArticle | ArticleWithCategories, labelBySlug: Map<str
     status: toStatus(row.status),
     isFeatured: row.isFeatured,
     viewCount: row.viewCount,
+    tags: row.tags,
     seoTitle: row.seoTitle,
     seoDescription: row.seoDescription,
     seoKeywords: row.seoKeywords,
@@ -108,14 +117,23 @@ function mapRow(row: PrismaArticle | ArticleWithCategories, labelBySlug: Map<str
     canonicalUrl: row.canonicalUrl,
     publishedAt: row.publishedAt ? row.publishedAt.toISOString() : null,
     updatedAt: row.updatedAt.toISOString(),
+    isScheduled,
   };
+}
+
+// Every public-facing read uses this — status PUBLISHED alone isn't
+// enough, a future publishedAt means the admin has scheduled it and it
+// isn't live yet. A fresh `new Date()` per call, not a module-level
+// constant, since these queries run across a long-lived server process.
+function publishedWhere() {
+  return { status: "PUBLISHED" as const, publishedAt: { lte: new Date() } };
 }
 
 // --- Public reads (published only) ---
 
 export async function getPublishedArticles(): Promise<Article[]> {
   const [rows, labelBySlug] = await Promise.all([
-    prisma.article.findMany({ where: { status: "PUBLISHED" }, orderBy: { publishedAt: "desc" } }),
+    prisma.article.findMany({ where: publishedWhere(), orderBy: { publishedAt: "desc" } }),
     categorySlugToLabel(),
   ]);
   return rows.map((row) => mapRow(row, labelBySlug));
@@ -124,7 +142,7 @@ export async function getPublishedArticles(): Promise<Article[]> {
 export async function getFeaturedArticles(): Promise<Article[]> {
   const [rows, labelBySlug] = await Promise.all([
     prisma.article.findMany({
-      where: { status: "PUBLISHED", isFeatured: true },
+      where: { ...publishedWhere(), isFeatured: true },
       orderBy: { publishedAt: "desc" },
     }),
     categorySlugToLabel(),
@@ -134,7 +152,7 @@ export async function getFeaturedArticles(): Promise<Article[]> {
 
 export async function getArticleBySlug(slug: string): Promise<Article | undefined> {
   const [row, labelBySlug] = await Promise.all([
-    prisma.article.findFirst({ where: { slug, status: "PUBLISHED" } }),
+    prisma.article.findFirst({ where: { slug, ...publishedWhere() } }),
     categorySlugToLabel(),
   ]);
   return row ? mapRow(row, labelBySlug) : undefined;
@@ -146,7 +164,7 @@ export async function getArticleBySlug(slug: string): Promise<Article | undefine
 export async function getRelatedArticles(article: Article, limit = 6): Promise<Article[]> {
   const [sameCategoryRows, labelBySlug] = await Promise.all([
     prisma.article.findMany({
-      where: { status: "PUBLISHED", categorySlug: article.categorySlug, id: { not: article.id } },
+      where: { ...publishedWhere(), categorySlug: article.categorySlug, id: { not: article.id } },
       orderBy: { publishedAt: "desc" },
       take: limit,
     }),
@@ -158,7 +176,7 @@ export async function getRelatedArticles(article: Article, limit = 6): Promise<A
   if (related.length < limit) {
     const excludeIds = [article.id, ...related.map((a) => a.id)];
     const fillerRows = await prisma.article.findMany({
-      where: { status: "PUBLISHED", id: { notIn: excludeIds } },
+      where: { ...publishedWhere(), id: { notIn: excludeIds } },
       orderBy: { publishedAt: "desc" },
       take: limit - related.length,
     });
@@ -171,7 +189,7 @@ export async function getRelatedArticles(article: Article, limit = 6): Promise<A
 export async function getArticlesByCategory(categorySlug: string): Promise<Article[]> {
   const [rows, labelBySlug] = await Promise.all([
     prisma.article.findMany({
-      where: { categorySlug, status: "PUBLISHED" },
+      where: { categorySlug, ...publishedWhere() },
       orderBy: { publishedAt: "desc" },
     }),
     categorySlugToLabel(),
@@ -235,6 +253,7 @@ export async function createArticle(input: ArticleInput): Promise<Article> {
           coverImageUrl: input.coverImageUrl,
           status,
           isFeatured: input.isFeatured,
+          tags: input.tags,
           seoTitle: input.seoTitle,
           seoDescription: input.seoDescription,
           seoKeywords: input.seoKeywords,
@@ -275,6 +294,7 @@ export async function updateArticle(id: number, input: ArticleInput): Promise<Ar
           coverImageUrl: input.coverImageUrl,
           status,
           isFeatured: input.isFeatured,
+          tags: input.tags,
           seoTitle: input.seoTitle,
           seoDescription: input.seoDescription,
           seoKeywords: input.seoKeywords,
@@ -293,6 +313,15 @@ export async function updateArticle(id: number, input: ArticleInput): Promise<Ar
 
 export async function deleteArticle(id: number): Promise<void> {
   await prisma.article.delete({ where: { id } });
+}
+
+// Fire-and-forget from the article page (see articles/[slug]/page.tsx) —
+// intentionally not awaited by the caller, so a slow write never delays
+// rendering the article itself. Basic performance signal only: total
+// views, no per-visitor dedup/analytics — that's out of scope for "simple
+// post performance view."
+export async function incrementArticleViewCount(id: number): Promise<void> {
+  await prisma.article.update({ where: { id }, data: { viewCount: { increment: 1 } } });
 }
 
 // --- Quick-edit actions (articles list) ---

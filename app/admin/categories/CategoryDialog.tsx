@@ -14,6 +14,8 @@ import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Textarea } from "../components/ui/textarea";
+import { Switch } from "../components/ui/switch";
+import ImageField from "../articles/ImageField";
 import { slugify } from "../../lib/slugify";
 import type { Category } from "../../lib/categories";
 import type { CategoryActionResult } from "./actions";
@@ -32,6 +34,9 @@ export default function CategoryDialog({ open, onOpenChange, category, onSubmit,
   const [slug, setSlug] = useState(category?.slug ?? "");
   const [slugTouched, setSlugTouched] = useState(isEdit);
   const [description, setDescription] = useState(category?.description ?? "");
+  const [showInNav, setShowInNav] = useState(category?.showInNav ?? true);
+  const [navOrder, setNavOrder] = useState(String(category?.navOrder ?? 0));
+  const [shareImage, setShareImage] = useState<string | null>(category?.shareImage ?? null);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
@@ -41,6 +46,9 @@ export default function CategoryDialog({ open, onOpenChange, category, onSubmit,
       setSlug(category?.slug ?? "");
       setSlugTouched(isEdit);
       setDescription(category?.description ?? "");
+      setShowInNav(category?.showInNav ?? true);
+      setNavOrder(String(category?.navOrder ?? 0));
+      setShareImage(category?.shareImage ?? null);
       setError(null);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -55,6 +63,9 @@ export default function CategoryDialog({ open, onOpenChange, category, onSubmit,
     formData.set("name", name);
     formData.set("slug", slug);
     formData.set("description", description);
+    formData.set("showInNav", String(showInNav));
+    formData.set("navOrder", navOrder);
+    formData.set("shareImage", shareImage ?? "");
 
     const result = await onSubmit(formData);
     setPending(false);
@@ -69,7 +80,7 @@ export default function CategoryDialog({ open, onOpenChange, category, onSubmit,
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="max-w-[520px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{isEdit ? "Edit category" : "New category"}</DialogTitle>
           <DialogDescription>
@@ -128,6 +139,24 @@ export default function CategoryDialog({ open, onOpenChange, category, onSubmit,
               maxLength={300}
               placeholder="Shown at the top of the category page."
             />
+          </div>
+
+          <ImageField label="Share image (optional)" value={shareImage} onChange={setShareImage} />
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="cat-nav-order">Nav order</Label>
+              <Input
+                id="cat-nav-order"
+                type="number"
+                value={navOrder}
+                onChange={(e) => setNavOrder(e.target.value)}
+              />
+            </div>
+            <div className="flex items-center gap-2 pt-5">
+              <Switch id="cat-show-in-nav" checked={showInNav} onCheckedChange={setShowInNav} />
+              <Label htmlFor="cat-show-in-nav">Show in main nav</Label>
+            </div>
           </div>
 
           <DialogFooter>

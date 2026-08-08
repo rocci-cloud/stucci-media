@@ -13,6 +13,12 @@ if (!process.env.DATABASE_URL) {
 
 const sql = neon(process.env.DATABASE_URL);
 
+// navOrder matches this array's own position — the exact order the site's
+// nav used back when it was a hardcoded list in SiteHeader.tsx, before nav
+// order became a real admin-controlled field (see Category.navOrder).
+// Re-running this script re-asserts that original order for these 7 real
+// categories; any others an admin adds later default to navOrder 0 and
+// sort after these unless explicitly reordered from /admin/categories.
 const categories = [
   {
     slug: "political-news",
@@ -56,16 +62,17 @@ const categories = [
     description:
       "Stories from and for the veteran community — service, sacrifice, and the issues facing those who served.",
   },
-];
+].map((c, i) => ({ ...c, navOrder: i }));
 
 let upserted = 0;
 for (const c of categories) {
   await sql`
-    insert into categories (id, slug, name, description)
-    values (${randomUUID()}, ${c.slug}, ${c.name}, ${c.description})
+    insert into categories (id, slug, name, description, nav_order, show_in_nav)
+    values (${randomUUID()}, ${c.slug}, ${c.name}, ${c.description}, ${c.navOrder}, true)
     on conflict (slug) do update set
       name = excluded.name,
-      description = excluded.description
+      description = excluded.description,
+      nav_order = excluded.nav_order
   `;
   upserted += 1;
 }

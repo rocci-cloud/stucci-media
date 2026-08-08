@@ -174,6 +174,7 @@ export default function CategoriesClient({ initialCategories }: { initialCategor
                 <TableHead className="hidden sm:table-cell">Slug</TableHead>
                 <TableHead className="hidden md:table-cell">Description</TableHead>
                 <TableHead>Articles</TableHead>
+                <TableHead className="hidden sm:table-cell">Nav</TableHead>
                 <TableHead className="w-10" />
               </TableRow>
             </TableHeader>
@@ -191,6 +192,13 @@ export default function CategoriesClient({ initialCategories }: { initialCategor
                     <Badge variant={category.articleCount > 0 ? "default" : "outline"}>
                       {category.articleCount}
                     </Badge>
+                  </TableCell>
+                  <TableCell className="hidden sm:table-cell">
+                    {category.showInNav ? (
+                      <Badge variant="success">#{category.navOrder}</Badge>
+                    ) : (
+                      <Badge variant="outline">Hidden</Badge>
+                    )}
                   </TableCell>
                   <TableCell>
                     {deletingId === category.id ? (

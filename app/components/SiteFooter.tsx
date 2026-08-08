@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
-import { getCategories } from "../lib/categories";
+import { getNavCategories } from "../lib/categories";
 
 const SOCIAL_LINKS = [
   {
@@ -39,7 +39,7 @@ const NETWORK_LINKS = [
 // gives every link a full 44px touch target even though several now
 // share a text row instead of owning one each.
 export default async function SiteFooter() {
-  const categories = await getCategories();
+  const categories = await getNavCategories();
 
   return (
     <footer className="font-sans bg-gradient-to-b from-[var(--color-navy)] to-[var(--color-navy-dark)] text-white">

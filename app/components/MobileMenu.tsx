@@ -5,17 +5,17 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Search, X } from "lucide-react";
 
-const NAV_LINKS = [
-  { label: "Political News", href: "/category/political-news" },
-  { label: "World News", href: "/category/world-news" },
-  { label: "Opinion & Analysis", href: "/category/opinion-analysis" },
-  { label: "Podcasts", href: "/category/podcasts" },
-  { label: "Social Issues", href: "/category/social-issues" },
-  { label: "Crime & Investigation", href: "/category/crime-investigation" },
-  { label: "Veterans", href: "/category/veterans" },
-];
+type NavCategory = { slug: string; label: string };
 
-export default function MobileMenu({ open, onClose }: { open: boolean; onClose: () => void }) {
+export default function MobileMenu({
+  open,
+  onClose,
+  navCategories,
+}: {
+  open: boolean;
+  onClose: () => void;
+  navCategories: NavCategory[];
+}) {
   const pathname = usePathname();
   const router = useRouter();
   const [query, setQuery] = useState("");
@@ -69,18 +69,19 @@ export default function MobileMenu({ open, onClose }: { open: boolean; onClose: 
       </form>
 
       <nav aria-label="Mobile primary" className="flex-1 overflow-y-auto px-2 py-2">
-        {NAV_LINKS.map((link) => {
-          const active = pathname === link.href;
+        {navCategories.map((category) => {
+          const href = `/category/${category.slug}`;
+          const active = pathname === href;
           return (
             <Link
-              key={link.href}
-              href={link.href}
+              key={category.slug}
+              href={href}
               onClick={onClose}
               className={`min-h-12 flex items-center px-3.5 font-headline text-[20px] font-bold uppercase tracking-[-0.015em] leading-[1.1] border-b border-white/10 transition-colors ${
                 active ? "text-[var(--color-red)]" : "text-white hover:text-[var(--color-red)]"
               }`}
             >
-              {link.label}
+              {category.label}
             </Link>
           );
         })}

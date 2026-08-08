@@ -12,7 +12,12 @@ import Badge from "../../components/ui/Badge";
 import BannerSlot from "../../components/BannerSlot";
 import LikeButton from "./LikeButton";
 import CommentSection from "./CommentSection";
-import { getArticleBySlug, getPublishedArticles, getRelatedArticles } from "../../lib/articles";
+import {
+  getArticleBySlug,
+  getPublishedArticles,
+  getRelatedArticles,
+  incrementArticleViewCount,
+} from "../../lib/articles";
 import { getLikeCount, hasUserLiked } from "../../lib/likes";
 import { getApprovedCommentsForArticle } from "../../lib/comments";
 import { auth } from "../../lib/auth";
@@ -102,6 +107,9 @@ export default async function ArticlePage({ params }: Props) {
     auth.api.getSession({ headers: await headers() }),
   ]);
   if (!article) notFound();
+
+  // Fire-and-forget — never block rendering on a write.
+  incrementArticleViewCount(article.id).catch(() => {});
 
   const [likeCount, liked, comments, relatedArticles] = await Promise.all([
     getLikeCount(article.id),
@@ -267,6 +275,20 @@ export default async function ArticlePage({ params }: Props) {
                   dangerouslySetInnerHTML={{ __html: articleBodySecondHalf }}
                 />
               </>
+            )}
+
+            {article.tags.length > 0 && (
+              <div className="mt-8 flex flex-wrap gap-2">
+                {article.tags.map((tag) => (
+                  <Link
+                    key={tag}
+                    href={`/search?q=${encodeURIComponent(tag)}`}
+                    className="font-sans text-[12px] font-bold text-[var(--color-gray)] bg-[var(--color-bg-off)] hover:bg-[var(--color-hairline)] rounded-full px-3 py-1 transition-colors"
+                  >
+                    #{tag}
+                  </Link>
+                ))}
+              </div>
             )}
 
             <div className="mt-8 flex items-center justify-between rounded-card border border-[var(--color-hairline)] bg-[var(--color-bg-off)] px-5 py-4">

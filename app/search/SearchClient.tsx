@@ -21,7 +21,8 @@ export default function SearchClient({
       (a) =>
         a.headline.toLowerCase().includes(q) ||
         a.dek.toLowerCase().includes(q) ||
-        a.category.toLowerCase().includes(q)
+        a.category.toLowerCase().includes(q) ||
+        a.tags.some((tag) => tag.includes(q))
     );
   }, [query, articles]);
 
