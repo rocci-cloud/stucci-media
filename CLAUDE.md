@@ -1613,3 +1613,65 @@ from the homepage that led there.
   images didn't load in this sandbox (same documented CDN-egress
   limitation as prior phases) but every layout/component change
   verified correctly against the placeholder gradient.
+
+## Phase 27 — done: premium category/archive template rebuild
+
+Category pages were the last template still on the Phase 7-era layout:
+a plain `<h1>` + description block, then every story (including the
+most recent one) dropped into one uniform 3-column grid of full
+`ArticleCard` `grid`-variant cards — a flat archive, not an edited
+section. Rebuilt around the same lead+briefs and dense-wire patterns
+the homepage and article template already established, so browsing a
+category feels continuous with the rest of the site instead of like
+falling back to a generic listing page.
+
+- **Category header gained real weight**: a small red-dot "Section"
+  kicker above the `<h1>` (matching the dot-kicker language `Featured
+  Section`'s "Also Making Headlines" label uses), the title itself
+  bumped to `36/50px` with tighter `leading-[0.96] tracking-[-0.02em]`
+  (previously `34/46px` at the shared-but-less-aggressive page-h1
+  tracking), a story-count readout (`"18 Stories"`) inline with the
+  title, and the whole band now sits on a `bg-[var(--color-bg-off)]`
+  panel instead of plain white — reads as a distinct section masthead,
+  not a caption above a list.
+- **New `CategoryLead.tsx`**: the top 4 stories (most recent first) get
+  TopicRail's exact lead+briefs treatment — one dominant `grid`-variant
+  card plus a tight bordered stack of 3 `list`-variant briefs — reused
+  verbatim rather than inventing a category-specific pattern. This is
+  the "intentional featured story treatment" this phase's goal called
+  for, built from an existing proven component instead of a new one.
+- **`ArticleGrid.tsx` rebuilt into a dense wire list** for everything
+  after the lead: the same `gap-px` hairline-background grid of
+  `list`-variant items `LatestModule` established on the homepage,
+  replacing the old 3-column grid of big photo cards. A category with
+  dozens of stories now reads as a browsable wire instead of an
+  endless scroll of equal-weight image cards — directly the "denser,
+  more editorial" layout this phase asked for. Retitled from the
+  generic `"N Stories"` (that job moved to the header's story-count
+  readout) to `"More Stories"`.
+- **No duplicate stories**: `page.tsx` slices `categoryArticles` once —
+  `[0,4)` for `CategoryLead`, `[4,)` for `ArticleGrid` — the same
+  slug-exclusion-by-slicing pattern used everywhere else on the site
+  that has a lead+rest split.
+- **Empty states differentiated**: a category with zero stories shows
+  one clear message in place of the whole lead+grid+sidebar layout; a
+  category with 1-4 stories (lead-only, nothing left for the wire list)
+  shows `ArticleGrid`'s own "no more stories" message rather than
+  displaying an empty grid shell.
+- **Motion applied consistently**: the `ArticleGrid` + `Sidebar` row is
+  wrapped in Phase 25's `Reveal` component, matching the one-reveal-
+  per-module pattern used on the homepage and article page; the header
+  and `CategoryLead` (both typically above the fold) are left
+  unwrapped, same as the homepage's own hero not being Reveal-wrapped.
+- **`loading.tsx` rebuilt to match** the new three-part structure
+  (header skeleton → lead+briefs skeleton → wire-list+sidebar skeleton)
+  instead of skeleton rows shaped for the old flat grid.
+- **Verified in a real production build** (`next build && next start`)
+  via Playwright full-page screenshots at desktop (1440px) and mobile
+  (390px) on a real category with 18 stories — confirmed the section
+  kicker/title/count header, the lead+briefs block, and the dense
+  wire-list all render correctly and that mobile is dense and browsable
+  with no wasted space. Article cover images didn't load in this
+  sandbox (same documented CDN-egress limitation as prior phases) but
+  every layout/component change verified correctly against the
+  placeholder blocks.
