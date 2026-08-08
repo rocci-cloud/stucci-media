@@ -115,6 +115,10 @@ export default async function ArticlePage({ params }: Props) {
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://stuccimedia.com";
   const articleUrl = `${siteUrl}${pagePath}`;
+  // Same canonical-override logic as generateMetadata's `alternates.canonical`
+  // above — mainEntityOfPage must point at the same URL Google is told is
+  // canonical, not always the raw slug path, or the two signals disagree.
+  const canonicalUrl = article.canonicalUrl || articleUrl;
   const articleImage = article.ogImage || article.coverImageUrl || `${siteUrl}/og-default.png`;
 
   const articleSchema = {
@@ -124,14 +128,17 @@ export default async function ArticlePage({ params }: Props) {
     description: article.dek,
     image: [articleImage],
     datePublished: article.publishedAt ?? undefined,
-    dateModified: article.publishedAt ?? undefined,
+    // publishedAt can be null for the rare article missing a set publish
+    // date — dateModified still reflects the real last-edit timestamp,
+    // which always exists.
+    dateModified: article.updatedAt,
     author: { "@type": "Person", name: article.author },
     publisher: {
       "@type": "Organization",
       name: "Stucci Media",
       logo: { "@type": "ImageObject", url: `${siteUrl}/og-default.png` },
     },
-    mainEntityOfPage: { "@type": "WebPage", "@id": articleUrl },
+    mainEntityOfPage: { "@type": "WebPage", "@id": canonicalUrl },
     articleSection: article.category,
   };
 
