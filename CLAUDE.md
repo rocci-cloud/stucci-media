@@ -2394,3 +2394,30 @@ overflow categories a real home.
   main-menu-cap warning appears correctly once 5 MAIN categories already
   exist. A throwaway admin account used for the admin-UI checks was
   removed afterward.
+
+## Phase 39 — done: new default share image
+
+`public/og-default.png` (the sitewide fallback `og:image` — homepage,
+category pages without their own share image, articles without a set OG
+image, and Contact) replaced with a new branded 1200×630 card (torn
+American flag background, "Stucci Media / Independent Media That
+Matters"), supplied directly by Rocci and cropped from a 1280×720 source
+via `sharp` (`cover` fit, top/bottom trimmed slightly — the wordmark and
+tagline both stay fully visible at the new crop). No code changes needed
+— every page that references `/og-default.png` already pulls from this
+one file, so the swap took effect everywhere at once.
+
+- **Real root cause found for a live bug report**: Rocci reported
+  Facebook's link preview for the homepage showing a generic gray box
+  and the title "Home" instead of the real branded card. The homepage's
+  actual `openGraph`/`twitter` metadata (`app/layout.tsx`) was already
+  correct — verified directly, title/description/image all set
+  properly, and `og-default.png` was already a real branded image before
+  this phase, not a placeholder. The mismatch was diagnosed as Facebook's
+  own link-preview cache: Facebook scrapes a URL once and holds onto
+  that result indefinitely regardless of later code/content changes,
+  so a stale scrape (e.g. from before proper metadata existed) keeps
+  showing until someone forces a re-scrape. Fix given to Rocci: Facebook
+  Sharing Debugger (developers.facebook.com/tools/debug/) → paste the
+  URL → "Scrape Again" — not a code fix, since there was nothing wrong
+  in the code to fix.
