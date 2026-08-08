@@ -52,12 +52,16 @@ export default function FeaturedSection({
           <img
             src={lead.coverImageUrl}
             alt={lead.headline}
-            className="absolute inset-0 h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+            className="img-cinematic absolute inset-0 h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
           />
         ) : (
-          <div className="absolute inset-0 bg-[#E5E4E0]" />
+          <div className="img-placeholder absolute inset-0" />
         )}
 
+        {/* Cinematic vignette: darkens the frame edges so the eye settles
+            on the subject/headline instead of the corners — layered under
+            the legibility scrim below, not a replacement for it. */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_45%,rgba(0,0,0,0.22)_100%)]" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/97 via-black/55 to-black/5" />
 
         <div className="absolute inset-x-0 bottom-0 px-4 pb-5 sm:px-8 sm:pb-9 lg:px-10 lg:pb-11">
@@ -105,16 +109,19 @@ export default function FeaturedSection({
                   i > 0 ? "sm:pl-6 sm:border-l sm:border-l-[var(--color-hairline)]" : ""
                 }`}
               >
-                {item.coverImageUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={item.coverImageUrl}
-                    alt={item.headline}
-                    className="w-full aspect-[3/2] sm:aspect-[4/3] object-cover mb-2.5"
-                  />
-                ) : (
-                  <div className="w-full aspect-[3/2] sm:aspect-[4/3] bg-[#E5E4E0] mb-2.5" />
-                )}
+                <div className="relative mb-2.5">
+                  {item.coverImageUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={item.coverImageUrl}
+                      alt={item.headline}
+                      className="img-cinematic aspect-[2/1] sm:aspect-[16/9] w-full object-cover"
+                    />
+                  ) : (
+                    <div className="img-placeholder aspect-[2/1] sm:aspect-[16/9]" />
+                  )}
+                  <div className="pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-black/12 to-transparent" />
+                </div>
                 <Badge variant="text" className="mb-1.5">
                   {item.category}
                 </Badge>

@@ -113,16 +113,19 @@ export default async function ArticlePage({ params }: Props) {
             <span className="text-[var(--color-hairline-strong)]/30">·</span>
             <span className="text-[12px] uppercase tracking-[0.04em]">{article.readTime}</span>
           </div>
-          {article.coverImageUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={article.coverImageUrl}
-              alt={article.headline}
-              className="w-full aspect-video object-cover rounded-card shadow-card mb-7"
-            />
-          ) : (
-            <div className="w-full aspect-video bg-[#E5E4E0] rounded-card mb-7" />
-          )}
+          <div className="relative mb-7">
+            {article.coverImageUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={article.coverImageUrl}
+                alt={article.headline}
+                className="img-cinematic w-full aspect-video object-cover rounded-card shadow-card"
+              />
+            ) : (
+              <div className="img-placeholder w-full aspect-video rounded-card" />
+            )}
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-12 rounded-b-card bg-gradient-to-t from-black/12 to-transparent" />
+          </div>
           <div
             className="prose prose-neutral max-w-none text-[17px] sm:text-[19px] leading-[1.75]
               prose-headings:font-headline prose-headings:font-bold prose-headings:uppercase prose-headings:tracking-[-0.01em] prose-headings:leading-[1.1]

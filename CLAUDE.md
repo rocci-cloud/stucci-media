@@ -1375,3 +1375,69 @@ tokens from Phases 21/22.
   cover images didn't load in this sandbox (same documented CDN-egress
   limitation as prior phases) but every component change verified
   correctly against the placeholder blocks.
+
+## Phase 24 — done: cinematic imagery and overlay system
+
+Every image on the site — hero, story cards, article cover — used plain
+`object-cover` with no shared photographic treatment, and a flat single-
+color `#E5E4E0` box stood in for missing images everywhere. This phase
+adds two shared, reusable image treatments and applies deepened overlay
+work at the highest-impact spots, so photography reads as a deliberate,
+cinematic part of the brand rather than raw uploads dropped into cards.
+Imagery/overlay only — no layout structure, typography, color-palette,
+or animation changes (aspect-ratio unification below is cropping/
+consistency work, not a structural change).
+
+- **Two new shared utilities in `globals.css`** (`@layer utilities`),
+  used by every real image and every "no image" placeholder sitewide:
+  `.img-cinematic` (`filter: contrast(1.04) saturate(1.06)`) — a
+  deliberately subtle photo treatment, not a color-token change, so
+  every photo across the site reads as considered editorial photography
+  rather than an unfiltered upload. `.img-placeholder` (a soft diagonal
+  two-tone gradient, `#ece9e4` → `#d9d6cf`) replaces the flat
+  `bg-[#E5E4E0]` fill everywhere an article has no cover image, so even
+  an empty-image state looks designed rather than a broken gray box.
+- **Hero gained a cinematic vignette**, layered *under* the existing
+  text-legibility scrim (`FeaturedSection`): a radial gradient
+  (`transparent` at 45% → `rgba(0,0,0,0.22)` at the edges) darkens the
+  frame's corners so the eye settles on the subject and headline instead
+  of drifting to the edges — a classic cinematic-photography technique,
+  purely an overlay addition, no crop/size change to the hero itself.
+- **Clear hierarchy between hero and supporting images, via treatment
+  intensity, not layout**: the hero keeps its full-height, two-layer
+  scrim (vignette + legibility gradient) since text sits directly on
+  top of it; every supporting/story image (secondary hero cards,
+  `ArticleCard`'s `grid` variant, the article page's cover image) gets
+  only a small bottom-edge gradient (`h-8`–`h-12`, `black/12`–`/18` to
+  transparent) as a finishing touch — present but far more restrained,
+  so the hero unambiguously reads as the dominant image on the page.
+  `ArticleCard`'s existing bottom overlay deepened slightly
+  (`black/15` → `/18`) to match this new shared language.
+- **Aspect-ratio consistency**: `FeaturedSection`'s secondary-story
+  images were the one image spot still on a bespoke `aspect-[3/2] sm:
+  aspect-[4/3]` ratio, unrelated to the rest of the site. Unified to
+  the same `aspect-[2/1] sm:aspect-[16/9]` every other story-card image
+  already uses (`ArticleCard`'s `grid` variant, `PodcastShelf` tiles) —
+  one consistent widescreen cropping language sitewide instead of two.
+- **Article page cover image**: gained the same `relative` wrapper +
+  bottom-gradient + `img-cinematic`/`img-placeholder` treatment as every
+  card image, for full-site consistency — previously the one major image
+  spot with no overlay treatment at all.
+- **Mobile gets the identical treatment**: none of the new gradient/
+  filter/placeholder classes are breakpoint-gated, so the vignette,
+  hero scrim, card overlays, and placeholder gradient all render
+  identically on a 390px viewport as on desktop — no separate "mobile
+  image" logic to drift out of sync.
+- **Verified in a real production build** (`next build && next start`)
+  via Playwright at desktop (1440px) and mobile (390px): confirmed via
+  `getComputedStyle` that `.img-cinematic`'s `filter: contrast(1.04)
+  saturate(1.06)` is actually applied (30 image elements sitewide
+  carried the class in one homepage render) and that the new overlay
+  divs render with correct gradient values. Actual photo content
+  couldn't be visually judged in this sandbox (same documented no-
+  general-internet-egress limitation as every prior phase — live
+  articles all have real `coverImageUrl`s already set, so the
+  `.img-placeholder` path specifically wasn't visible in a screenshot
+  either, only confirmed structurally/via computed styles) — worth a
+  quick visual pass once deployed to a real environment with image
+  access.
