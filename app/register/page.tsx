@@ -7,6 +7,10 @@ import AuthForm from "../login/AuthForm";
 export const metadata: Metadata = {
   title: "Create Account",
   description: "Create a Stucci Media account.",
+  robots: { index: false, follow: true },
+  alternates: {
+    canonical: "/register",
+  },
 };
 
 export default function RegisterPage() {

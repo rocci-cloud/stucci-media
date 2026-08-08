@@ -43,23 +43,39 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const article = await getArticleBySlug(slug);
   if (!article) return {};
 
-  const image = article.coverImageUrl ?? "/og-default.png";
+  // Prefer the dedicated SEO fields (set/backfilled via the admin SEO
+  // panel — see CLAUDE.md Phase 9/13) over the raw editorial headline/
+  // dek, since those are hand-tuned for length and focus-keyword
+  // placement; fall back to headline/dek for the (now rare) article
+  // that doesn't have them set.
+  const metaTitle = article.seoTitle || article.headline;
+  const metaDescription = article.seoDescription || article.dek;
+  const image = article.ogImage || article.coverImageUrl || "/og-default.png";
+  const canonicalPath = article.canonicalUrl || `/articles/${article.slug}`;
 
   return {
-    title: article.headline,
-    description: article.dek,
+    title: metaTitle,
+    description: metaDescription,
+    keywords: article.seoKeywords || undefined,
+    alternates: {
+      canonical: canonicalPath,
+    },
     openGraph: {
-      title: article.headline,
-      description: article.dek,
+      title: metaTitle,
+      description: metaDescription,
       type: "article",
-      publishedTime: article.date,
+      // article.date is the human-formatted display string ("July 10,
+      // 2026") — OpenGraph's published_time needs real ISO 8601, which
+      // is what publishedAt (the raw DB timestamp) actually is.
+      publishedTime: article.publishedAt ?? undefined,
       authors: [article.author],
+      section: article.category,
       images: [image],
     },
     twitter: {
       card: "summary_large_image",
-      title: article.headline,
-      description: article.dek,
+      title: metaTitle,
+      description: metaDescription,
       images: [image],
     },
   };
@@ -97,8 +113,53 @@ export default async function ArticlePage({ params }: Props) {
     : null;
   const pagePath = `/articles/${article.slug}`;
 
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://stuccimedia.com";
+  const articleUrl = `${siteUrl}${pagePath}`;
+  const articleImage = article.ogImage || article.coverImageUrl || `${siteUrl}/og-default.png`;
+
+  const articleSchema = {
+    "@context": "https://schema.org",
+    "@type": "NewsArticle",
+    headline: article.headline,
+    description: article.dek,
+    image: [articleImage],
+    datePublished: article.publishedAt ?? undefined,
+    dateModified: article.publishedAt ?? undefined,
+    author: { "@type": "Person", name: article.author },
+    publisher: {
+      "@type": "Organization",
+      name: "Stucci Media",
+      logo: { "@type": "ImageObject", url: `${siteUrl}/og-default.png` },
+    },
+    mainEntityOfPage: { "@type": "WebPage", "@id": articleUrl },
+    articleSection: article.category,
+  };
+
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: siteUrl },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: article.category,
+        item: `${siteUrl}/category/${article.categorySlug}`,
+      },
+      { "@type": "ListItem", position: 3, name: article.headline, item: articleUrl },
+    ],
+  };
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
       <BreakingBar />
       <SiteHeader />
       <main>

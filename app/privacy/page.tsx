@@ -6,6 +6,9 @@ import SiteFooter from "../components/SiteFooter";
 export const metadata: Metadata = {
   title: "Privacy Policy",
   description: "Stucci Media's privacy policy.",
+  alternates: {
+    canonical: "/privacy",
+  },
 };
 
 export default function PrivacyPage() {

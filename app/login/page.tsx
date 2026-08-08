@@ -7,6 +7,12 @@ import AuthForm from "./AuthForm";
 export const metadata: Metadata = {
   title: "Sign In",
   description: "Sign in to your Stucci Media account.",
+  // Auth pages have no unique content worth ranking and would otherwise
+  // compete with real editorial pages for crawl budget.
+  robots: { index: false, follow: true },
+  alternates: {
+    canonical: "/login",
+  },
 };
 
 type Props = {

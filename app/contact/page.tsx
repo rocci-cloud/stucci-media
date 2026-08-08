@@ -7,6 +7,9 @@ import SiteFooter from "../components/SiteFooter";
 export const metadata: Metadata = {
   title: "Contact",
   description: "Get in touch with Stucci Media — tips, corrections, questions, and media inquiries.",
+  alternates: {
+    canonical: "/contact",
+  },
 };
 
 export default function ContactPage() {

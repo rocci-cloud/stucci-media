@@ -11,6 +11,9 @@ export const metadata: Metadata = {
   title: "Join Stucci Media",
   description:
     "Free membership: breaking news, deep investigations, and the stories mainstream media won't run — straight to your inbox.",
+  alternates: {
+    canonical: "/subscribe",
+  },
 };
 
 const BENEFITS = [
