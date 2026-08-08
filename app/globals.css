@@ -109,6 +109,22 @@ body {
   .scrollbar-none::-webkit-scrollbar {
     display: none;
   }
+
+  /* Shared photography treatment for every real (non-placeholder) article
+     image sitewide — a deliberately subtle contrast/saturation lift so
+     photos read as considered editorial photography rather than raw
+     theme uploads. Kept small enough not to read as a color-system
+     change: this is a photo filter, not a token. */
+  .img-cinematic {
+    filter: contrast(1.04) saturate(1.06);
+  }
+
+  /* Shared "no cover image" placeholder — a soft diagonal two-tone wash
+     instead of a single flat gray fill, so an empty-image state still
+     reads as designed rather than a broken/default box. */
+  .img-placeholder {
+    background: linear-gradient(135deg, #ece9e4, #d9d6cf);
+  }
 }
 
 @keyframes fadein {

@@ -40,10 +40,10 @@ export default function ArticleCard({ article, variant = "grid", rank }: Article
           <img
             src={article.coverImageUrl}
             alt={article.headline}
-            className="w-[88px] h-[60px] object-cover rounded-control shadow-sm ring-1 ring-black/5 shrink-0"
+            className="img-cinematic w-[88px] h-[60px] object-cover rounded-control shadow-sm ring-1 ring-black/5 shrink-0"
           />
         ) : (
-          <div className="w-[88px] h-[60px] bg-[#E5E4E0] rounded-control shrink-0" />
+          <div className="img-placeholder w-[88px] h-[60px] rounded-control shrink-0" />
         )}
         <div className="min-w-0 flex flex-col justify-center">
           <div className="font-headline text-[15px] font-bold leading-[1.2] tracking-[-0.01em] group-hover:text-[var(--color-red)] transition-colors line-clamp-3">
@@ -68,12 +68,12 @@ export default function ArticleCard({ article, variant = "grid", rank }: Article
           <img
             src={article.coverImageUrl}
             alt={article.headline}
-            className="aspect-[2/1] sm:aspect-[16/9] w-full object-cover"
+            className="img-cinematic aspect-[2/1] sm:aspect-[16/9] w-full object-cover"
           />
         ) : (
-          <div className="aspect-[2/1] sm:aspect-[16/9] bg-[#E5E4E0]" />
+          <div className="img-placeholder aspect-[2/1] sm:aspect-[16/9]" />
         )}
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-black/15 to-transparent" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-black/18 to-transparent" />
       </div>
       <div className="p-4 sm:p-5">
         <Badge variant="text" className="mb-2.5">
