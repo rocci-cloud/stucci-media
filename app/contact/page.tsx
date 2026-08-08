@@ -10,6 +10,12 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/contact",
   },
+  openGraph: {
+    title: "Contact | Stucci Media",
+    description: "Get in touch with Stucci Media — tips, corrections, questions, and media inquiries.",
+    type: "website",
+    images: ["/og-default.png"],
+  },
 };
 
 export default function ContactPage() {

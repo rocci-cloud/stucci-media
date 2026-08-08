@@ -6,9 +6,9 @@ import "@fontsource/oswald/700.css";
 import "./globals.css";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://stuccimedia.com";
-const title = "Stucci Media — Independent News That Matters";
+const title = "Stucci Media | Independent News That Matters";
 const description =
-  "Independent news, analysis, and podcasts from Florida — the stories mainstream media won't run.";
+  "Stucci Media: independent news and investigations from Florida — politics, world events, crime, veterans, social issues, and free speech, without the spin.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
