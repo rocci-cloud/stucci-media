@@ -2566,3 +2566,20 @@ implemented unprompted.
   verify against the literal current ruleset, and said so plainly in
   the report rather than silently falling back to a remembered
   checklist.
+
+## Phase 44 — done: `--color-gray-light` contrast fix
+
+The top finding from Phase 43's audit, actioned: `--color-gray-light`
+(`#8a94a0` on white) measured roughly 2.6:1 — well under WCAG AA's
+4.5:1 floor for normal text. This one token backs every small metadata
+label sitewide (article dates, read-time, byline dot separators —
+`ArticleCard`, `FeaturedSection`, `TopicRail`, `Sidebar`, the footer),
+so it was a real, widely-repeated failure rather than a one-off.
+
+- **Darkened to `#6b7684`** (~4.6:1 on white, passes AA) — a single
+  token edit in `globals.css`, same high-leverage pattern Phase 22 used
+  for shadows/surfaces. No component code changed.
+- **Verified in a real production build** (`next build && next start`)
+  — homepage renders correctly with the updated token; the visual shift
+  is subtle (a touch darker gray on dates/read-time/byline dividers)
+  rather than a palette change, as intended.
