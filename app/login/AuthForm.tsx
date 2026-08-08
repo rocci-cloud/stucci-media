@@ -95,7 +95,7 @@ export default function AuthForm({ mode, redirectTo }: { mode: Mode; redirectTo:
       <button
         type="submit"
         disabled={pending}
-        className="min-h-11 bg-[var(--color-red)] hover:bg-[var(--color-red-dark)] active:bg-[var(--color-red-dark)] text-white text-[13px] font-bold uppercase tracking-wide px-6 rounded-control transition-colors disabled:opacity-50"
+        className="min-h-11 bg-[var(--color-red)] hover:bg-[var(--color-red-dark)] active:bg-[var(--color-red-dark)] text-white text-[13px] font-bold uppercase tracking-wide px-6 rounded-control transition active:scale-[0.97] disabled:opacity-50"
       >
         {pending ? (mode === "login" ? "Signing in…" : "Creating account…") : mode === "login" ? "Sign In" : "Create Account"}
       </button>

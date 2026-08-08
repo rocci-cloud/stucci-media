@@ -43,7 +43,7 @@ export default function Sidebar({
         </p>
         <Link
           href="/category/podcasts"
-          className="inline-flex items-center min-h-11 bg-[var(--color-red)] hover:bg-[var(--color-red-dark)] text-white text-[11.5px] font-bold uppercase tracking-wide px-4 rounded-control transition-colors"
+          className="inline-flex items-center min-h-11 bg-[var(--color-red)] hover:bg-[var(--color-red-dark)] text-white text-[11.5px] font-bold uppercase tracking-wide px-4 rounded-control transition active:scale-[0.97]"
         >
           Listen Now
         </Link>

@@ -51,7 +51,7 @@ export default function SubscribeForm({ compact = false, stacked = false }: Subs
         <button
           type="submit"
           disabled={pending}
-          className={`min-h-11 bg-[var(--color-red)] hover:bg-[var(--color-red-dark)] active:bg-[var(--color-red-dark)] text-white font-bold uppercase tracking-wide rounded-control disabled:opacity-50 transition-colors ${
+          className={`min-h-11 bg-[var(--color-red)] hover:bg-[var(--color-red-dark)] active:bg-[var(--color-red-dark)] text-white font-bold uppercase tracking-wide rounded-control disabled:opacity-50 transition active:scale-[0.97] ${
             compact ? "px-4 text-[11.5px]" : "px-5 text-[14px]"
           }`}
         >

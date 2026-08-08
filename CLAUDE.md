@@ -1441,3 +1441,102 @@ consistency work, not a structural change).
   either, only confirmed structurally/via computed styles) — worth a
   quick visual pass once deployed to a real environment with image
   access.
+
+## Phase 25 — done: cinematic motion and micro-interaction system
+
+Every prior phase explicitly deferred animation ("structure/color/type/
+imagery only, no animations yet"). This phase adds the first real motion
+across the site — restrained, editorial, and applied through a few
+high-leverage shared mechanisms rather than bespoke per-component
+effects, so it stays coherent instead of turning into a grab-bag of
+one-off transitions. Motion/micro-interactions only — no layout,
+typography, color, or component-structure changes.
+
+- **One `@theme` override elevates every existing transition sitewide**:
+  `--default-transition-duration` (150ms → 240ms) and `--default-
+  transition-timing-function` (→ `cubic-bezier(0.16, 1, 0.3, 1)`, an
+  "expo-out" curve common on high-end sites) back every bare
+  `transition`/`transition-colors`/`transition-shadow` utility that
+  doesn't specify its own `duration-*`/`ease-*`. Nav links, footer
+  links, form inputs, badges-with-hover-states — dozens of already-
+  existing hover transitions across the codebase all picked up the
+  slower, more "expensive"-feeling curve with zero per-component edits,
+  the same high-leverage-token pattern used for shadows/colors in
+  Phases 22-23. Verified via `getComputedStyle` that a nav link's
+  `transitionDuration`/`transitionTimingFunction` actually reflect the
+  new values.
+- **Hero gets a real cinematic entrance** (`FeaturedSection`, CSS-only —
+  no client component/JS needed since it's a one-time on-mount
+  animation): the image settles in from a slight zoom-out
+  (`heroImageReveal`, `scale(1.06)→scale(1)` + fade, 1.1s), and the
+  headline/dek/byline block rises in a beat later (`heroTextReveal`,
+  `translateY(16px)→0` + fade, 0.9s, `0.25s` delay) — a layered reveal
+  instead of everything appearing at once. Both use `both` fill-mode so
+  there's no flash-of-final-state before they start and no snap-back
+  after.
+- **`ArticleCard`'s `grid` variant gets a refined hover language**:
+  the whole card now lifts (`hover:-translate-y-[3px]`) alongside its
+  existing shadow deepening (now both riding the bare `transition`
+  utility, so they share the new premium timing), the cover image zooms
+  subtly (`group-hover:scale-[1.05]`, 600ms, clipped by the card's
+  existing `overflow-hidden`), and a press gives tactile feedback
+  (`active:scale-[0.99]`). The `list` variant's thumbnail got the same
+  zoom treatment (required wrapping it in its own `overflow-hidden` div
+  so the ring/shadow don't scale along with the image). The `ranked`
+  variant's numeral now deepens color on hover
+  (`text-red/30 → text-red/60`) as a secondary hover cue alongside the
+  existing headline color change.
+- **New `Reveal.tsx` client component**: a thin `IntersectionObserver` +
+  CSS-transition wrapper, used once per homepage module (`LatestModule`,
+  each `TopicRail`/`OpinionModule`/`PodcastShelf`, `Sidebar`,
+  `SubscribeStrip`) — deliberately one reveal per *module*, not per
+  card, so scrolling the page doesn't turn into a cascading confetti of
+  individual card entrances. Built specifically to avoid a real
+  reliability trap: content renders fully visible by default in the
+  initial SSR/client paint (this is a news site — nothing should ever
+  depend on JS running to become visible), and the hidden-then-reveal
+  state only "arms" for a given module once its first
+  `IntersectionObserver` callback confirms it's NOT already in the
+  viewport at mount — so anything above the fold at load never enters a
+  hidden state at all, and there's no flash for the content a visitor
+  sees first. Verified this behavior directly: the hero/first-screen
+  content measured `opacity: 1` within 200ms of load, and every
+  below-fold module correctly transitioned to `opacity: 1` once
+  scrolled into view.
+- **Button feedback**: every primary red CTA sitewide (`SubscribeForm`'s
+  submit — which covers the homepage strip, sidebar, and footer forms
+  in one shared component — plus `SiteHeader`, `MobileMenu`, `Sidebar`'s
+  "Listen Now", `SiteFooter`, the comment-submit button, contact/login
+  submit buttons, and `error.tsx`'s "Try again") gained
+  `active:scale-[0.97]` tactile press feedback, riding the same bare
+  `transition` utility so it inherits the premium timing. `LikeButton`'s
+  heart icon gets a small `scale-110` pop when toggled to the liked
+  state, on top of its existing fill-color change.
+- **Search overlay's inner panel** gained a quick, understated
+  scale+fade entrance (`overlayPop`, `scale(0.97)→1` + `translateY(4px)
+  →0`, 0.25s) instead of just appearing — the backdrop's existing
+  `fadein` is untouched.
+- **`prefers-reduced-motion` needed no new work**: the existing global
+  rule in `globals.css` (`* { animation: none !important; transition:
+  none !important; }`) already blankets every animation/transition
+  added in this phase, old and new alike.
+- **Mobile gets the identical treatment** — none of the new motion is
+  breakpoint-gated; the same transitions, hero entrance, and reveal
+  behavior apply at every viewport size. Touch devices don't have a
+  `:hover` state to trigger the card lift/zoom, but the `active:scale`
+  press feedback (which touch does trigger) covers the tactile side on
+  phones.
+- **Verified in a real production build** (`next build && next start`)
+  via Playwright: confirmed via `getComputedStyle` that the new
+  `@theme` transition defaults are actually applied to existing nav
+  links; that hovering a story card produces a measurable box-shadow
+  deepening (`0.1`/`6px` blur → `0.18`/`40px` blur), a `-3px` Y
+  `translate` (Tailwind v4 emits transforms as native `translate`/
+  `scale` CSS properties, not the `transform` shorthand — the initial
+  check against `transform` read `none` and looked like a bug until
+  re-checked against the actual properties Tailwind v4 sets), and a
+  `~1.05` image `scale`; that `Reveal`'s above-the-fold content is
+  visible immediately and below-fold modules all reach `opacity: 1`
+  after scrolling through the full page. Article cover images
+  themselves still didn't load in this sandbox (same documented
+  CDN-egress limitation as prior phases).

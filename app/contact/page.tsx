@@ -58,7 +58,7 @@ export default function ContactPage() {
           </div>
           <button
             type="submit"
-            className="self-start bg-[var(--color-red)] hover:bg-[var(--color-red-dark)] text-white text-[13px] font-bold uppercase tracking-wide px-6 py-3 min-h-11 rounded-control transition-colors"
+            className="self-start bg-[var(--color-red)] hover:bg-[var(--color-red-dark)] text-white text-[13px] font-bold uppercase tracking-wide px-6 py-3 min-h-11 rounded-control transition active:scale-[0.97]"
           >
             Send Message
           </button>
