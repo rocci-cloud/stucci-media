@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { Search, X } from "lucide-react";
 
 const NAV_LINKS = [
   { label: "Political News", href: "/category/political-news" },
@@ -47,17 +48,15 @@ export default function MobileMenu({ open, onClose }: { open: boolean; onClose: 
         <button
           aria-label="Close menu"
           onClick={onClose}
-          className="min-w-11 min-h-11 flex items-center justify-center text-white text-2xl leading-none"
+          className="min-w-11 min-h-11 flex items-center justify-center text-white"
         >
-          ✕
+          <X className="h-6 w-6" />
         </button>
       </div>
 
       <form onSubmit={handleSearchSubmit} className="px-5 py-4 border-b border-white/10 shrink-0">
         <div className="flex items-center gap-2 bg-white/10 rounded-control px-3.5">
-          <span className="text-white/50 text-lg" aria-hidden>
-            🔍
-          </span>
+          <Search className="h-[18px] w-[18px] text-white/50 shrink-0" aria-hidden />
           <input
             type="search"
             value={query}
