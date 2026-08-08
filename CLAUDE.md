@@ -2421,3 +2421,41 @@ one file, so the swap took effect everywhere at once.
   Sharing Debugger (developers.facebook.com/tools/debug/) → paste the
   URL → "Scrape Again" — not a code fix, since there was nothing wrong
   in the code to fix.
+
+## Phase 40 — done: first live banners — Stucci Apparel cross-promotion
+
+The Banner Management system (Phase 36) had no real banners in it yet.
+Added the first two, both promoting stucciapparel.com from the homepage
+slot, using two product graphics supplied directly.
+
+- **Source images were square (1024×1024) product shots**, but the
+  homepage banner slot renders at a wide 3:1/4:1 ratio
+  (`BannerSlot`/`BannerCard`) — a plain `object-cover` crop of a square
+  image into that ratio would have cut off most of the shirt graphic.
+  Composited instead (`sharp`, one-time, not a build step): a blurred,
+  darkened, full-bleed copy of the same photo as the background, with
+  the uncropped square product shot centered on top — a standard
+  "letterboxed poster" technique, so the whole design stays visible with
+  no jarring flat-color bars on the sides. Output at 1600×400 (`public/
+  banners/`).
+- **Stored as static files in `public/banners/`, not Vercel Blob** — the
+  Banner model's `imageUrl` is just a string, and these are fixed
+  campaign assets checked into the repo (same pattern as
+  `public/og-default.png`), not admin-uploaded-and-editable images; no
+  `BLOB_READ_WRITE_TOKEN` round-trip needed for something this static.
+- **`scripts/add-apparel-banners.mjs`** (new, follows the project's
+  established one-off-data-script convention) inserts/upserts both rows
+  — `placement: HOMEPAGE`, `isActive: true`, `destinationUrl:
+  https://stucciapparel.com`, `sortOrder` 0/1 so "Fell Hard, Got Up
+  Harder" shows first. Upserts by `image_url` so it's safe to re-run.
+  Both are now fully manageable from `/admin/banners` like any
+  admin-created banner (edit, deactivate, delete, re-order, move to a
+  different placement) — nothing about them is special-cased outside
+  this one seed script.
+- **Verified in a real production build** (`next build && next start`)
+  via Playwright at desktop (1440px) and mobile (390px): confirmed both
+  banners render stacked in the homepage slot in the correct order, each
+  with the "Advertisement" disclosure label and the site's standard
+  `rounded-card`/`shadow-card` treatment, and confirmed via the rendered
+  HTML that both link to `https://stucciapparel.com` with `target=
+  "_blank"` and `rel="noopener noreferrer sponsored"`.
