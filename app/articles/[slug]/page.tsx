@@ -209,6 +209,7 @@ export default async function ArticlePage({ params }: Props) {
               <img
                 src={article.coverImageUrl}
                 alt={article.headline}
+                fetchPriority="high"
                 className="img-cinematic absolute inset-0 h-full w-full object-cover"
               />
             ) : (

@@ -41,6 +41,8 @@ export default function ArticleCard({ article, variant = "grid", rank }: Article
             <img
               src={article.coverImageUrl}
               alt={article.headline}
+              loading="lazy"
+              decoding="async"
               className="img-cinematic h-full w-full object-cover transition-transform duration-[600ms] group-hover:scale-[1.08]"
             />
           </div>
@@ -70,6 +72,8 @@ export default function ArticleCard({ article, variant = "grid", rank }: Article
           <img
             src={article.coverImageUrl}
             alt={article.headline}
+            loading="lazy"
+            decoding="async"
             className="img-cinematic aspect-[2/1] sm:aspect-[16/9] w-full object-cover transition-transform duration-[600ms] group-hover:scale-[1.05]"
           />
         ) : (

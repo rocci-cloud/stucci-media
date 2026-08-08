@@ -42,6 +42,8 @@ function BannerCard({ banner }: { banner: Banner }) {
     <img
       src={banner.imageUrl}
       alt={label}
+      loading="lazy"
+      decoding="async"
       className="w-full aspect-[3/1] sm:aspect-[4/1] object-cover"
     />
   );
