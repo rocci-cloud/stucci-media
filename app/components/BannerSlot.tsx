@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { getActiveBanners, type Banner, type BannerPlacement } from "../lib/banners";
 
@@ -38,14 +39,9 @@ function BannerCard({ banner }: { banner: Banner }) {
   const label = banner.name || "Sponsored";
 
   const image = (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      src={banner.imageUrl}
-      alt={label}
-      loading="lazy"
-      decoding="async"
-      className="w-full aspect-[3/1] sm:aspect-[4/1] object-cover"
-    />
+    <div className="relative w-full aspect-[3/1] sm:aspect-[4/1]">
+      <Image src={banner.imageUrl} alt={label} fill sizes="(max-width: 1280px) 100vw, 1280px" className="object-cover" />
+    </div>
   );
 
   const wrapperClassName =

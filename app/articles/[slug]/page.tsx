@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { headers } from "next/headers";
@@ -205,12 +206,13 @@ export default async function ArticlePage({ params }: Props) {
 
           <div className="relative w-full h-[52svh] min-h-[380px] max-h-[520px] sm:h-[56vh] sm:max-h-[560px] overflow-hidden">
             {article.coverImageUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
+              <Image
                 src={article.coverImageUrl}
                 alt={article.headline}
-                fetchPriority="high"
-                className="img-cinematic absolute inset-0 h-full w-full object-cover"
+                fill
+                priority
+                sizes="100vw"
+                className="img-cinematic object-cover"
               />
             ) : (
               <div className="img-placeholder absolute inset-0" />
