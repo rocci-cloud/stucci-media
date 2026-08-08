@@ -52,6 +52,7 @@ export default function FeaturedSection({
           <img
             src={lead.coverImageUrl}
             alt={lead.headline}
+            fetchPriority="high"
             className="img-cinematic absolute inset-0 h-full w-full object-cover [animation:heroImageReveal_1.1s_cubic-bezier(0.16,1,0.3,1)_both] transition-transform duration-[600ms] group-hover:scale-[1.03]"
           />
         ) : (
@@ -115,6 +116,8 @@ export default function FeaturedSection({
                     <img
                       src={item.coverImageUrl}
                       alt={item.headline}
+                      loading="lazy"
+                      decoding="async"
                       className="img-cinematic aspect-[2/1] sm:aspect-[16/9] w-full object-cover transition-transform duration-[600ms] group-hover:scale-[1.05]"
                     />
                   ) : (

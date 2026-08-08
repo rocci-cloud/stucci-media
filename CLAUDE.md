@@ -2514,3 +2514,55 @@ them.
   separation between each, and re-confirmed (via direct `curl` against
   the local production server) that every banner image serves
   correctly, ruling out a code-side cause for the broken-image report.
+
+## Phase 43 — done: image loading/priority audit (quick win from a full-site improvement pass)
+
+A cross-cutting audit (architecture, frontend engineering, accessibility,
+UX craft, visual design) requested against the live site turned up one
+safe, mechanical, sitewide-reach fix worth shipping immediately rather
+than only reporting — the rest of the audit's findings (a contrast issue
+on `--color-gray-light`, missing visible breadcrumbs despite Phase 33's
+breadcrumb schema, tags funneling into the noindexed `/search` page, a
+partially-implemented ARIA menu pattern on the "More" nav dropdown, and
+the still-open next/image migration first scoped out in Phase 31) were
+left as a prioritized report for Rocci to schedule rather than
+implemented unprompted.
+
+- **Every real `<img>` across the site was loading eagerly regardless of
+  scroll position** — `loading="lazy"` is opt-in, not a browser default.
+  On the homepage alone (`LatestModule` + up to 7 category modules) that
+  meant dozens of full-size card images fetched on first paint whether
+  or not a visitor ever scrolled to them. Added `loading="lazy"
+  decoding="async"` to every non-hero image: `ArticleCard`'s `grid` and
+  `list` variants (covers every card sitewide — `TopicRail`,
+  `LatestModule`, `OpinionModule`, `PodcastShelf`, `Sidebar`,
+  `RelatedArticles` all render through this one primitive),
+  `FeaturedSection`'s secondary "Also Making Headlines" rail, and
+  `BannerSlot`.
+- **The flip side**: the homepage hero's lead image
+  (`FeaturedSection`) and the article page's own hero image are each
+  their page's actual LCP (Largest Contentful Paint) element — those
+  need to load as early and aggressively as possible, the opposite of
+  the fix above. Added `fetchPriority="high"` to both (the homepage
+  hero's *secondary* rail images stayed on the lazy-load path — only
+  the true lead image is LCP-critical).
+- **The rest of the audit is a report, not code**: delivered as an
+  artifact covering what's already correct (the site clears the "not
+  flat" bar most such reviews exist to catch — real depth, a real
+  signature moment, a disciplined motion hierarchy from Phases 15/22/25)
+  and what's genuinely still open, prioritized, with an explicit note
+  that `high-end-visual-design`'s literal directives (OLED-black
+  grounds, a different mandated font pair, glass-morphism nested cards)
+  were deliberately not applied as a mandate — doing so would discard
+  42 phases of intentional navy/red/Oswald/Georgia brand identity work
+  in favor of a generic template look, the opposite of what this
+  project has spent most of its life building. Its underlying
+  principles (real depth, a signature moment, disciplined motion) were
+  used as a diagnostic lens instead, and the site already has them.
+- **One methodology note worth recording**: `web-design-guidelines`'s
+  mandated live fetch of the Vercel web-interface-guidelines source
+  succeeded (no network error) but returned that tool's own usage
+  description rather than the actual rule list — so this pass could not
+  verify against the literal current ruleset, and said so plainly in
+  the report rather than silently falling back to a remembered
+  checklist.
