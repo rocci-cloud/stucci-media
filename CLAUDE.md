@@ -1792,3 +1792,46 @@ Design/structure only — same components, same tokens, same copy voice.
   dashed/muted "Coming Soon" card reading as clearly secondary to Free
   Access) all render correctly, and that mobile stacks both plan cards
   with strong vertical rhythm and no wasted space.
+
+## Phase 30 — done: premium Contact page rebuild
+
+Contact was the last simple utility page still on the Phase 1 layout —
+a bare `<h1>` + one-line dek + a plain-bordered form, no distinct way to
+reach the team beyond scrolling to the form's Email field. Design and
+structure only — the form itself is still presentation-only (see below,
+unchanged from before this phase).
+
+- **Header gained the same kicker treatment** as the category/subscribe
+  pages (small red dot + uppercase tracked label, "Get In Touch") above
+  the existing shared page-`<h1>` pattern — consistent hierarchy
+  language instead of a bare title.
+- **Direct email now has its own prominent, tappable element**: a
+  `mailto:rocci@stuccimedia.com` card (icon-in-circle + label + large
+  bold email text, `rounded-card`/`shadow-card`/hover-lift, `min-h-11`)
+  sitting between the header and the form — previously the email only
+  existed as a form field's placeholder context, not a real standalone
+  contact method. A "— Or Send A Message —" divider separates it from
+  the form so both paths (direct email vs. form) read as distinct,
+  deliberate options rather than one blurring into the other.
+- **Form fields refined to match the sitewide input language**:
+  `focus:border-[var(--color-navy)]` + `transition-colors` added to
+  match `SubscribeForm`/`AuthForm`/`SearchClient`'s already-established
+  focus treatment (previously this form had no focus state at all);
+  labels tightened from `tracking-wide` to the sitewide `tracking-
+  [0.04em]` convention; every field/button confirmed at the `min-h-11`
+  touch-target floor.
+- **Supporting line updated** to explicitly name media inquiries
+  alongside tips/corrections/questions, per this task's requirement.
+- **Density tightened**: `pt-10 pb-20` → `pt-8 sm:pt-10 pb-16 sm:pb-20`.
+- **Form submission is unchanged and still presentation-only** — the
+  `<form>` has no `action`/handler, same as before this phase (the
+  pre-existing code comment noting "wired to real email delivery in a
+  later phase" is preserved verbatim). This phase was scoped to design/
+  structure; wiring real form-to-email delivery would need a mail
+  provider decision this task didn't ask for, so it wasn't added
+  silently.
+- **Verified in a real production build** (`next build && next start`)
+  via Playwright at desktop (900px) and mobile (390px) — confirmed the
+  kicker/header hierarchy, the prominent clickable email card, the
+  refined form fields, and that mobile keeps both the email card and
+  every form field comfortably tappable with tight, clean spacing.
