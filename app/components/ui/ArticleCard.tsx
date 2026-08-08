@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import type { Article } from "../../lib/articles";
 import Badge from "./Badge";
@@ -66,18 +67,17 @@ export default function ArticleCard({ article, variant = "grid", rank }: Article
       href={`/articles/${article.slug}`}
       className="min-h-11 block group rounded-card overflow-hidden bg-white border border-[var(--color-hairline)] shadow-card hover:shadow-card-hover active:shadow-card-hover transition hover:-translate-y-[3px] active:translate-y-0 active:scale-[0.99]"
     >
-      <div className="relative overflow-hidden">
+      <div className="relative aspect-[2/1] sm:aspect-[16/9] overflow-hidden">
         {article.coverImageUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <Image
             src={article.coverImageUrl}
             alt={article.headline}
-            loading="lazy"
-            decoding="async"
-            className="img-cinematic aspect-[2/1] sm:aspect-[16/9] w-full object-cover transition-transform duration-[600ms] group-hover:scale-[1.05]"
+            fill
+            sizes="(max-width: 768px) 100vw, 400px"
+            className="img-cinematic object-cover transition-transform duration-[600ms] group-hover:scale-[1.05]"
           />
         ) : (
-          <div className="img-placeholder aspect-[2/1] sm:aspect-[16/9]" />
+          <div className="img-placeholder absolute inset-0" />
         )}
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-black/18 to-transparent" />
       </div>

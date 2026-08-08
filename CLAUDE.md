@@ -2583,3 +2583,53 @@ so it was a real, widely-repeated failure rather than a one-off.
   — homepage renders correctly with the updated token; the visual shift
   is subtle (a touch darker gray on dates/read-time/byline dividers)
   rather than a palette change, as intended.
+
+## Phase 45 — done: next/image on the two highest-traffic image spots
+
+The second-highest finding from Phase 43's audit, started: every image
+sitewide was (and mostly still is) a raw `<img>` — no AVIF/WebP
+negotiation, no responsive `srcset`. Rather than a big-bang sitewide
+swap, converted the two spots that matter most first — the homepage
+hero and every grid-variant story card — and left the rest (list/ranked
+`ArticleCard` thumbnails, banners, the article page's own hero) for a
+follow-up pass, so this could ship reviewable and low-risk.
+
+- **`next.config.ts` gained `images.remotePatterns`** for
+  `*.public.blob.vercel-storage.com` — the wildcard covers Vercel Blob's
+  per-project store subdomain without hardcoding this project's specific
+  store id.
+- **`FeaturedSection`'s lead hero image and `ArticleCard`'s `grid`
+  variant** (the two most-viewed image slots on the site — every
+  homepage visit, every category rail, `LatestModule`, `TopicRail`,
+  `OpinionModule`, `RelatedArticles` all render through the `grid`
+  variant) now use `next/image` with `fill` + `sizes`, replacing the
+  manual `loading`/`fetchPriority` attributes Phase 43 had hand-added —
+  `next/image`'s own `priority`/lazy-by-default behavior supersedes
+  those. The image wrapper's `aspect-[2/1] sm:aspect-[16/9]` classes
+  moved from the `<img>` itself onto its container `div`, since `fill`
+  needs a sized positioned parent rather than sizing the image element
+  directly.
+- **Real gotcha hit and fixed during verification, not a code bug**: a
+  first `next build` appeared to still emit raw, unoptimized `<img
+  src="https://...">` tags with no `/_next/image` URL, even after the
+  `Image` component edits and a successful rebuild — traced to
+  Turbopack's incremental `.next/cache` serving a stale compiled output
+  across the rebuild rather than picking up the new source. A full `rm
+  -rf .next && npm run build` produced the correct
+  `srcSet="/_next/image?url=...&w=...&q=75 ..."` output. Worth
+  remembering for any future case where a rebuild's rendered output
+  doesn't reflect a source change that's confirmed present in the file
+  — check for a stale Turbopack cache before assuming the edit didn't
+  take.
+- **Verified in a real production build** (`next build && next start`,
+  full cache clear): confirmed the homepage's live DB images render
+  with real `/_next/image` `srcSet`s across all 8 device-width
+  breakpoints, and that the optimizer endpoint itself returns a real
+  `200 image/jpeg` when fetched directly against a live Vercel Blob
+  source image — not just present in the markup, actually serving.
+- **Deliberately left for a follow-up**: `ArticleCard`'s `list`/`ranked`
+  thumbnails, `BannerSlot`, and the article page's own hero image are
+  still raw `<img>` with Phase 43's manual `loading`/`fetchPriority`
+  attributes — real, working, just not yet on `next/image`. Scoped out
+  here to keep this change reviewable rather than one large sitewide
+  diff.
