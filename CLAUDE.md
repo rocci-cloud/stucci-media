@@ -2425,8 +2425,8 @@ one file, so the swap took effect everywhere at once.
 ## Phase 40 — done: first live banners — Stucci Apparel cross-promotion
 
 The Banner Management system (Phase 36) had no real banners in it yet.
-Added the first two, both promoting stucciapparel.com from the homepage
-slot, using two product graphics supplied directly.
+Added the first two, promoting stucciapparel.com from both the homepage
+and article ("blog") slots, using two product graphics supplied directly.
 
 - **Source images were square (1024×1024) product shots**, but the
   homepage banner slot renders at a wide 3:1/4:1 ratio
@@ -2444,18 +2444,22 @@ slot, using two product graphics supplied directly.
   `public/og-default.png`), not admin-uploaded-and-editable images; no
   `BLOB_READ_WRITE_TOKEN` round-trip needed for something this static.
 - **`scripts/add-apparel-banners.mjs`** (new, follows the project's
-  established one-off-data-script convention) inserts/upserts both rows
-  — `placement: HOMEPAGE`, `isActive: true`, `destinationUrl:
-  https://stucciapparel.com`, `sortOrder` 0/1 so "Fell Hard, Got Up
-  Harder" shows first. Upserts by `image_url` so it's safe to re-run.
-  Both are now fully manageable from `/admin/banners` like any
-  admin-created banner (edit, deactivate, delete, re-order, move to a
-  different placement) — nothing about them is special-cased outside
-  this one seed script.
+  established one-off-data-script convention) inserts/upserts 4 rows —
+  each of the two images gets its own row per placement (`HOMEPAGE` and
+  `ARTICLE`), `isActive: true`, `destinationUrl:
+  https://stucciapparel.com`, `sortOrder` 0/1 within each placement so
+  "Fell Hard, Got Up Harder" shows first. Upserts by the
+  (`image_url`, `placement`) pair — not `image_url` alone — so the same
+  image can have independent rows across placements instead of being
+  limited to just one. All 4 rows are fully manageable from
+  `/admin/banners` like any admin-created banner (edit, deactivate,
+  delete, re-order, move to a different placement) — nothing about them
+  is special-cased outside this one seed script.
 - **Verified in a real production build** (`next build && next start`)
-  via Playwright at desktop (1440px) and mobile (390px): confirmed both
-  banners render stacked in the homepage slot in the correct order, each
-  with the "Advertisement" disclosure label and the site's standard
-  `rounded-card`/`shadow-card` treatment, and confirmed via the rendered
-  HTML that both link to `https://stucciapparel.com` with `target=
-  "_blank"` and `rel="noopener noreferrer sponsored"`.
+  via Playwright at desktop (1440px/1000px) and mobile (390px): confirmed
+  both banners render stacked in the correct order on both the homepage
+  and a live article page, each with the "Advertisement" disclosure
+  label and the site's standard `rounded-card`/`shadow-card` treatment,
+  and confirmed via the rendered HTML that both link to
+  `https://stucciapparel.com` with `target="_blank"` and
+  `rel="noopener noreferrer sponsored"`.
