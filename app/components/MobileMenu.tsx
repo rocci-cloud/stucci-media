@@ -94,13 +94,25 @@ export default function MobileMenu({ open, onClose }: { open: boolean; onClose: 
         >
           Subscribe
         </Link>
-        <Link
-          href="/login"
-          onClick={onClose}
-          className="min-h-11 flex items-center justify-center text-white/70 hover:text-white font-sans font-bold uppercase tracking-wide text-[12.5px] transition-colors"
-        >
-          Sign In
-        </Link>
+        <div className="flex items-center justify-center gap-1 text-[12.5px] font-sans font-bold uppercase tracking-wide">
+          <Link
+            href="/login"
+            onClick={onClose}
+            className="min-h-11 inline-flex items-center text-white/70 hover:text-white transition-colors"
+          >
+            Sign In
+          </Link>
+          <span className="text-white/30" aria-hidden>
+            /
+          </span>
+          <Link
+            href="/register"
+            onClick={onClose}
+            className="min-h-11 inline-flex items-center text-white/70 hover:text-white transition-colors"
+          >
+            Register
+          </Link>
+        </div>
       </div>
     </div>
   );

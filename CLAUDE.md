@@ -1915,3 +1915,28 @@ structured data, and two new route files.
   as were the homepage, a category page, the search page, and the
   login page (confirming `noindex` renders correctly where expected and
   not where it shouldn't).
+
+## Phase 32 — done: visible Sign In / Register entry points in site chrome
+
+`/login` and `/register` existed and worked (Better Auth, Phase 7) but
+were reachable only by typing the URL directly — no link to either
+appeared anywhere in the site's normal navigation, only "Subscribe"
+(the unrelated newsletter opt-in). A real user hit this directly: they
+had an account to register but had to know the URL.
+
+- **Desktop header** (`SiteHeader.tsx`): a `User` icon linking to
+  `/login` (added first, as a narrower fix) plus a small text "Register"
+  link next to it, both left of the existing red Subscribe button, both
+  `sm:` and up only (mirrors the existing nav's desktop/mobile split).
+- **Mobile drawer** (`MobileMenu.tsx`): below the existing full-width red
+  Subscribe button, a single "Sign In / Register" line (two links
+  separated by a `/`) rather than two separate rows, so the drawer's
+  footer doesn't grow taller than it needs to for two closely-related,
+  low-frequency actions.
+- **Verified in a real production build** (`next build && next start`)
+  via Playwright screenshots of the desktop header (confirming the
+  Search/Sign In/Register/Subscribe cluster renders correctly) and the
+  opened mobile drawer (confirming the stacked Subscribe button +
+  Sign In / Register line). Home page images didn't load in this sandbox
+  (same documented CDN-egress limitation as Phase 11/15/16) — layout-only
+  concern, unaffected by that.
