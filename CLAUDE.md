@@ -971,3 +971,62 @@ family, or animation changes.
   links, and the drawer's tightened rhythm. Article cover images/hero
   photo didn't load in this sandbox (same documented CDN-egress
   limitation as prior phases).
+
+## Phase 18 — done: distinct editorial-desk modules below the hero
+
+Every homepage module below the hero — Latest, all 7 categories — used
+the same Phase 16 lead+briefs `TopicRail` template with only the title
+text changing. Real news homepages don't do this: an opinion column
+section, a podcast shelf, and a breaking-news wire all look structurally
+different from each other, not just differently labeled. Three new
+components replace `TopicRail` for the desks where a different content
+type calls for a different arrangement; standard categories (Political,
+World, Social Issues, Crime & Investigation, Veterans) keep `TopicRail`
+unchanged. Structure and spacing only — no color, typography, or
+animation changes.
+
+- **`LatestModule.tsx`** — a new top-of-stream desk (didn't exist before
+  this phase) showing the newest articles sitewide, any category, ahead
+  of the category modules. Deliberately the *opposite* arrangement of
+  `TopicRail`: no dominant lead image, just a dense equal-weight grid of
+  `ArticleCard` `variant="list"` items (small thumbnail, tight headline,
+  date) — recency over hierarchy. Uses a `gap-px` + hairline-background
+  grid technique (each cell white, the 1px gap shows through as a
+  divider) instead of hand-computing per-cell border classes across three
+  responsive column counts.
+- **`OpinionModule.tsx`** (replaces `TopicRail` for `opinion-analysis`
+  only) — opinion pieces are argument-driven, not photo-driven, so this
+  drops imagery entirely: a dense two-column wall of `ArticleCard`
+  `variant="ranked"` (the imageless numbered variant, previously only
+  used in `Sidebar`'s Trending Now) reused here for its first appearance
+  in the main content stream. Same `gap-px` divider-grid technique as
+  `LatestModule`.
+- **`PodcastShelf.tsx`** (replaces `TopicRail` for `podcasts` only) — the
+  site's only audio-episode content, browsed like a shelf rather than
+  read top-to-bottom. Horizontal `overflow-x-auto snap-x snap-mandatory`
+  scroll of fixed-width (`220px`/`240px`) `variant="grid"` tiles — reuses
+  the snap-scroll technique `FeaturedSection` (Phase 15) established for
+  its secondary rail, rather than inventing a new scroll pattern. The
+  only vertically-non-stacking module on the page, on both mobile and
+  desktop.
+- **`page.tsx` routes each category to the right module** by slug
+  (`opinion-analysis` → `OpinionModule`, `podcasts` → `PodcastShelf`,
+  everything else → `TopicRail`) instead of one uniform `.map()`.
+  `TopicRail`'s alternating `bg-off` background is now indexed by a
+  counter incremented only for actual `TopicRail` renders
+  (`topicRailIndex`), not by position in the full category list — so the
+  alternating rhythm stays clean between same-type modules instead of
+  skipping a beat whenever a specialty module sits between two rails.
+  `LatestModule`'s 6 items are excluded from `railItems` via the same
+  slug-exclusion pattern `FeaturedSection` already used, so nothing shows
+  twice.
+- **Verified in a real production build** (`next build && next start`)
+  via Playwright full-page screenshots at mobile (390px) and desktop
+  (1440px), plus a targeted mobile crop scrolled to the Podcasts shelf —
+  confirmed all three new module types render with visibly distinct
+  arrangements (wire grid, headline-only column wall, horizontal shelf)
+  next to the unchanged `TopicRail` desks, and the podcast shelf's
+  partial-card peek/snap-scroll works on a real mobile viewport. Article
+  cover images didn't load in this sandbox (same documented CDN-egress
+  limitation as prior phases) but every layout structure verified
+  correctly against the placeholder blocks.
