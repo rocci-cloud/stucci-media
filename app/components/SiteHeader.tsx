@@ -32,15 +32,15 @@ export default function SiteHeader() {
 
   return (
     <>
-      <header className="border-b-4 border-[var(--color-red)]">
-        <div className="mx-auto max-w-[1280px] px-5 pt-5 pb-4 flex items-center justify-between">
+      <header className="border-b-[3px] border-[var(--color-red)]">
+        <div className="mx-auto max-w-[1280px] px-5 py-2 sm:py-2.5 flex items-center justify-between">
           <Link
             href="/"
-            className="font-headline text-[28px] sm:text-[40px] font-bold uppercase tracking-[-0.01em] text-[var(--color-navy)]"
+            className="font-headline text-[22px] sm:text-[30px] font-bold uppercase tracking-[-0.01em] text-[var(--color-navy)] leading-none"
           >
             Stucci<span className="text-[var(--color-red)]">Media</span>
           </Link>
-          <div className="hidden sm:flex flex-col items-end font-sans text-xs text-[var(--color-gray)] leading-tight">
+          <div className="hidden sm:flex flex-col items-end font-sans text-[11px] text-[var(--color-gray)] leading-tight">
             <span className="font-bold uppercase tracking-wide text-[var(--color-red)]">Live · Florida</span>
             <span>
               {new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
@@ -60,22 +60,24 @@ export default function SiteHeader() {
             aria-label="Open menu"
             aria-expanded={menuOpen}
             onClick={() => setMenuOpen(true)}
-            className="sm:hidden min-w-11 min-h-11 flex items-center justify-center border border-white/30 text-white rounded-control my-1.5"
+            className="sm:hidden min-w-11 min-h-11 flex items-center justify-center border border-white/30 text-white rounded-control my-1"
           >
             <Menu className="h-5 w-5" />
           </button>
 
-          <div className="hidden sm:flex flex-1 items-center gap-0.5">
-            {NAV_LINKS.map((link) => {
+          <div className="hidden sm:flex flex-1 items-stretch">
+            {NAV_LINKS.map((link, i) => {
               const active = pathname === link.href;
               return (
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`min-h-11 flex items-center text-[12.5px] font-bold uppercase tracking-wide whitespace-nowrap px-3.5 border-b-[3px] transition-colors ${
+                  className={`min-h-11 flex items-center text-[12px] font-bold uppercase tracking-wide whitespace-nowrap px-3 border-b-[3px] transition-colors ${
+                    i > 0 ? "border-l border-l-white/10" : ""
+                  } ${
                     active
-                      ? "text-[var(--color-red)] border-[var(--color-red)]"
-                      : "text-white border-transparent hover:border-white/40 hover:text-white/90"
+                      ? "text-[var(--color-red)] border-b-[var(--color-red)]"
+                      : "text-white border-b-transparent hover:border-b-white/40 hover:text-white/90"
                   }`}
                 >
                   {link.label}
@@ -88,13 +90,13 @@ export default function SiteHeader() {
             type="button"
             aria-label="Search"
             onClick={() => setSearchOpen(true)}
-            className="ml-auto sm:ml-4 min-w-11 min-h-11 flex items-center justify-center text-white hover:text-white/80 transition-colors"
+            className="ml-auto sm:ml-3 min-w-11 min-h-11 flex items-center justify-center text-white hover:text-white/80 transition-colors"
           >
             <Search className="h-[18px] w-[18px]" />
           </button>
           <a
             href="#subscribe"
-            className="sm:ml-2 my-1.5 sm:my-2.5 min-h-11 inline-flex items-center bg-[var(--color-red)] hover:bg-[var(--color-red-dark)] active:bg-[var(--color-red-dark)] text-white text-[12px] font-bold uppercase tracking-wide px-5 rounded-control shrink-0 shadow-[0_2px_8px_rgba(200,16,46,0.35)] transition-colors"
+            className="sm:ml-2 my-1 sm:my-1.5 min-h-11 inline-flex items-center bg-[var(--color-red)] hover:bg-[var(--color-red-dark)] active:bg-[var(--color-red-dark)] text-white text-[12px] font-bold uppercase tracking-wide px-5 rounded-control shrink-0 shadow-[0_2px_8px_rgba(200,16,46,0.35)] transition-colors"
           >
             Subscribe
           </a>

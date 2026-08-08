@@ -41,8 +41,8 @@ export default function MobileMenu({ open, onClose }: { open: boolean; onClose: 
       }`}
       aria-hidden={!open}
     >
-      <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-white/10 shrink-0">
-        <span className="font-headline text-[24px] font-bold uppercase text-white">
+      <div className="flex items-center justify-between px-5 pt-3 pb-3 border-b border-white/10 shrink-0">
+        <span className="font-headline text-[24px] font-bold uppercase text-white leading-none">
           Stucci<span className="text-[var(--color-red)]">Media</span>
         </span>
         <button
@@ -54,7 +54,7 @@ export default function MobileMenu({ open, onClose }: { open: boolean; onClose: 
         </button>
       </div>
 
-      <form onSubmit={handleSearchSubmit} className="px-5 py-4 border-b border-white/10 shrink-0">
+      <form onSubmit={handleSearchSubmit} className="px-5 py-3 border-b border-white/10 shrink-0">
         <div className="flex items-center gap-2 bg-white/10 rounded-control px-3.5">
           <Search className="h-[18px] w-[18px] text-white/50 shrink-0" aria-hidden />
           <input
@@ -76,7 +76,7 @@ export default function MobileMenu({ open, onClose }: { open: boolean; onClose: 
               key={link.href}
               href={link.href}
               onClick={onClose}
-              className={`min-h-14 flex items-center px-3.5 font-headline text-[19px] font-bold uppercase tracking-[-0.005em] border-b border-white/10 transition-colors ${
+              className={`min-h-12 flex items-center px-3.5 font-headline text-[19px] font-bold uppercase tracking-[-0.005em] border-b border-white/10 transition-colors ${
                 active ? "text-[var(--color-red)]" : "text-white hover:text-[var(--color-red)]"
               }`}
             >
@@ -86,7 +86,7 @@ export default function MobileMenu({ open, onClose }: { open: boolean; onClose: 
         })}
       </nav>
 
-      <div className="px-5 py-5 border-t border-white/10 shrink-0">
+      <div className="px-5 py-4 border-t border-white/10 shrink-0">
         <Link
           href="/#subscribe"
           onClick={onClose}
