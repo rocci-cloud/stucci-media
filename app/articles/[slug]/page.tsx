@@ -7,6 +7,7 @@ import SiteHeader from "../../components/SiteHeader";
 import SiteFooter from "../../components/SiteFooter";
 import Sidebar from "../../components/Sidebar";
 import RelatedArticles from "../../components/RelatedArticles";
+import Reveal from "../../components/Reveal";
 import Badge from "../../components/ui/Badge";
 import LikeButton from "./LikeButton";
 import CommentSection from "./CommentSection";
@@ -14,6 +15,16 @@ import { getArticleBySlug, getPublishedArticles, getRelatedArticles } from "../.
 import { getLikeCount, hasUserLiked } from "../../lib/likes";
 import { getApprovedCommentsForArticle } from "../../lib/comments";
 import { auth } from "../../lib/auth";
+
+function getInitials(name: string) {
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+}
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -90,75 +101,108 @@ export default async function ArticlePage({ params }: Props) {
     <>
       <BreakingBar />
       <SiteHeader />
-      <main className="mx-auto max-w-[1280px] px-5 pt-8 pb-18 grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-x-10">
-        <article className="max-w-[720px]">
+      <main>
+        {/* --- Cinematic article hero: same visual language as the
+            homepage's FeaturedSection (vignette + scrim, badge/h1/dek/
+            byline stack), sized down since this is one story, not the
+            site's lead. Renders even without a cover image (falls back
+            to img-placeholder) so headline/meta always have a hero to
+            sit on, never a layout that shifts based on whether a photo
+            exists. --- */}
+        <section className="relative border-b-4 border-[var(--color-navy)]">
           <Link
             href="/"
-            className="min-h-11 flex w-fit items-center font-sans text-[13px] text-[var(--color-gray)] hover:text-[var(--color-text)] hover:underline mb-2"
+            className="absolute left-4 top-4 sm:left-6 sm:top-6 z-10 min-h-11 inline-flex items-center gap-1.5 rounded-full bg-black/40 px-4 font-sans text-[12.5px] font-bold text-white backdrop-blur-sm transition hover:bg-black/55 active:scale-[0.97]"
           >
             ← Back to Home
           </Link>
-          <Badge variant="text" className="mb-3">
-            {article.category}
-          </Badge>
-          <h1 className="font-headline text-[31px] sm:text-[42px] font-bold uppercase leading-[0.98] tracking-[-0.015em] mb-4">
-            {article.headline}
-          </h1>
-          <div className="font-sans flex flex-wrap items-center gap-x-3 gap-y-1 py-3.5 border-y border-[var(--color-hairline)] mb-7 text-[13px] text-[var(--color-gray)]">
-            <span>
-              By <b className="text-[var(--color-text)]">{article.author}</b>
-            </span>
-            <span className="text-[var(--color-hairline-strong)]/30">·</span>
-            <span className="text-[12px] uppercase tracking-[0.04em]">{article.date}</span>
-            <span className="text-[var(--color-hairline-strong)]/30">·</span>
-            <span className="text-[12px] uppercase tracking-[0.04em]">{article.readTime}</span>
-          </div>
-          <div className="relative mb-7">
+
+          <div className="relative w-full h-[52svh] min-h-[380px] max-h-[520px] sm:h-[56vh] sm:max-h-[560px] overflow-hidden">
             {article.coverImageUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={article.coverImageUrl}
                 alt={article.headline}
-                className="img-cinematic w-full aspect-video object-cover rounded-card shadow-card"
+                className="img-cinematic absolute inset-0 h-full w-full object-cover"
               />
             ) : (
-              <div className="img-placeholder w-full aspect-video rounded-card" />
+              <div className="img-placeholder absolute inset-0" />
             )}
-            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-12 rounded-b-card bg-gradient-to-t from-black/12 to-transparent" />
-          </div>
-          <div
-            className="prose prose-neutral max-w-none text-[17px] sm:text-[19px] leading-[1.75]
-              prose-headings:font-headline prose-headings:font-bold prose-headings:uppercase prose-headings:tracking-[-0.01em] prose-headings:leading-[1.1]
-              prose-h2:text-[25px] prose-h2:mt-10 prose-h3:text-[21px] prose-h3:mt-8
-              prose-p:mb-5 prose-a:text-[var(--color-red)] prose-a:no-underline hover:prose-a:underline
-              prose-strong:text-[var(--color-text)] prose-blockquote:border-l-[var(--color-red)]
-              prose-blockquote:font-headline prose-blockquote:text-[22px] prose-blockquote:leading-[1.3] prose-blockquote:not-italic
-              prose-img:rounded-control prose-img:border prose-img:border-[var(--color-hairline)]
-              prose-a:transition-colors"
-            dangerouslySetInnerHTML={{ __html: article.bodyHtml }}
-          />
 
-          <div className="mt-8 pt-6 border-t border-[var(--color-hairline)]">
-            <LikeButton
-              articleId={article.id}
-              initialCount={likeCount}
-              initialLiked={liked}
-              isSignedIn={Boolean(currentUser)}
-              signInRedirect={pagePath}
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_45%,rgba(0,0,0,0.22)_100%)]" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/50 to-black/5" />
+
+            <div className="absolute inset-x-0 bottom-0 px-5 pb-6 sm:px-8 sm:pb-9">
+              <div className="mx-auto max-w-[820px] [animation:heroTextReveal_0.9s_cubic-bezier(0.16,1,0.3,1)_0.15s_both]">
+                <Badge variant="red" className="mb-3">
+                  {article.category}
+                </Badge>
+                <h1 className="font-headline text-white text-[30px] sm:text-[42px] lg:text-[48px] font-bold uppercase leading-[0.98] tracking-[-0.015em] mb-3">
+                  {article.headline}
+                </h1>
+                {article.dek && (
+                  <p className="text-white/85 text-[14.5px] sm:text-[17px] leading-[1.5] max-w-[64ch] mb-4 line-clamp-2">
+                    {article.dek}
+                  </p>
+                )}
+                <div className="flex items-center gap-2.5 font-sans text-[12px] sm:text-[13px] tracking-[0.01em] text-white/90">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--color-red)] text-[11px] font-bold text-white">
+                    {getInitials(article.author)}
+                  </span>
+                  <span className="font-bold text-white">{article.author}</span>
+                  <span className="opacity-50">·</span>
+                  <span className="uppercase tracking-[0.04em]">{article.date}</span>
+                  <span className="opacity-50">·</span>
+                  <span className="uppercase tracking-[0.04em]">{article.readTime}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <div className="mx-auto max-w-[1280px] px-5 pt-8 sm:pt-10 pb-18 grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-x-10">
+          <article className="max-w-[720px]">
+            <div
+              className="prose prose-neutral max-w-none text-[17px] sm:text-[19px] leading-[1.75]
+                prose-headings:font-headline prose-headings:font-bold prose-headings:uppercase prose-headings:tracking-[-0.01em] prose-headings:leading-[1.1]
+                prose-h2:text-[25px] prose-h2:mt-10 prose-h3:text-[21px] prose-h3:mt-8
+                prose-p:mb-5 prose-a:text-[var(--color-red)] prose-a:no-underline hover:prose-a:underline
+                prose-strong:text-[var(--color-text)] prose-blockquote:border-l-[var(--color-red)]
+                prose-blockquote:font-headline prose-blockquote:text-[22px] prose-blockquote:leading-[1.3] prose-blockquote:not-italic
+                prose-img:rounded-control prose-img:border prose-img:border-[var(--color-hairline)]
+                prose-a:transition-colors"
+              dangerouslySetInnerHTML={{ __html: article.bodyHtml }}
             />
+
+            <div className="mt-8 flex items-center justify-between rounded-card border border-[var(--color-hairline)] bg-[var(--color-bg-off)] px-5 py-4">
+              <span className="font-sans text-[13px] font-bold text-[var(--color-text)]">
+                Enjoyed this story?
+              </span>
+              <LikeButton
+                articleId={article.id}
+                initialCount={likeCount}
+                initialLiked={liked}
+                isSignedIn={Boolean(currentUser)}
+                signInRedirect={pagePath}
+              />
+            </div>
+
+            <Reveal>
+              <RelatedArticles articles={relatedArticles} />
+            </Reveal>
+
+            <Reveal>
+              <CommentSection
+                articleId={article.id}
+                initialComments={comments}
+                currentUser={currentUser}
+                signInRedirect={pagePath}
+              />
+            </Reveal>
+          </article>
+          <div className="mt-10 lg:mt-0">
+            <Sidebar articles={allArticles} excludeSlug={article.slug} />
           </div>
-
-          <RelatedArticles articles={relatedArticles} />
-
-          <CommentSection
-            articleId={article.id}
-            initialComments={comments}
-            currentUser={currentUser}
-            signInRedirect={pagePath}
-          />
-        </article>
-        <div className="mt-10 lg:mt-0">
-          <Sidebar articles={allArticles} excludeSlug={article.slug} />
         </div>
       </main>
       <SiteFooter />
