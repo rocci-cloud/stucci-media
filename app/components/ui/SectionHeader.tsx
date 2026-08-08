@@ -38,7 +38,7 @@ export default function SectionHeader({
 
   return (
     <div
-      className={`flex items-center justify-between gap-3 ${compact ? "mb-2.5 sm:mb-3" : "mb-4 sm:mb-5"} ${className}`}
+      className={`flex items-center justify-between gap-3 ${compact ? "mb-2 sm:mb-3" : "mb-4 sm:mb-5"} ${className}`}
     >
       <h2
         className={`font-headline uppercase font-bold ${compact ? "text-[16px] sm:text-[18px]" : "text-[19px] sm:text-[21px]"} tracking-[-0.005em] border-l-4 border-[var(--color-red)] pl-3 leading-none`}

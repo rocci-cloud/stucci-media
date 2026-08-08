@@ -24,12 +24,12 @@ export default function TopicRail({
 
   return (
     <section
-      className={`py-4 sm:py-5 px-4 sm:px-6 border-t border-[var(--color-hairline)] first:border-t-0 ${
+      className={`py-3 sm:py-5 px-4 sm:px-6 border-t border-[var(--color-hairline)] first:border-t-0 ${
         alternate ? "bg-[var(--color-bg-off)] rounded-card border-t-0" : ""
       }`}
     >
       <SectionHeader title={category.label} href={`/category/${category.slug}`} compact />
-      <div className="grid grid-cols-1 sm:grid-cols-[1.4fr_1fr] gap-4 sm:gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-[1.4fr_1fr] gap-3 sm:gap-5">
         <ArticleCard article={lead} variant="grid" />
         {secondary.length > 0 && (
           <div className="flex flex-col divide-y divide-[var(--color-hairline)] rounded-card border border-[var(--color-hairline)] bg-white shadow-card overflow-hidden">

@@ -33,10 +33,10 @@ export default function SiteHeader() {
   return (
     <>
       <header className="border-b-[3px] border-[var(--color-red)]">
-        <div className="mx-auto max-w-[1280px] px-5 py-2 sm:py-2.5 flex items-center justify-between">
+        <div className="mx-auto max-w-[1280px] px-5 py-1.5 sm:py-2.5 flex items-center justify-between">
           <Link
             href="/"
-            className="font-headline text-[22px] sm:text-[30px] font-bold uppercase tracking-[-0.01em] text-[var(--color-navy)] leading-none"
+            className="font-headline text-[20px] sm:text-[30px] font-bold uppercase tracking-[-0.01em] text-[var(--color-navy)] leading-none"
           >
             Stucci<span className="text-[var(--color-red)]">Media</span>
           </Link>
@@ -60,7 +60,7 @@ export default function SiteHeader() {
             aria-label="Open menu"
             aria-expanded={menuOpen}
             onClick={() => setMenuOpen(true)}
-            className="sm:hidden min-w-11 min-h-11 flex items-center justify-center border border-white/30 text-white rounded-control my-1"
+            className="sm:hidden min-w-11 min-h-11 flex items-center justify-center border border-white/30 text-white rounded-control my-0.5"
           >
             <Menu className="h-5 w-5" />
           </button>
@@ -96,7 +96,7 @@ export default function SiteHeader() {
           </button>
           <a
             href="#subscribe"
-            className="sm:ml-2 my-1 sm:my-1.5 min-h-11 inline-flex items-center bg-[var(--color-red)] hover:bg-[var(--color-red-dark)] active:bg-[var(--color-red-dark)] text-white text-[12px] font-bold uppercase tracking-wide px-5 rounded-control shrink-0 shadow-[0_2px_8px_rgba(200,16,46,0.35)] transition-colors"
+            className="sm:ml-2 my-0.5 sm:my-1.5 min-h-11 inline-flex items-center bg-[var(--color-red)] hover:bg-[var(--color-red-dark)] active:bg-[var(--color-red-dark)] text-white text-[12px] font-bold uppercase tracking-wide px-5 rounded-control shrink-0 shadow-[0_2px_8px_rgba(200,16,46,0.35)] transition-colors"
           >
             Subscribe
           </a>

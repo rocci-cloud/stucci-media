@@ -18,7 +18,7 @@ export default async function SiteFooter() {
 
   return (
     <footer className="font-sans bg-[var(--color-navy)] text-white mt-4">
-      <div className="mx-auto max-w-[1280px] px-5 py-12 sm:py-14 grid grid-cols-1 sm:grid-cols-4 gap-x-8 gap-y-10">
+      <div className="mx-auto max-w-[1280px] px-5 py-9 sm:py-14 grid grid-cols-1 sm:grid-cols-4 gap-x-8 gap-y-8 sm:gap-y-10">
         <div>
           <div className="font-headline text-[22px] font-bold uppercase mb-2.5">
             Stucci<span className="text-[var(--color-red)]">Media</span>

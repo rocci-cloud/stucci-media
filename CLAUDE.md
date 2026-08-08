@@ -1030,3 +1030,63 @@ animation changes.
   cover images didn't load in this sandbox (same documented CDN-egress
   limitation as prior phases) but every layout structure verified
   correctly against the placeholder blocks.
+
+## Phase 19 — done: mobile made intentionally denser than desktop
+
+Every density pass through Phase 18 tightened spacing at both breakpoints
+together (`py-4 sm:py-5` etc.) — mobile was always slightly tighter than
+desktop by a fixed margin, never restructured on its own terms. This
+phase goes back through the same components and widens the gap
+specifically on mobile (`sm:`-preserved, base-class-only edits) so the
+phone experience reads as its own deliberate composition, not a scaled
+copy. Structure and spacing only — no color, typography, or animation
+changes.
+
+- **Header/chrome, mobile-only**: `SiteHeader`'s white logo band
+  `py-2` → `py-1.5`, logo `22px` → `20px`; the nav row's hamburger/
+  Subscribe vertical margin `my-1` → `my-0.5` (both keep their `sm:`
+  values from Phase 17 unchanged). `BreakingBar` was already floored by
+  its `min-h-11` touch target and couldn't tighten further without
+  violating this project's 44px touch-target rule, so it's untouched.
+- **Hero, mobile-only**: `FeaturedSection`'s bottom text-overlay padding
+  `px-5 pb-6` → `px-4 pb-5`; the "Also Making Headlines" kicker's
+  `pt-4 pb-3` → `pt-3 pb-2.5`; the secondary cards' image crop
+  `aspect-[4/3]` → `aspect-[3/2]` (shorter/wider) and their row gap
+  `gap-4` → `gap-3` — frees more of the first screen for the hero image
+  itself and tightens the band beneath it, without touching any `sm:`+
+  value (desktop hero is pixel-identical to Phase 15/17).
+- **Content modules, mobile-only**: `TopicRail`/`OpinionModule`/
+  `PodcastShelf`/`LatestModule`'s section padding `py-4` → `py-3`;
+  `TopicRail`'s internal lead/briefs gap `gap-4` → `gap-3`;
+  `PodcastShelf`'s tiles `220px` → `200px` with `gap-4` → `gap-3` (more
+  of the next tile peeks at the edge, reinforcing the shelf's scroll
+  affordance); `SectionHeader`'s `compact` kicker margin `mb-2.5` →
+  `mb-2`. `Sidebar`'s panel-to-panel gap and promo-box padding both
+  gained a `sm:`-preserved mobile-only reduction too, since on mobile the
+  sidebar renders below all category modules (single-column layout) and
+  benefits from the same tightened rhythm.
+- **`ArticleCard` itself, mobile-only** (affects every module that uses
+  it, homepage and category/article pages alike): the `grid` variant's
+  image `aspect-[16/9]` → `aspect-[2/1]` (a shorter crop specifically on
+  phones — this is what shrinks `TopicRail`'s lead-story image and
+  `PodcastShelf`'s tiles without touching the desktop crop) and its text
+  padding `p-4` → `p-3.5`; the `list` and `ranked` variants' vertical
+  padding `py-3.5` → `py-3`. The 44px `min-h-11` touch target is
+  untouched on every variant — padding shrank, the tappable floor didn't,
+  so density gains don't cost touch-friendliness.
+- **`SubscribeStrip`/`SiteFooter`, mobile-only**: closing-section padding
+  (`py-12` → `py-9` on `SubscribeStrip`; `py-12` → `py-9` on `SiteFooter`,
+  its column gap `gap-y-10` → `gap-y-8`) tightened to match, so the
+  density doesn't visibly stop at the last category module.
+- **Verified in a real production build** (`next build && next start`)
+  via Playwright at a 390×844 mobile viewport (both a first-screen,
+  no-scroll shot and a full-page shot) and a 1440px desktop shot for
+  comparison — confirmed the hero now dominates the entire mobile first
+  screen beneath a genuinely minimal chrome band, every module's tightened
+  rhythm holds without crowding text, the podcast shelf's peek/snap-scroll
+  still works at the narrower tile width, and the desktop layout is
+  pixel-identical to before this phase (every change here was `sm:`-
+  preserved or base-class-only). Article cover images didn't load in this
+  sandbox (same documented CDN-egress limitation as prior phases) but
+  every layout structure verified correctly against the placeholder
+  blocks.

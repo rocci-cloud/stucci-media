@@ -11,7 +11,7 @@ export default function SubscribeStrip() {
   return (
     <div
       id="subscribe"
-      className="relative border-y border-[var(--color-hairline)] px-5 py-12 sm:py-16"
+      className="relative border-y border-[var(--color-hairline)] px-5 py-9 sm:py-16"
       style={{
         background:
           "linear-gradient(135deg, rgba(10,22,40,0.06), rgba(200,16,46,0.03) 55%, rgba(255,255,255,1) 100%)",
