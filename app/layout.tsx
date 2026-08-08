@@ -34,14 +34,21 @@ export const metadata: Metadata = {
   },
 };
 
-// Sitewide NewsMediaOrganization schema — present on every page (JSON-LD
-// in <body> is fully valid; App Router's metadata API doesn't expose a
-// slot for raw <script> tags in <head>, and Google explicitly supports
-// structured data anywhere in the document). Per-article NewsArticle and
+// Sitewide Organization schema — present on every page (JSON-LD in <body>
+// is fully valid; App Router's metadata API doesn't expose a slot for raw
+// <script> tags in <head>, and Google explicitly supports structured data
+// anywhere in the document). `@type` lists both "Organization" (the
+// general type every NewsArticle's `publisher` should resolve to) and
+// "NewsMediaOrganization" (schema.org's news-specific subtype, which
+// Google's news-related rich results prefer) — a JSON-LD array of types is
+// valid and lets this one object satisfy both. Per-article NewsArticle and
 // BreadcrumbList schema live on the article/category pages themselves.
+// `sameAs` only lists profiles that are real, verifiable links already
+// used elsewhere on the site (SiteFooter's social icon) — never fabricate
+// a social URL just to fill out the schema.
 const organizationSchema = {
   "@context": "https://schema.org",
-  "@type": "NewsMediaOrganization",
+  "@type": ["Organization", "NewsMediaOrganization"],
   name: "Stucci Media",
   url: siteUrl,
   logo: `${siteUrl}/og-default.png`,

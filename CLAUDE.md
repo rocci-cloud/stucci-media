@@ -1940,3 +1940,69 @@ had an account to register but had to know the URL.
   Sign In / Register line). Home page images didn't load in this sandbox
   (same documented CDN-egress limitation as Phase 11/15/16) — layout-only
   concern, unaffected by that.
+
+## Phase 33 — done: NewsArticle/Organization structured-data correctness pass
+
+Phase 31 already added `NewsArticle`/`BreadcrumbList` JSON-LD to article
+pages and a sitewide organization schema — this phase audited that
+existing markup against Google's actual structured-data requirements and
+fixed two real correctness gaps rather than re-adding what already
+worked. No new templates needed: `app/articles/[slug]/page.tsx` is still
+the only route that renders an article, so it was the only place
+`NewsArticle` schema could live.
+
+- **Real bug fixed: `dateModified` was hardcoded to the same value as
+  `datePublished`** — every article's structured data claimed it had
+  never been edited since publish, which is false for any article
+  touched after its initial publish (recategorized, SEO-backfilled,
+  etc. — see Phases 13/14). `Article.updatedAt` (Prisma's `@updatedAt`
+  column, already tracked in the DB, just never surfaced past
+  `articles.ts`) was added to the `Article` TS type and `mapRow()`, and
+  the schema's `dateModified` now reads the real last-edit timestamp.
+  Verified against a live article: `datePublished` (2026-07-10, its
+  original publish date) and `dateModified` (2026-08-07, its last
+  actual edit) now correctly differ.
+- **Real bug fixed: `mainEntityOfPage` ignored the per-article
+  `canonicalUrl` override** — `generateMetadata()`'s `alternates.canonical`
+  already preferred a custom `canonicalUrl` when an editor sets one via
+  the SEO panel, but the structured data's `mainEntityOfPage.@id` always
+  used the raw slug URL regardless, which would have put two different
+  "this page's real URL" signals in front of Google for any article
+  using that override. `mainEntityOfPage` now resolves through the same
+  `article.canonicalUrl || <slug URL>` fallback. No live article
+  currently sets a custom `canonicalUrl` (confirmed via a live DB
+  query), so this doesn't change today's rendered output — it closes a
+  latent inconsistency for the next time an editor uses that field.
+- **`publisher.name` confirmed exactly `"Stucci Media"`** (schema-valid
+  string, not nested unnecessarily) with a `publisher.logo` `ImageObject`
+  pointing at `/og-default.png` — the only existing raster brand image
+  in the codebase (1200×630 PNG, well above Google's 112×112 minimum).
+  No dedicated square logo asset exists in `public/` (the wordmark is
+  CSS/font text, not an image — see `SiteHeader.tsx`), and Google's
+  Organization-logo guidance explicitly requires a raster format (no
+  SVG), so generating a new logo image was out of scope for a
+  structured-data-correctness pass — reusing the existing valid PNG was
+  the honest choice over fabricating a new brand asset unreviewed.
+- **Organization schema's `@type` widened to `["Organization",
+  "NewsMediaOrganization"]`** (was `NewsMediaOrganization` alone) —
+  both are valid on one JSON-LD object; this satisfies a literal
+  `"Organization"` type check while keeping the news-specific subtype
+  Google's news features prefer. `sameAs` still lists only the one real,
+  verifiable social profile already linked elsewhere on the site
+  (`SiteFooter`'s Facebook icon) — no other social profiles exist in
+  the codebase to add, and fabricating one would make the schema
+  factually wrong rather than more complete.
+- **Verified in a real production build** (`next build && next start`)
+  via a headless-browser DOM read (not raw HTML/curl, which only shows
+  the pre-hydration streaming shell) of a live article page and a
+  category page: confirmed all three script tags
+  (`Organization`+`NewsMediaOrganization`, `NewsArticle`,
+  `BreadcrumbList`) parse as valid JSON, every required `NewsArticle`
+  field (`headline`, `description`, `image`, `datePublished`,
+  `dateModified`, `author`, `publisher`, `mainEntityOfPage`) is present
+  and matches the visibly rendered headline/dek/image/byline/date on
+  the same page, and category pages correctly carry only
+  `Organization`/`BreadcrumbList` (no `NewsArticle`, since a category
+  page isn't an article). No design, layout, or performance changes —
+  this was a data-correctness pass on existing `<script type=
+  "application/ld+json">` tags only.

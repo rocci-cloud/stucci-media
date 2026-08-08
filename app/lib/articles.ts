@@ -25,6 +25,7 @@ export type Article = {
   ogImage: string | null;
   canonicalUrl: string | null;
   publishedAt: string | null; // raw ISO, for the date picker — `date` above is the formatted display version
+  updatedAt: string; // raw ISO — used for NewsArticle dateModified structured data
 };
 
 export type ArticleInput = {
@@ -106,6 +107,7 @@ function mapRow(row: PrismaArticle | ArticleWithCategories, labelBySlug: Map<str
     ogImage: row.ogImage,
     canonicalUrl: row.canonicalUrl,
     publishedAt: row.publishedAt ? row.publishedAt.toISOString() : null,
+    updatedAt: row.updatedAt.toISOString(),
   };
 }
 
