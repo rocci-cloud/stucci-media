@@ -59,7 +59,7 @@ export default function CommentSection({
     <section className="mt-14 pt-10 border-t-4 border-[var(--color-navy)]">
       <div className="flex items-center gap-2.5 mb-6">
         <MessageCircle className="h-5 w-5 text-[var(--color-red)]" />
-        <h2 className="font-headline uppercase font-bold text-[20px] sm:text-[24px] tracking-[-0.005em]">
+        <h2 className="font-headline uppercase font-bold text-[20px] sm:text-[24px] tracking-[-0.015em]">
           {total > 0 ? `${total} Comment${total === 1 ? "" : "s"}` : "Comments"}
         </h2>
       </div>

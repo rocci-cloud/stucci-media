@@ -1540,3 +1540,76 @@ typography, color, or component-structure changes.
   after scrolling through the full page. Article cover images
   themselves still didn't load in this sandbox (same documented
   CDN-egress limitation as prior phases).
+
+## Phase 26 — done: premium article template rebuild
+
+The article page had already picked up individual refinements through
+Phases 21-25 (tighter `<h1>` tracking, the cinematic image filter/
+overlay, motion on its buttons) but was still structurally the original
+Phase 1 template: headline-above-image in the normal reading column,
+byline as a plain text row, related stories as an unstyled heading +
+grid blended into the page background. This phase rebuilds the template
+itself around the same full-bleed cinematic hero language the homepage
+established, so clicking into an article doesn't feel like a downgrade
+from the homepage that led there.
+
+- **Full-bleed cinematic article hero**, structurally identical in
+  technique to `FeaturedSection`'s homepage hero — image (or
+  `img-placeholder` fallback, so layout never shifts based on whether a
+  photo exists) + radial vignette + linear scrim, with category badge,
+  `<h1>`, the article's `dek` (previously never shown on the article
+  page itself — only used in metadata/card previews), and a byline row
+  with an avatar-initial circle, all reused verbatim from
+  `FeaturedSection`'s pattern for one consistent "hero" visual language
+  sitewide. Sized down from the homepage's 85svh/58-66px headline to a
+  52svh/48px cap — the homepage hero is still unambiguously the site's
+  largest, most dominant image; this establishes a clear three-tier
+  size hierarchy (homepage hero > article hero > card images) instead
+  of two article-page images (the old inline cover photo and the
+  homepage hero) competing at similar scale. The hero's text block
+  reuses the `heroTextReveal` keyframe from Phase 25's motion system.
+- **"Back to Home" became a floating chip** over the top-left of the
+  hero image (`bg-black/40 backdrop-blur-sm`) instead of a plain text
+  link above the headline — saves vertical space and reads as a
+  deliberate UI element sitting on the photo, not a leftover breadcrumb.
+- **Byline/meta moved into the hero overlay** and gained the homepage's
+  exact treatment (avatar-initials circle, bold name, uppercase-tracked
+  date/read-time, opacity-muted dot separators) — replacing the old
+  plain-text `By Author · Date · ReadTime` row that sat between the
+  headline and the image.
+- **Reading column simplified**: with headline/badge/byline now in the
+  hero, `<article>` starts directly with the prose body — tighter
+  relationship between "the image you just saw" and "the story you're
+  about to read," per this task's explicit goal, instead of the image
+  sitting as a separate block after the headline.
+- **`RelatedArticles` redesigned into a tinted "Keep Reading" panel**
+  (`bg-[var(--color-bg-off)] rounded-card` — the same differentiated-
+  surface treatment `LatestModule` established on the homepage) instead
+  of a plain heading blended into the white page background at the
+  point where a reader has just finished and is deciding whether to
+  leave. Retitled from the generic "You May Also Like" to "Keep
+  Reading" — reads as an editorial next-step, not an e-commerce
+  recommendation widget.
+- **Like button became an action bar**: `bg-off` panel with "Enjoyed
+  this story?" beside the button, instead of a bare button floating
+  under a hairline rule — reads as a deliberate engagement prompt.
+- **Restrained motion applied consistently**: `RelatedArticles` and
+  `CommentSection` are now each wrapped in Phase 25's `Reveal`
+  component, matching the homepage's one-reveal-per-module pattern;
+  `CommentSection`'s heading tracking tightened (`-0.005em` →
+  `-0.015em`) to match the sitewide page-heading convention from Phase
+  21.
+- **`loading.tsx` rebuilt to match**: a full-width hero-shaped skeleton
+  block up top (same height/breakpoints as the real hero) instead of
+  skeleton rows for a headline that no longer renders in that position.
+- **Verified in a real production build** (`next build && next start`)
+  via Playwright at desktop (1200px) and mobile (390px), with targeted
+  crops of the hero, the "Enjoyed this story?" action bar, and the
+  "Keep Reading" panel — confirmed the hero renders with correct
+  badge/headline/dek/byline layering and legible white-on-photo text,
+  the floating back-button chip, the tinted related-articles panel, and
+  that mobile carries the identical hierarchy (hero dominates, body
+  copy starts immediately after, comfortably readable). Article cover
+  images didn't load in this sandbox (same documented CDN-egress
+  limitation as prior phases) but every layout/component change
+  verified correctly against the placeholder gradient.
