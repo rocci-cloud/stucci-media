@@ -42,9 +42,7 @@ export default async function HomePage() {
       <BreakingBar />
       <SiteHeader />
       <main>
-        <div className="mx-auto max-w-[1280px] px-5 pt-6">
-          <FeaturedSection featured={featuredArticles.slice(0, 4)} fallback={articles.slice(0, 4)} />
-        </div>
+        <FeaturedSection featured={featuredArticles.slice(0, 4)} fallback={articles.slice(0, 4)} />
 
         <div className="mx-auto max-w-[1280px] px-5 py-2 grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-x-10">
           <div className="flex flex-col gap-1">

@@ -4,7 +4,7 @@ import Badge from "./Badge";
 
 type ArticleCardProps = {
   article: Article;
-  variant?: "grid" | "list" | "ranked" | "featured";
+  variant?: "grid" | "list" | "ranked";
   rank?: number;
 };
 
@@ -25,42 +25,6 @@ export default function ArticleCard({ article, variant = "grid", rank }: Article
         <span className="font-sans text-[13.5px] font-bold leading-[1.35] group-hover:text-[var(--color-red)] transition-colors">
           {article.headline}
         </span>
-      </Link>
-    );
-  }
-
-  if (variant === "featured") {
-    return (
-      <Link
-        href={`/articles/${article.slug}`}
-        className="min-h-11 flex gap-3.5 group rounded-card overflow-hidden bg-white border border-[var(--color-hairline)] shadow-card hover:shadow-card-hover active:shadow-card-hover transition-shadow duration-200 p-2.5"
-      >
-        {article.coverImageUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={article.coverImageUrl}
-            alt={article.headline}
-            className="w-[104px] sm:w-[120px] aspect-square object-cover rounded-control shrink-0"
-          />
-        ) : (
-          <div className="w-[104px] sm:w-[120px] aspect-square bg-[#E5E4E0] rounded-control shrink-0" />
-        )}
-        <div className="min-w-0 flex flex-col justify-center py-0.5">
-          <Badge variant="text" className="mb-1.5">
-            {article.category}
-          </Badge>
-          <div className="font-headline text-[15px] sm:text-[16px] font-bold leading-[1.25] mb-1 line-clamp-2 group-hover:text-[var(--color-red)] transition-colors">
-            {article.headline}
-          </div>
-          <p className="text-[12.5px] text-[var(--color-gray)] leading-[1.45] line-clamp-2 mb-1.5 hidden sm:block">
-            {article.dek}
-          </p>
-          <div className="flex flex-wrap items-center gap-x-1.5 font-sans text-[11px] text-[var(--color-gray-light)]">
-            <span className="font-bold text-[var(--color-text)]">{article.author}</span>
-            <span>·</span>
-            <span>{article.date}</span>
-          </div>
-        </div>
       </Link>
     );
   }
