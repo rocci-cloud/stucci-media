@@ -1,7 +1,8 @@
 "use client";
 
 import { useActionState, useMemo, useState } from "react";
-import { Loader2, Sparkles } from "lucide-react";
+import Link from "next/link";
+import { ExternalLink, Loader2, Sparkles } from "lucide-react";
 import { Input } from "../components/ui/input";
 import { Textarea } from "../components/ui/textarea";
 import { Label } from "../components/ui/label";
@@ -50,6 +51,9 @@ export default function ArticleEditor({ article, categories: initialCategories, 
   const [status, setStatus] = useState<"draft" | "published">(article?.status ?? "draft");
   const [isFeatured, setIsFeatured] = useState(article?.isFeatured ?? false);
   const [publishedAt, setPublishedAt] = useState(toLocalInputValue(article?.publishedAt ?? null));
+  const [tags, setTags] = useState((article?.tags ?? []).map((t) => `#${t}`).join(", "));
+
+  const isScheduled = status === "published" && Boolean(publishedAt) && new Date(publishedAt) > new Date();
 
   const [categories, setCategories] = useState(initialCategories);
   const [selectedSlugs, setSelectedSlugs] = useState<string[]>(
@@ -176,6 +180,20 @@ export default function ArticleEditor({ article, categories: initialCategories, 
               <Label htmlFor="author">Author</Label>
               <Input id="author" name="author" value={author} onChange={(e) => setAuthor(e.target.value)} maxLength={100} />
             </div>
+
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="tags">Tags</Label>
+              <Input
+                id="tags"
+                name="tags"
+                value={tags}
+                onChange={(e) => setTags(e.target.value)}
+                placeholder="#veterans, #florida, #investigation"
+              />
+              <p className="text-[11.5px] text-[var(--admin-fg-muted)]">
+                Comma-separated. The # is optional — added automatically.
+              </p>
+            </div>
           </div>
 
           <div className={tab === "seo" ? "contents" : "hidden"}>
@@ -240,12 +258,31 @@ export default function ArticleEditor({ article, categories: initialCategories, 
                 <p className="text-[11.5px] text-[var(--admin-fg-muted)]">
                   Leave blank to stamp the moment this is published.
                 </p>
+                {isScheduled && (
+                  <p className="rounded-md border border-[var(--admin-primary)]/30 bg-[var(--admin-primary)]/5 px-2.5 py-2 text-[11.5px] text-[var(--admin-primary)]">
+                    Scheduled — this stays hidden from the site until{" "}
+                    {new Date(publishedAt).toLocaleString("en-US", {
+                      dateStyle: "medium",
+                      timeStyle: "short",
+                    })}
+                    .
+                  </p>
+                )}
               </div>
 
               <Button type="submit" disabled={pending} className="w-full">
                 {pending && <Loader2 className="h-4 w-4 animate-spin" />}
                 {isEdit ? "Save changes" : status === "published" ? "Publish" : "Save draft"}
               </Button>
+
+              {isEdit && article && (
+                <Button type="button" variant="outline" className="w-full" asChild>
+                  <Link href={`/admin/articles/${article.id}/preview`} target="_blank">
+                    <ExternalLink className="h-4 w-4" />
+                    Preview
+                  </Link>
+                </Button>
+              )}
             </CardContent>
           </Card>
 

@@ -443,6 +443,7 @@ export default function ArticlesClient({
                 <TableHead>Status</TableHead>
                 <TableHead className="hidden md:table-cell">Date</TableHead>
                 <TableHead className="hidden sm:table-cell">SEO</TableHead>
+                <TableHead className="hidden lg:table-cell text-right">Views</TableHead>
                 <TableHead className="w-10" />
               </TableRow>
             </TableHeader>
@@ -491,13 +492,20 @@ export default function ArticlesClient({
                       />
                     </TableCell>
                     <TableCell>
-                      <Badge variant={article.status === "published" ? "success" : "outline"}>
-                        {article.status}
-                      </Badge>
+                      {article.isScheduled ? (
+                        <Badge variant="default">Scheduled</Badge>
+                      ) : (
+                        <Badge variant={article.status === "published" ? "success" : "outline"}>
+                          {article.status}
+                        </Badge>
+                      )}
                     </TableCell>
                     <TableCell className="hidden text-[var(--admin-fg-muted)] md:table-cell">{article.date}</TableCell>
                     <TableCell className="hidden sm:table-cell">
                       <ScoreBadge score={seoScoreFor(article)} />
+                    </TableCell>
+                    <TableCell className="hidden lg:table-cell text-right text-[var(--admin-fg-muted)]">
+                      {article.viewCount.toLocaleString()}
                     </TableCell>
                     <TableCell>
                       <DropdownMenu>

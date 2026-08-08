@@ -36,6 +36,9 @@ function parseInput(formData: FormData): CategoryInput | { error: string } {
   const rawSlug = String(formData.get("slug") || "").trim();
   const description = String(formData.get("description") || "").trim();
   const color = String(formData.get("color") || "").trim() || null;
+  const showInNav = formData.get("showInNav") === "true";
+  const navOrderRaw = String(formData.get("navOrder") || "0").trim();
+  const shareImage = String(formData.get("shareImage") || "").trim() || null;
 
   if (!name) return { error: "Name is required." };
   if (name.length > MAX_NAME_LENGTH) return { error: `Name must be ${MAX_NAME_LENGTH} characters or fewer.` };
@@ -46,13 +49,16 @@ function parseInput(formData: FormData): CategoryInput | { error: string } {
     return { error: "Color must be a hex value like #c8102e." };
   }
 
+  const navOrder = Number.parseInt(navOrderRaw, 10);
+  if (!Number.isFinite(navOrder)) return { error: "Nav order must be a number." };
+
   const slug = slugify(rawSlug || name);
   if (!slug) {
     return { error: "Slug must contain at least one letter or number." };
   }
   if (slug.length > MAX_SLUG_LENGTH) return { error: `Slug must be ${MAX_SLUG_LENGTH} characters or fewer.` };
 
-  return { name, slug, description, color };
+  return { name, slug, description, color, showInNav, navOrder, shareImage };
 }
 
 export async function createCategoryAction(formData: FormData): Promise<CategoryActionResult> {

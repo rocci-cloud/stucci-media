@@ -16,6 +16,7 @@ export default function CategoriesLoading() {
               <TableHead>Name</TableHead>
               <TableHead className="hidden sm:table-cell">Slug</TableHead>
               <TableHead>Articles</TableHead>
+              <TableHead className="hidden sm:table-cell">Nav</TableHead>
               <TableHead className="w-10" />
             </TableRow>
           </TableHeader>
@@ -25,6 +26,7 @@ export default function CategoriesLoading() {
                 <TableCell><Skeleton className="h-4 w-32" /></TableCell>
                 <TableCell className="hidden sm:table-cell"><Skeleton className="h-4 w-24" /></TableCell>
                 <TableCell><Skeleton className="h-4 w-8" /></TableCell>
+                <TableCell className="hidden sm:table-cell"><Skeleton className="h-4 w-12" /></TableCell>
                 <TableCell><Skeleton className="h-8 w-8" /></TableCell>
               </TableRow>
             ))}

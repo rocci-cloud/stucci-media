@@ -6,6 +6,9 @@ export type Category = {
   label: string;
   description: string;
   color: string | null;
+  showInNav: boolean;
+  navOrder: number;
+  shareImage: string | null;
   createdAt: string;
 };
 
@@ -16,6 +19,9 @@ export type CategoryInput = {
   slug: string;
   description: string;
   color: string | null;
+  showInNav: boolean;
+  navOrder: number;
+  shareImage: string | null;
 };
 
 function mapRow(row: {
@@ -24,6 +30,9 @@ function mapRow(row: {
   name: string;
   description: string | null;
   color: string | null;
+  showInNav: boolean;
+  navOrder: number;
+  shareImage: string | null;
   createdAt: Date;
 }): Category {
   return {
@@ -32,12 +41,27 @@ function mapRow(row: {
     label: row.name,
     description: row.description ?? "",
     color: row.color,
+    showInNav: row.showInNav,
+    navOrder: row.navOrder,
+    shareImage: row.shareImage,
     createdAt: row.createdAt.toISOString(),
   };
 }
 
 export async function getCategories(): Promise<Category[]> {
   const rows = await prisma.category.findMany({ orderBy: { createdAt: "asc" } });
+  return rows.map(mapRow);
+}
+
+// The site's actual nav (SiteHeader, MobileMenu, SiteFooter) — showInNav
+// categories only, in the admin's chosen order. Nav visibility/order is
+// now real editorial control instead of a hardcoded list that had to be
+// hand-kept in sync with the category table.
+export async function getNavCategories(): Promise<Category[]> {
+  const rows = await prisma.category.findMany({
+    where: { showInNav: true },
+    orderBy: [{ navOrder: "asc" }, { name: "asc" }],
+  });
   return rows.map(mapRow);
 }
 
@@ -50,7 +74,7 @@ export async function getCategoryBySlug(slug: string): Promise<Category | undefi
 
 export async function getCategoriesWithCounts(): Promise<CategoryWithCount[]> {
   const [rows, counts] = await Promise.all([
-    prisma.category.findMany({ orderBy: { createdAt: "asc" } }),
+    prisma.category.findMany({ orderBy: [{ navOrder: "asc" }, { createdAt: "asc" }] }),
     prisma.article.groupBy({ by: ["categorySlug"], _count: { _all: true } }),
   ]);
   const countBySlug = new Map(counts.map((c) => [c.categorySlug, c._count._all]));
@@ -68,6 +92,9 @@ export async function createCategory(input: CategoryInput): Promise<Category> {
       slug: input.slug,
       description: input.description || null,
       color: input.color,
+      showInNav: input.showInNav,
+      navOrder: input.navOrder,
+      shareImage: input.shareImage,
     },
   });
   return mapRow(row);
@@ -84,6 +111,9 @@ export async function updateCategory(id: string, input: CategoryInput): Promise<
         slug: input.slug,
         description: input.description || null,
         color: input.color,
+        showInNav: input.showInNav,
+        navOrder: input.navOrder,
+        shareImage: input.shareImage,
       },
     });
 

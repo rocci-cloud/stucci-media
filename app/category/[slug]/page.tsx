@@ -32,7 +32,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title: `${category.label} | Stucci Media`,
       description: category.description,
       type: "website",
-      images: ["/og-default.png"],
+      images: [category.shareImage || "/og-default.png"],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${category.label} | Stucci Media`,
+      description: category.description,
+      images: [category.shareImage || "/og-default.png"],
     },
   };
 }

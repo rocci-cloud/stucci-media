@@ -99,7 +99,19 @@ model Category {
   slug        String   @unique
   description String?
   color       String?
-  createdAt   DateTime @default(now()) @map("created_at")
+
+  // Nav visibility/order — the site's SiteHeader/MobileMenu/SiteFooter nav
+  // now reads directly from these instead of a hand-maintained hardcoded
+  // list, so adding a category no longer risks the nav silently drifting
+  // out of sync with the category list.
+  showInNav Boolean @default(true) @map("show_in_nav")
+  navOrder  Int     @default(0) @map("nav_order")
+
+  // Social-share image for the category page itself (og:image) — separate
+  // from any article's own share image.
+  shareImage String? @map("share_image")
+
+  createdAt DateTime @default(now()) @map("created_at")
 
   articles ArticleCategory[]
 
@@ -119,6 +131,11 @@ model Article {
   dek      String
   author   String @default("Rocci Stucci")
   body     String
+
+  // Free-form hashtag-style tags, editorial-only (not a taxonomy table —
+  // categories already own that job). Native Postgres text[], no join
+  // table needed for something this lightweight.
+  tags String[] @default([])
 
   coverImageUrl String? @map("cover_image_url")
 
@@ -258,4 +275,46 @@ model Banner {
 
   @@index([placement, isActive, sortOrder])
   @@map("banners")
+}
+
+// --- Media library ---
+
+// A lightweight index of every image uploaded through the admin (article
+// cover/OG images, category share images, banner images) — recorded
+// client-side right after a successful Vercel Blob upload (see
+// ImageField.tsx), not via Blob's webhook, since that webhook only fires
+// in a real deployed environment, never against a local dev server.
+// Deleting a row here also deletes the underlying Blob object (via
+// @vercel/blob's del()) — this is a library of the actual files, not just
+// a list of URLs some other row happens to reference.
+model MediaAsset {
+  id              String   @id @default(cuid())
+  url             String   @unique
+  filename        String
+  uploadedByName  String   @map("uploaded_by_name")
+  uploadedByEmail String   @map("uploaded_by_email")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@index([createdAt(sort: Desc)])
+  @@map("media_assets")
+}
+
+// --- Redirects ---
+
+// Simple path -> path redirects for retired/renamed URLs. Resolved at
+// request time by the catch-all app/[...path]/page.tsx route (Next.js
+// only reaches a catch-all after every real route fails to match, which
+// is exactly when a redirect should kick in) rather than in proxy.ts —
+// the edge middleware here can't reach Postgres (see AGENTS.md/CLAUDE.md
+// on the Neon HTTP-driver constraint), only a normal server component can.
+model Redirect {
+  id         String   @id @default(cuid())
+  fromPath   String   @unique @map("from_path")
+  toPath     String   @map("to_path")
+  statusCode Int      @default(308) @map("status_code")
+  isActive   Boolean  @default(true) @map("is_active")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@map("redirects")
 }

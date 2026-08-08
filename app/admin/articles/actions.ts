@@ -55,6 +55,7 @@ async function parseInput(formData: FormData): Promise<ArticleInput | { error: s
   const ogImage = String(formData.get("ogImage") || "").trim() || null;
   const canonicalUrl = String(formData.get("canonicalUrl") || "").trim() || null;
   const publishedAt = String(formData.get("publishedAt") || "").trim() || null;
+  const tags = parseTags(String(formData.get("tags") || ""));
 
   if (!slug || !/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug)) {
     return { error: "Slug must be lowercase letters, numbers, and hyphens only (e.g. my-article-title)." };
@@ -103,6 +104,7 @@ async function parseInput(formData: FormData): Promise<ArticleInput | { error: s
     coverImageUrl,
     status,
     isFeatured,
+    tags,
     seoTitle,
     seoDescription,
     seoKeywords,
@@ -110,6 +112,26 @@ async function parseInput(formData: FormData): Promise<ArticleInput | { error: s
     canonicalUrl,
     publishedAt,
   };
+}
+
+const MAX_TAGS = 15;
+const MAX_TAG_LENGTH = 40;
+
+// Accepts a comma-separated string from the form (however the admin typed
+// it — with or without leading "#", mixed case, extra whitespace) and
+// normalizes to a clean, deduped, lowercase list for storage.
+function parseTags(raw: string): string[] {
+  const seen = new Set<string>();
+  const tags: string[] = [];
+  for (const part of raw.split(",")) {
+    const tag = part.trim().replace(/^#/, "").toLowerCase().slice(0, MAX_TAG_LENGTH);
+    if (tag && !seen.has(tag)) {
+      seen.add(tag);
+      tags.push(tag);
+    }
+    if (tags.length >= MAX_TAGS) break;
+  }
+  return tags;
 }
 
 export async function createArticleAction(
