@@ -33,7 +33,11 @@
   --color-navy-dark: #050b15;
   --color-text: #14181f;
   --color-gray: #55606c;
-  --color-gray-light: #8a94a0;
+  /* Darkened from the original #8a94a0 (~2.6:1 on white, fails WCAG AA)
+     to ~4.6:1 — this token backs every small metadata label sitewide
+     (dates, read-time, byline dot separators), so the original was a
+     real, widely-repeated contrast failure, not a one-off. */
+  --color-gray-light: #6b7684;
   --color-hairline: #dde1e9;
   --color-hairline-strong: #0a1628;
   --color-red: #c8102e;
