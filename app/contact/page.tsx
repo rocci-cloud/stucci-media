@@ -14,7 +14,7 @@ export default function ContactPage() {
       <BreakingBar />
       <SiteHeader />
       <main className="max-w-[560px] mx-auto px-5 pt-10 pb-20">
-        <h1 className="font-headline text-[32px] sm:text-[42px] font-bold uppercase tracking-[-0.005em] mb-3">
+        <h1 className="font-headline text-[34px] sm:text-[46px] font-bold uppercase leading-[0.98] tracking-[-0.015em] mb-3">
           Contact Stucci Media
         </h1>
         <p className="font-sans text-[15px] text-[var(--color-gray)] mb-8">

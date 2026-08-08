@@ -22,7 +22,7 @@ export default function SubscribeStrip() {
           <Badge variant="red" className="mb-3.5">
             Free Newsletter
           </Badge>
-          <h2 className="font-headline text-[28px] sm:text-[36px] lg:text-[40px] font-bold uppercase leading-[1.05] tracking-[-0.01em] mb-3.5">
+          <h2 className="font-headline text-[29px] sm:text-[38px] lg:text-[43px] font-bold uppercase leading-[0.98] tracking-[-0.02em] mb-3.5">
             The Stories Mainstream Media Won&apos;t Run
           </h2>
           <p className="font-sans text-[15px] sm:text-[16.5px] text-[var(--color-gray)] leading-[1.55] mb-5 max-w-[48ch] mx-auto lg:mx-0">

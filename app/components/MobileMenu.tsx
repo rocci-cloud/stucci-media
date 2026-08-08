@@ -42,7 +42,7 @@ export default function MobileMenu({ open, onClose }: { open: boolean; onClose: 
       aria-hidden={!open}
     >
       <div className="flex items-center justify-between px-5 pt-3 pb-3 border-b border-white/10 shrink-0">
-        <span className="font-headline text-[24px] font-bold uppercase text-white leading-none">
+        <span className="font-headline text-[22px] font-bold uppercase tracking-[-0.02em] text-white leading-none">
           Stucci<span className="text-[var(--color-red)]">Media</span>
         </span>
         <button
@@ -76,7 +76,7 @@ export default function MobileMenu({ open, onClose }: { open: boolean; onClose: 
               key={link.href}
               href={link.href}
               onClick={onClose}
-              className={`min-h-12 flex items-center px-3.5 font-headline text-[19px] font-bold uppercase tracking-[-0.005em] border-b border-white/10 transition-colors ${
+              className={`min-h-12 flex items-center px-3.5 font-headline text-[20px] font-bold uppercase tracking-[-0.015em] leading-[1.1] border-b border-white/10 transition-colors ${
                 active ? "text-[var(--color-red)]" : "text-white hover:text-[var(--color-red)]"
               }`}
             >

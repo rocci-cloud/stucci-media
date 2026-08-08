@@ -101,10 +101,10 @@ export default async function ArticlePage({ params }: Props) {
           <Badge variant="text" className="mb-3">
             {article.category}
           </Badge>
-          <h1 className="font-headline text-[28px] sm:text-[38px] font-bold uppercase leading-[1.05] tracking-[-0.005em] mb-4">
+          <h1 className="font-headline text-[31px] sm:text-[42px] font-bold uppercase leading-[0.98] tracking-[-0.015em] mb-4">
             {article.headline}
           </h1>
-          <div className="font-sans flex flex-wrap gap-4 py-3.5 border-y border-[var(--color-hairline)] mb-7 text-[13px] text-[var(--color-gray)]">
+          <div className="font-sans flex flex-wrap gap-4 py-3.5 border-y border-[var(--color-hairline)] mb-7 text-[13px] tracking-[0.005em] text-[var(--color-gray)]">
             <span>
               By <b className="text-[var(--color-text)]">{article.author}</b>
             </span>
@@ -123,11 +123,11 @@ export default async function ArticlePage({ params }: Props) {
           )}
           <div
             className="prose prose-neutral max-w-none text-[17px] sm:text-[19px] leading-[1.75]
-              prose-headings:font-headline prose-headings:font-bold prose-headings:uppercase prose-headings:tracking-[-0.005em]
-              prose-h2:text-[24px] prose-h2:mt-10 prose-h3:text-[21px] prose-h3:mt-8
+              prose-headings:font-headline prose-headings:font-bold prose-headings:uppercase prose-headings:tracking-[-0.01em] prose-headings:leading-[1.1]
+              prose-h2:text-[25px] prose-h2:mt-10 prose-h3:text-[21px] prose-h3:mt-8
               prose-p:mb-5 prose-a:text-[var(--color-red)] prose-a:no-underline hover:prose-a:underline
               prose-strong:text-[var(--color-text)] prose-blockquote:border-l-[var(--color-red)]
-              prose-blockquote:font-headline prose-blockquote:text-[22px] prose-blockquote:not-italic
+              prose-blockquote:font-headline prose-blockquote:text-[22px] prose-blockquote:leading-[1.3] prose-blockquote:not-italic
               prose-img:rounded-control prose-img:border prose-img:border-[var(--color-hairline)]
               prose-a:transition-colors"
             dangerouslySetInnerHTML={{ __html: article.bodyHtml }}

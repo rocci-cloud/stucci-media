@@ -66,13 +66,13 @@ export default function FeaturedSection({
               <Badge variant="red">{lead.category}</Badge>
               {!isFallback && <Badge variant="navy">Featured</Badge>}
             </div>
-            <h1 className="font-headline text-white text-[32px] sm:text-[46px] lg:text-[58px] font-bold uppercase leading-[1.02] tracking-[-0.015em] mb-3 max-w-[16ch] sm:max-w-[20ch] group-hover:underline decoration-2 underline-offset-4">
+            <h1 className="font-headline text-white text-[36px] sm:text-[52px] lg:text-[66px] font-bold uppercase leading-[0.96] tracking-[-0.02em] mb-3 max-w-[16ch] sm:max-w-[20ch] group-hover:underline decoration-2 underline-offset-4">
               {lead.headline}
             </h1>
-            <p className="text-white/85 text-[15px] sm:text-[17px] leading-[1.5] max-w-[58ch] mb-4 line-clamp-2 sm:line-clamp-2">
+            <p className="text-white/85 text-[15.5px] sm:text-[18px] leading-[1.55] max-w-[58ch] mb-4 line-clamp-2 sm:line-clamp-2">
               {lead.dek}
             </p>
-            <div className="flex items-center gap-2.5 font-sans text-[12px] sm:text-[13px] text-white/90">
+            <div className="flex items-center gap-2.5 font-sans text-[12px] sm:text-[13px] tracking-[0.01em] text-white/90">
               <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--color-red)] text-[11px] font-bold text-white">
                 {getInitials(lead.author)}
               </span>
@@ -91,7 +91,7 @@ export default function FeaturedSection({
         <div className="mx-auto max-w-[1280px] px-5">
           <div className="flex items-center gap-2.5 pt-3 pb-2.5 sm:pt-5 sm:pb-3.5">
             <span className="h-[9px] w-[9px] rounded-full bg-[var(--color-red)] shrink-0" />
-            <h2 className="font-headline uppercase font-bold text-[15px] sm:text-[17px] tracking-[0.02em] leading-none text-[var(--color-gray)]">
+            <h2 className="font-headline uppercase font-bold text-[14px] sm:text-[16px] tracking-[0.06em] leading-none text-[var(--color-gray)]">
               {isFallback ? "Latest Stories" : "Also Making Headlines"}
             </h2>
           </div>
@@ -118,10 +118,10 @@ export default function FeaturedSection({
                 <Badge variant="text" className="mb-1.5">
                   {item.category}
                 </Badge>
-                <div className="font-headline text-[16px] sm:text-[17px] font-bold leading-[1.2] mb-1.5 line-clamp-2 group-hover:text-[var(--color-red)] transition-colors">
+                <div className="font-headline text-[17px] sm:text-[18px] font-bold leading-[1.15] tracking-[-0.01em] mb-1.5 line-clamp-2 group-hover:text-[var(--color-red)] transition-colors">
                   {item.headline}
                 </div>
-                <div className="flex flex-wrap items-center gap-x-1.5 font-sans text-[11px] text-[var(--color-gray-light)]">
+                <div className="flex flex-wrap items-center gap-x-1.5 font-sans text-[11px] tracking-[0.01em] text-[var(--color-gray-light)]">
                   <span className="font-bold text-[var(--color-text)]">{item.author}</span>
                   <span>·</span>
                   <span>{item.date}</span>

@@ -52,7 +52,7 @@ export default async function CategoryPage({ params }: Props) {
       <SiteHeader />
       <main>
         <div className="mx-auto max-w-[1280px] px-5 pt-8 pb-4 border-b-4 border-[var(--color-navy)]">
-          <h1 className="font-headline text-[32px] sm:text-[42px] font-bold uppercase tracking-[-0.005em] mb-2">
+          <h1 className="font-headline text-[34px] sm:text-[46px] font-bold uppercase leading-[0.98] tracking-[-0.015em] mb-2">
             {category.label}
           </h1>
           <p className="font-sans text-[var(--color-gray)] text-[15px] pb-2">{category.description}</p>

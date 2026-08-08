@@ -36,12 +36,12 @@ export default function SiteHeader() {
         <div className="mx-auto max-w-[1280px] px-5 py-1.5 sm:py-2.5 flex items-center justify-between">
           <Link
             href="/"
-            className="font-headline text-[20px] sm:text-[30px] font-bold uppercase tracking-[-0.01em] text-[var(--color-navy)] leading-none"
+            className="font-headline text-[20px] sm:text-[30px] font-bold uppercase tracking-[-0.02em] text-[var(--color-navy)] leading-none"
           >
             Stucci<span className="text-[var(--color-red)]">Media</span>
           </Link>
-          <div className="hidden sm:flex flex-col items-end font-sans text-[11px] text-[var(--color-gray)] leading-tight">
-            <span className="font-bold uppercase tracking-wide text-[var(--color-red)]">Live · Florida</span>
+          <div className="hidden sm:flex flex-col items-end font-sans text-[11px] tracking-[0.01em] text-[var(--color-gray)] leading-tight">
+            <span className="font-bold uppercase tracking-[0.04em] text-[var(--color-red)]">Live · Florida</span>
             <span>
               {new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
             </span>
@@ -72,7 +72,7 @@ export default function SiteHeader() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`min-h-11 flex items-center text-[12px] font-bold uppercase tracking-wide whitespace-nowrap px-3 border-b-[3px] transition-colors ${
+                  className={`min-h-11 flex items-center text-[12px] font-bold uppercase tracking-[0.03em] whitespace-nowrap px-3 border-b-[3px] transition-colors ${
                     i > 0 ? "border-l border-l-white/10" : ""
                   } ${
                     active
