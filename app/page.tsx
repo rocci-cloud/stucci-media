@@ -8,6 +8,7 @@ import PodcastShelf from "./components/PodcastShelf";
 import Sidebar from "./components/Sidebar";
 import SubscribeStrip from "./components/SubscribeStrip";
 import SiteFooter from "./components/SiteFooter";
+import Reveal from "./components/Reveal";
 import { getPublishedArticles, getFeaturedArticles } from "./lib/articles";
 import { getCategories } from "./lib/categories";
 
@@ -62,7 +63,9 @@ export default async function HomePage() {
         <FeaturedSection featured={featuredArticles.slice(0, 4)} fallback={articles.slice(0, 4)} />
 
         <div className="mx-auto max-w-[1280px] px-5">
-          <LatestModule articles={latestItems} />
+          <Reveal>
+            <LatestModule articles={latestItems} />
+          </Reveal>
         </div>
 
         <div className="mx-auto max-w-[1280px] px-5 grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-x-10">
@@ -70,30 +73,43 @@ export default async function HomePage() {
             {categories.map((category) => {
               if (category.slug === "opinion-analysis") {
                 const categoryArticles = railItems.filter((a) => a.categorySlug === category.slug).slice(0, 6);
-                return <OpinionModule key={category.slug} category={category} articles={categoryArticles} />;
+                return (
+                  <Reveal key={category.slug}>
+                    <OpinionModule category={category} articles={categoryArticles} />
+                  </Reveal>
+                );
               }
               if (category.slug === "podcasts") {
                 const categoryArticles = railItems.filter((a) => a.categorySlug === category.slug).slice(0, 6);
-                return <PodcastShelf key={category.slug} category={category} articles={categoryArticles} />;
+                return (
+                  <Reveal key={category.slug}>
+                    <PodcastShelf category={category} articles={categoryArticles} />
+                  </Reveal>
+                );
               }
               const alternate = topicRailIndex % 2 === 1;
               topicRailIndex += 1;
               return (
-                <TopicRail
-                  key={category.slug}
-                  category={category}
-                  alternate={alternate}
-                  articles={railItems.filter((a) => a.categorySlug === category.slug).slice(0, 4)}
-                />
+                <Reveal key={category.slug}>
+                  <TopicRail
+                    category={category}
+                    alternate={alternate}
+                    articles={railItems.filter((a) => a.categorySlug === category.slug).slice(0, 4)}
+                  />
+                </Reveal>
               );
             })}
           </div>
           <div className="pt-3 lg:pt-4">
-            <Sidebar articles={railItems} />
+            <Reveal>
+              <Sidebar articles={railItems} />
+            </Reveal>
           </div>
         </div>
 
-        <SubscribeStrip />
+        <Reveal>
+          <SubscribeStrip />
+        </Reveal>
       </main>
       <SiteFooter />
     </>

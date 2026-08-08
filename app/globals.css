@@ -13,6 +13,17 @@
   --shadow-card: 0 2px 6px rgba(10, 22, 40, 0.1), 0 1px 3px rgba(10, 22, 40, 0.06);
   --shadow-card-hover: 0 18px 40px rgba(10, 22, 40, 0.18), 0 4px 12px rgba(10, 22, 40, 0.08);
   --shadow-pop: 0 6px 18px rgba(10, 22, 40, 0.14);
+
+  /* Overriding Tailwind's default transition duration/easing here means
+     every existing bare `transition-colors`/`transition-shadow`/
+     `transition` utility sitewide (nav links, buttons, card shadows, form
+     inputs — none of which specify their own `duration-*`/`ease-*`)
+     picks up this slower, "expo-out" premium curve automatically, with no
+     per-component edits. An explicit `duration-*`/`ease-*` class on a
+     specific element still overrides these, same as any Tailwind theme
+     default. */
+  --default-transition-duration: 240ms;
+  --default-transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 :root {
@@ -135,6 +146,47 @@ body {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+/* Homepage hero's cinematic entrance (FeaturedSection) — the image
+   settles from a slight zoom-out while the headline/dek block rises in
+   just behind it, a beat later. Both run once on page load via CSS
+   `animation` (no JS/client component needed) and use `both` fill-mode
+   so there's no flash of the final state before the animation starts,
+   and no snap-back after it ends. */
+@keyframes heroImageReveal {
+  from {
+    opacity: 0;
+    transform: scale(1.06);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes heroTextReveal {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Search overlay's inner panel — a quick, understated scale+fade so the
+   box feels like it settles into place rather than just appearing. */
+@keyframes overlayPop {
+  from {
+    opacity: 0;
+    transform: scale(0.97) translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
   }
 }
 

@@ -19,7 +19,7 @@ export default function ArticleCard({ article, variant = "grid", rank }: Article
         href={`/articles/${article.slug}`}
         className="flex px-4 py-3 sm:py-3.5 min-h-11 group active:bg-[var(--color-bg-off)] transition-colors"
       >
-        <span className="flex items-center shrink-0 w-[26px] pr-3 border-r border-[var(--color-hairline)] font-headline text-[27px] font-bold tracking-[-0.01em] leading-none text-[var(--color-red)]/30">
+        <span className="flex items-center shrink-0 w-[26px] pr-3 border-r border-[var(--color-hairline)] font-headline text-[27px] font-bold tracking-[-0.01em] leading-none text-[var(--color-red)]/30 transition-colors group-hover:text-[var(--color-red)]/60">
           {rank}
         </span>
         <span className="flex items-center pl-3 font-sans text-[13.5px] font-bold leading-[1.3] tracking-[-0.005em] group-hover:text-[var(--color-red)] transition-colors">
@@ -36,12 +36,14 @@ export default function ArticleCard({ article, variant = "grid", rank }: Article
         className="flex gap-3.5 sm:gap-4 px-4 py-3 sm:py-3.5 min-h-11 group active:bg-[var(--color-bg-off)] transition-colors"
       >
         {article.coverImageUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={article.coverImageUrl}
-            alt={article.headline}
-            className="img-cinematic w-[88px] h-[60px] object-cover rounded-control shadow-sm ring-1 ring-black/5 shrink-0"
-          />
+          <div className="w-[88px] h-[60px] shrink-0 overflow-hidden rounded-control shadow-sm ring-1 ring-black/5">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={article.coverImageUrl}
+              alt={article.headline}
+              className="img-cinematic h-full w-full object-cover transition-transform duration-[600ms] group-hover:scale-[1.08]"
+            />
+          </div>
         ) : (
           <div className="img-placeholder w-[88px] h-[60px] rounded-control shrink-0" />
         )}
@@ -60,15 +62,15 @@ export default function ArticleCard({ article, variant = "grid", rank }: Article
   return (
     <Link
       href={`/articles/${article.slug}`}
-      className="min-h-11 block group rounded-card overflow-hidden bg-white border border-[var(--color-hairline)] shadow-card hover:shadow-card-hover active:shadow-card-hover transition-shadow duration-200"
+      className="min-h-11 block group rounded-card overflow-hidden bg-white border border-[var(--color-hairline)] shadow-card hover:shadow-card-hover active:shadow-card-hover transition hover:-translate-y-[3px] active:translate-y-0 active:scale-[0.99]"
     >
-      <div className="relative">
+      <div className="relative overflow-hidden">
         {article.coverImageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={article.coverImageUrl}
             alt={article.headline}
-            className="img-cinematic aspect-[2/1] sm:aspect-[16/9] w-full object-cover"
+            className="img-cinematic aspect-[2/1] sm:aspect-[16/9] w-full object-cover transition-transform duration-[600ms] group-hover:scale-[1.05]"
           />
         ) : (
           <div className="img-placeholder aspect-[2/1] sm:aspect-[16/9]" />

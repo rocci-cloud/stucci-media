@@ -278,7 +278,7 @@ function CommentForm({
         <button
           type="submit"
           disabled={isPending || tooShort || trimmedLength === 0}
-          className="min-h-11 inline-flex items-center gap-2 bg-[var(--color-red)] hover:bg-[var(--color-red-dark)] text-white text-[13px] font-bold uppercase tracking-wide px-5 rounded-control transition-colors disabled:opacity-50"
+          className="min-h-11 inline-flex items-center gap-2 bg-[var(--color-red)] hover:bg-[var(--color-red-dark)] text-white text-[13px] font-bold uppercase tracking-wide px-5 rounded-control transition active:scale-[0.97] disabled:opacity-50"
         >
           {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
           {parentId ? "Post Reply" : "Post Comment"}

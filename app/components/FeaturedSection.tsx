@@ -52,10 +52,10 @@ export default function FeaturedSection({
           <img
             src={lead.coverImageUrl}
             alt={lead.headline}
-            className="img-cinematic absolute inset-0 h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+            className="img-cinematic absolute inset-0 h-full w-full object-cover [animation:heroImageReveal_1.1s_cubic-bezier(0.16,1,0.3,1)_both] transition-transform duration-[600ms] group-hover:scale-[1.03]"
           />
         ) : (
-          <div className="img-placeholder absolute inset-0" />
+          <div className="img-placeholder absolute inset-0 [animation:heroImageReveal_1.1s_cubic-bezier(0.16,1,0.3,1)_both]" />
         )}
 
         {/* Cinematic vignette: darkens the frame edges so the eye settles
@@ -65,7 +65,7 @@ export default function FeaturedSection({
         <div className="absolute inset-0 bg-gradient-to-t from-black/97 via-black/55 to-black/5" />
 
         <div className="absolute inset-x-0 bottom-0 px-4 pb-5 sm:px-8 sm:pb-9 lg:px-10 lg:pb-11">
-          <div className="mx-auto max-w-[1280px]">
+          <div className="mx-auto max-w-[1280px] [animation:heroTextReveal_0.9s_cubic-bezier(0.16,1,0.3,1)_0.25s_both]">
             <div className="flex flex-wrap items-center gap-2 mb-3">
               <Badge variant="red">{lead.category}</Badge>
               {!isFallback && <Badge variant="navy">Featured</Badge>}
@@ -109,13 +109,13 @@ export default function FeaturedSection({
                   i > 0 ? "sm:pl-6 sm:border-l sm:border-l-[var(--color-hairline)]" : ""
                 }`}
               >
-                <div className="relative mb-2.5">
+                <div className="relative mb-2.5 overflow-hidden">
                   {item.coverImageUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={item.coverImageUrl}
                       alt={item.headline}
-                      className="img-cinematic aspect-[2/1] sm:aspect-[16/9] w-full object-cover"
+                      className="img-cinematic aspect-[2/1] sm:aspect-[16/9] w-full object-cover transition-transform duration-[600ms] group-hover:scale-[1.05]"
                     />
                   ) : (
                     <div className="img-placeholder aspect-[2/1] sm:aspect-[16/9]" />

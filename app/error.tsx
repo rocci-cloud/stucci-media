@@ -19,7 +19,7 @@ export default function GlobalError({ error, reset }: { error: Error & { digest?
       <div className="flex flex-wrap items-center justify-center gap-3">
         <button
           onClick={reset}
-          className="min-h-11 inline-flex items-center rounded-control bg-[var(--color-red)] px-5 font-sans text-[13px] font-bold uppercase tracking-wide text-white transition-colors hover:bg-[var(--color-red-dark)]"
+          className="min-h-11 inline-flex items-center rounded-control bg-[var(--color-red)] px-5 font-sans text-[13px] font-bold uppercase tracking-wide text-white transition active:scale-[0.97] hover:bg-[var(--color-red-dark)]"
         >
           Try again
         </button>

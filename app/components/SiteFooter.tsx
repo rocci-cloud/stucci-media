@@ -56,7 +56,7 @@ export default async function SiteFooter() {
             ))}
             <Link
               href="/#subscribe"
-              className="min-h-11 inline-flex items-center bg-[var(--color-red)] hover:bg-[var(--color-red-dark)] text-white text-[11.5px] font-bold uppercase tracking-wide px-4 rounded-control transition-colors"
+              className="min-h-11 inline-flex items-center bg-[var(--color-red)] hover:bg-[var(--color-red-dark)] text-white text-[11.5px] font-bold uppercase tracking-wide px-4 rounded-control transition active:scale-[0.97]"
             >
               Subscribe
             </Link>

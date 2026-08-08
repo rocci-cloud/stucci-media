@@ -96,7 +96,7 @@ export default function SiteHeader() {
           </button>
           <a
             href="#subscribe"
-            className="sm:ml-2 my-0.5 sm:my-1.5 min-h-11 inline-flex items-center bg-[var(--color-red)] hover:bg-[var(--color-red-dark)] active:bg-[var(--color-red-dark)] text-white text-[12px] font-bold uppercase tracking-wide px-5 rounded-control shrink-0 shadow-[0_2px_8px_rgba(200,16,46,0.35)] transition-colors"
+            className="sm:ml-2 my-0.5 sm:my-1.5 min-h-11 inline-flex items-center bg-[var(--color-red)] hover:bg-[var(--color-red-dark)] active:bg-[var(--color-red-dark)] text-white text-[12px] font-bold uppercase tracking-wide px-5 rounded-control shrink-0 shadow-[0_2px_8px_rgba(200,16,46,0.35)] transition active:scale-[0.97]"
           >
             Subscribe
           </a>

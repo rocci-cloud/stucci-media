@@ -59,13 +59,16 @@ export default function LikeButton({
         onClick={handleClick}
         disabled={isPending}
         aria-pressed={optimisticState.liked}
-        className={`inline-flex min-h-11 items-center gap-2 rounded-full border px-4 font-sans text-[13.5px] font-bold transition-colors disabled:opacity-60 ${
+        className={`inline-flex min-h-11 items-center gap-2 rounded-full border px-4 font-sans text-[13.5px] font-bold transition disabled:opacity-60 ${
           optimisticState.liked
             ? "border-[var(--color-red)] bg-[var(--color-red)] text-white"
             : "border-[var(--color-hairline-strong)] text-[var(--color-gray)] hover:border-[var(--color-red)] hover:text-[var(--color-red)]"
         }`}
       >
-        <Heart className="h-[18px] w-[18px]" fill={optimisticState.liked ? "currentColor" : "none"} />
+        <Heart
+          className={`h-[18px] w-[18px] transition-transform duration-300 ${optimisticState.liked ? "scale-110" : "scale-100"}`}
+          fill={optimisticState.liked ? "currentColor" : "none"}
+        />
         {optimisticState.count > 0
           ? `${optimisticState.count} Like${optimisticState.count === 1 ? "" : "s"}`
           : "Like"}
