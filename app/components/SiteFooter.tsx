@@ -13,21 +13,35 @@ const SOCIAL_LINKS = [
   },
 ];
 
+const COMPANY_LINKS = [
+  { label: "About", href: "/about" },
+  { label: "Contact", href: "/contact" },
+  { label: "Privacy Policy", href: "/privacy" },
+  { label: "Search", href: "/search" },
+];
+
+// Two columns, not four: brand+social+subscribe on the left, a dense
+// flat-wrapped nav (categories, then company/legal pages) on the right —
+// replaces the old one-link-per-line vertical lists (three separate
+// labeled columns, the last of which duplicated SubscribeStrip's pitch
+// immediately above it) with a footer that reads as a closing statement,
+// not a leftover theme template. `min-h-11` on each wrapped link still
+// gives every link a full 44px touch target even though several now
+// share a text row instead of owning one each.
 export default async function SiteFooter() {
   const categories = await getCategories();
 
   return (
-    <footer className="font-sans bg-[var(--color-navy)] text-white mt-4">
-      <div className="mx-auto max-w-[1280px] px-5 py-9 sm:py-14 grid grid-cols-1 sm:grid-cols-4 gap-x-8 gap-y-8 sm:gap-y-10">
+    <footer className="font-sans bg-[var(--color-navy)] text-white">
+      <div className="mx-auto max-w-[1280px] px-5 py-7 sm:py-10 grid grid-cols-1 sm:grid-cols-[1.1fr_1fr] gap-7 sm:gap-10">
         <div>
-          <div className="font-headline text-[22px] font-bold uppercase mb-2.5">
+          <div className="font-headline text-[20px] font-bold uppercase mb-2">
             Stucci<span className="text-[var(--color-red)]">Media</span>
           </div>
-          <p className="text-[13.5px] text-white/60 leading-[1.6] mb-5 max-w-[32ch]">
-            Independent news from Florida — the stories mainstream media won&apos;t run. Politics,
-            world events, crime, and veterans&apos; issues, reported straight.
+          <p className="text-[13px] text-white/60 leading-[1.55] mb-4 max-w-[36ch]">
+            Independent news from Florida — the stories mainstream media won&apos;t run.
           </p>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5">
             {SOCIAL_LINKS.map((social) => (
               <a
                 key={social.label}
@@ -35,76 +49,55 @@ export default async function SiteFooter() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={social.label}
-                className="flex h-11 w-11 items-center justify-center rounded-full border border-white/15 text-white/70 hover:text-white hover:border-white/40 hover:bg-white/5 transition-colors"
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/15 text-white/70 hover:text-white hover:border-white/40 hover:bg-white/5 transition-colors"
               >
                 {social.icon}
               </a>
             ))}
+            <Link
+              href="/#subscribe"
+              className="min-h-11 inline-flex items-center bg-[var(--color-red)] hover:bg-[var(--color-red-dark)] text-white text-[11.5px] font-bold uppercase tracking-wide px-4 rounded-control transition-colors"
+            >
+              Subscribe
+            </Link>
           </div>
         </div>
 
         <div>
-          <h4 className="text-[12px] font-bold uppercase tracking-wide text-white/50 mb-4">Sections</h4>
-          <ul className="flex flex-col text-[13.5px]">
+          <h4 className="text-[11px] font-bold uppercase tracking-wide text-white/50 mb-2.5">Sections</h4>
+          <nav aria-label="Footer sections" className="flex flex-wrap gap-x-4 gap-y-0.5 mb-4">
             {categories.map((c) => (
-              <li key={c.slug}>
-                <Link
-                  href={`/category/${c.slug}`}
-                  className="min-h-11 flex items-center text-white/80 hover:text-white transition-colors"
-                >
-                  {c.label}
-                </Link>
-              </li>
+              <Link
+                key={c.slug}
+                href={`/category/${c.slug}`}
+                className="min-h-11 inline-flex items-center text-[13.5px] text-white/80 hover:text-white transition-colors"
+              >
+                {c.label}
+              </Link>
             ))}
-          </ul>
-        </div>
+          </nav>
 
-        <div>
-          <h4 className="text-[12px] font-bold uppercase tracking-wide text-white/50 mb-4">Company</h4>
-          <ul className="flex flex-col text-[13.5px]">
-            <li>
-              <Link href="/about" className="min-h-11 flex items-center text-white/80 hover:text-white transition-colors">
-                About
+          <h4 className="text-[11px] font-bold uppercase tracking-wide text-white/50 mb-2.5">Company</h4>
+          <nav aria-label="Footer company links" className="flex flex-wrap gap-x-4 gap-y-0.5">
+            {COMPANY_LINKS.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="min-h-11 inline-flex items-center text-[13.5px] text-white/80 hover:text-white transition-colors"
+              >
+                {link.label}
               </Link>
-            </li>
-            <li>
-              <Link href="/contact" className="min-h-11 flex items-center text-white/80 hover:text-white transition-colors">
-                Contact
-              </Link>
-            </li>
-            <li>
-              <Link href="/privacy" className="min-h-11 flex items-center text-white/80 hover:text-white transition-colors">
-                Privacy Policy
-              </Link>
-            </li>
-            <li>
-              <Link href="/search" className="min-h-11 flex items-center text-white/80 hover:text-white transition-colors">
-                Search
-              </Link>
-            </li>
-          </ul>
-        </div>
-
-        <div>
-          <h4 className="text-[12px] font-bold uppercase tracking-wide text-white/50 mb-4">Stay Informed</h4>
-          <p className="text-[13.5px] text-white/60 leading-[1.6] mb-4 max-w-[28ch]">
-            Get independent reporting straight to your inbox — free, no spam.
-          </p>
-          <Link
-            href="/#subscribe"
-            className="min-h-11 inline-flex items-center bg-[var(--color-red)] hover:bg-[var(--color-red-dark)] text-white text-[11.5px] font-bold uppercase tracking-wide px-4 rounded-control transition-colors"
-          >
-            Subscribe
-          </Link>
+            ))}
+          </nav>
         </div>
       </div>
 
       <div className="bg-[var(--color-navy-dark)] border-t border-white/10">
-        <div className="mx-auto max-w-[1280px] px-5 py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-          <div className="font-headline text-[13px] font-bold uppercase tracking-wide text-white/90">
+        <div className="mx-auto max-w-[1280px] px-5 py-3.5 sm:py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+          <div className="font-headline text-[12.5px] font-bold uppercase tracking-wide text-white/90">
             Stucci Media · Independent News That Matters
           </div>
-          <div className="text-[12px] text-white/50">
+          <div className="text-[11.5px] text-white/50">
             © 2026 Stucci Media — All Rights Reserved · Florida
           </div>
         </div>
