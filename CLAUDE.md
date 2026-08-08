@@ -2633,3 +2633,38 @@ follow-up pass, so this could ship reviewable and low-risk.
   attributes — real, working, just not yet on `next/image`. Scoped out
   here to keep this change reviewable rather than one large sitewide
   diff.
+
+## Phase 46 — done: next/image everywhere else (follow-up)
+
+Finished what Phase 45 scoped out: every remaining real `<img>` on the
+public site now goes through `next/image`. `ArticleCard`'s `ranked`
+variant never had an image to begin with, so this covers the two that
+did.
+
+- **`ArticleCard`'s `list` variant** (the 88×60px thumbnail used in
+  `TopicRail`'s briefs column, `Sidebar`, `RelatedArticles`) — the
+  wrapper `div` already had the fixed `w-[88px] h-[60px]` size `fill`
+  needs, so this was just adding `relative` to it and `sizes="88px"`.
+- **`FeaturedSection`'s secondary "Also Making Headlines" rail** — same
+  pattern as Phase 45's `ArticleCard` grid conversion: aspect-ratio
+  classes moved from the `<img>` onto its wrapper `div`.
+- **`BannerSlot`** — needed an actual new wrapper `div` (the old markup
+  put the aspect-ratio classes directly on the `<img>`, with no sized
+  parent) since banner images are a mix of local `public/banners/*.png`
+  campaign assets and admin-uploaded Vercel Blob URLs; `next/image`
+  handles both without extra config — local paths need no
+  `remotePatterns` entry, only remote hosts do.
+- **The article page's own hero image** — same `fill` + `priority`
+  treatment as `FeaturedSection`'s homepage hero, since it's equally
+  the article page's LCP element.
+- **`app/preview/articles/[id]/page.tsx` was deliberately left alone**
+  — it mirrors the article hero's markup but is an admin-only,
+  low-traffic preview route, outside what this pass scoped to touch.
+- **Verified in a real production build** (`rm -rf .next && npm run
+  build && npm run start`, matching Phase 45's lesson about Turbopack's
+  incremental cache going stale across a rebuild): confirmed real
+  `/_next/image?url=...` URLs render for the homepage's `list`-variant
+  briefs (38 instances), the article page's hero and its "Keep Reading"
+  related-article images, and both a local-file banner
+  (`/banners/stucci-apparel-fell-hard.png`) and a remote Blob banner —
+  all resolving through the optimizer, not just present as markup.

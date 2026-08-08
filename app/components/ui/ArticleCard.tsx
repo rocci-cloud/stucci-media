@@ -37,14 +37,13 @@ export default function ArticleCard({ article, variant = "grid", rank }: Article
         className="flex gap-3.5 sm:gap-4 px-4 py-3 sm:py-3.5 min-h-11 group active:bg-[var(--color-bg-off)] transition-colors"
       >
         {article.coverImageUrl ? (
-          <div className="w-[88px] h-[60px] shrink-0 overflow-hidden rounded-control shadow-sm ring-1 ring-black/5">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+          <div className="relative w-[88px] h-[60px] shrink-0 overflow-hidden rounded-control shadow-sm ring-1 ring-black/5">
+            <Image
               src={article.coverImageUrl}
               alt={article.headline}
-              loading="lazy"
-              decoding="async"
-              className="img-cinematic h-full w-full object-cover transition-transform duration-[600ms] group-hover:scale-[1.08]"
+              fill
+              sizes="88px"
+              className="img-cinematic object-cover transition-transform duration-[600ms] group-hover:scale-[1.08]"
             />
           </div>
         ) : (
