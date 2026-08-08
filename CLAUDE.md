@@ -827,3 +827,60 @@ than cosmetic polish.
   throwaway test articles/images, all created fresh and fully cleaned up
   (deleted test users, test articles, test activity-log rows) after each
   check. Nothing test-related was left behind in the repo or the database.
+
+## Phase 15 — done: cinematic full-bleed hero (FeaturedSection rearchitecture)
+
+The homepage's above-the-fold `FeaturedSection` — previously a contained,
+rounded, shadowed card floating inside the page's `max-w-[1280px]`
+container, with the 3 secondary stories squeezed into a skinny `1fr`
+sidebar column — was rebuilt into a true edge-to-edge magazine-cover hero
+with a proper tight editorial secondary system. Structure/layout only —
+no color, font, or animation changes; every class still references the
+site's existing design tokens.
+
+- **True full-bleed hero**: `FeaturedSection` is no longer wrapped in
+  `page.tsx`'s `max-w-[1280px] px-5` container — it renders its own
+  full-width `<section>`, so the hero image spans the entire viewport on
+  every breakpoint (previously it only bled edge-to-edge on mobile via a
+  `-mx-5` hack; desktop always showed a rounded, shadowed, inset card).
+  The secondary editorial band below re-applies the `max-w-[1280px]`
+  constraint internally so it still lines up with the rest of the page.
+- **Cinematic, viewport-relative height**: `h-[85svh]` on mobile (using
+  `svh` specifically — small-viewport-height — to avoid the classic
+  mobile Safari `100vh`-includes-the-address-bar bug), scaling down
+  through `sm:h-[72vh]` to a fixed `lg:h-[640px]` on desktop, each with a
+  `min-h`/`max-h` clamp so it never collapses too short or grows
+  absurdly tall on unusual viewport sizes.
+- **Tight editorial secondary system, not three skinny side cards**: the
+  old `ArticleCard` `variant="featured"` (a horizontal thumbnail-left
+  card in a bordered/shadowed box, stacked vertically in a squeezed `1fr`
+  column) is gone — secondary stories are now inlined directly in
+  `FeaturedSection` as flush, chrome-free, image-top cards separated by
+  hairline/navy divider rules (`sm:border-t-2 sm:border-[var(--color-navy)]`
+  + vertical `sm:border-l` between items), laid out as a proper 3-column
+  row on `sm:` and up. On mobile, the same cards become a horizontal
+  snap-scroll rail (`overflow-x-auto snap-x snap-mandatory`, each card
+  `w-[68%]` so the next card visibly peeks at the edge as a scroll
+  affordance) instead of a vertical stack — new `.scrollbar-none` utility
+  added to `globals.css` (`@layer utilities`) to hide the scrollbar
+  without disabling scroll/snap.
+- **Spacing tightened**: `page.tsx`'s `pt-6` before the section is gone
+  (the hero now touches the header directly, zero gap, for true
+  full-bleed cinematic weight) and the "Featured Stories" kicker/heading
+  padding was reduced (`pt-4 pb-3` vs. the old `mb-5 sm:mb-6`).
+- **Type scale increased for magazine-cover weight**: the lead headline
+  grew from `27px/38px/44px` (mobile/sm/lg) to `32px/46px/58px` — still
+  `font-headline` (Oswald), no font change, just a bolder hierarchy
+  decision — and is now the page's actual `<h1>` (previously an `<h3>`,
+  and the homepage had no `<h1>` at all before this — a correctness
+  improvement, not just visual).
+- **Verified in a real production build** (`next build && next start`,
+  not just dev) via Playwright screenshots at mobile (390px), tablet
+  (834px), and desktop (1600px) — confirmed the full-bleed edge-to-edge
+  hero, the 3-column editorial grid on desktop, and the horizontal
+  snap-scroll rail on mobile (including the partial-card scroll
+  affordance) all render as intended. Article cover images themselves
+  didn't load in this sandbox (no general internet egress to the Vercel
+  Blob CDN, a known/documented environment limitation — see Phase 11) but
+  the layout structure, gradient scrim, and text overlay all verified
+  correctly against the placeholder.

@@ -99,6 +99,18 @@ body {
   outline-offset: 2px;
 }
 
+/* Used by the homepage hero's mobile secondary-story rail (horizontal
+   snap-scroll) — hides the scrollbar without disabling scroll/snap. */
+@layer utilities {
+  .scrollbar-none {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 @keyframes fadein {
   from {
     opacity: 0;
