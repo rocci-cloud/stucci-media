@@ -1090,3 +1090,46 @@ changes.
   sandbox (same documented CDN-egress limitation as prior phases) but
   every layout structure verified correctly against the placeholder
   blocks.
+
+## Phase 20 — done: tight editorial footer
+
+`SiteFooter` was a stock four-column theme footer: Brand, a 7-item
+vertical "Sections" list, a 4-item vertical "Company" list, and a
+"Stay Informed" column that duplicated `SubscribeStrip`'s newsletter
+pitch immediately above it. On mobile, four full-height stacked columns
+(each with its own header) made for a very long scroll with several
+big blocks of same-weight vertical link lists. Rebuilt into two columns
+with a denser nav pattern. Structure and spacing only — no color,
+typography, or animation changes.
+
+- **Four columns → two**: Brand+social+subscribe on the left, a single
+  Navigation column on the right holding two small labeled groups
+  (Sections, Company) — down from three separately-labeled columns.
+  The old dedicated "Stay Informed" column is gone; its one real job
+  (a subscribe pathway) now lives as a compact button next to the
+  social icon in the Brand column, since the full pitch (headline,
+  benefit list, email form) already exists one component up in
+  `SubscribeStrip` — the footer doesn't need to repeat it.
+- **Vertical link lists → flat wrapped nav rows**: `Sections`' 7
+  categories and `Company`'s 4 pages were each `<ul>`s with one
+  `min-h-11` link per line (11 stacked 44px rows total). Both are now
+  `flex flex-wrap` rows — links share a line where they fit, so 7
+  categories collapse to ~2 lines instead of 7, each link still keeping
+  its own `min-h-11` touch target via `inline-flex items-center` (the
+  44px floor comes from `min-height`, not padding, so it applies even
+  when several links share a row). This is the main density win, on
+  both mobile and desktop.
+- **Deliberate transition from the last content module**: the footer's
+  `mt-4` top margin — a small unstyled gap of the page's white
+  background between `SubscribeStrip`'s bottom hairline border and the
+  footer's navy start — is gone. The navy plane now begins immediately
+  where `SubscribeStrip` ends, on every page that renders `SiteFooter`
+  (home, category, article, search, about, contact, login/register,
+  privacy), not just the homepage.
+- **Bottom legal bar tightened to match**: `py-5` → `py-3.5 sm:py-4`.
+- **Verified in a real production build** (`next build && next start`)
+  via Playwright, scrolled to the bottom of the homepage at mobile
+  (390px) and desktop (1440px) — confirmed the two-column layout, the
+  wrapped nav rows collapsing the old 11-row link list into ~4 dense
+  lines, the direct touch against `SubscribeStrip` above with no gap,
+  and the tightened legal bar, at both breakpoints.
