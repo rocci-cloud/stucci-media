@@ -2,9 +2,11 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import BreakingBar from "../../components/BreakingBar";
 import SiteHeader from "../../components/SiteHeader";
+import CategoryLead from "../../components/CategoryLead";
 import ArticleGrid from "../../components/ArticleGrid";
 import Sidebar from "../../components/Sidebar";
 import SiteFooter from "../../components/SiteFooter";
+import Reveal from "../../components/Reveal";
 import { getCategories, getCategoryBySlug } from "../../lib/categories";
 import { getArticlesByCategory, getPublishedArticles } from "../../lib/articles";
 
@@ -46,27 +48,62 @@ export default async function CategoryPage({ params }: Props) {
     getPublishedArticles(),
   ]);
 
+  // The top 4 stories (most recent first, per getArticlesByCategory) get
+  // the CategoryLead treatment — one dominant lead + a tight briefs
+  // stack — same as TopicRail on the homepage. Everything after that
+  // feeds the dense ArticleGrid wire-list below, so nothing shows twice.
+  const leadArticles = categoryArticles.slice(0, 4);
+  const remainingArticles = categoryArticles.slice(4);
+
   return (
     <>
       <BreakingBar />
       <SiteHeader />
       <main>
-        <div className="mx-auto max-w-[1280px] px-5 pt-8 pb-4 border-b-4 border-[var(--color-navy)]">
-          <h1 className="font-headline text-[34px] sm:text-[46px] font-bold uppercase leading-[0.98] tracking-[-0.015em] mb-2">
-            {category.label}
-          </h1>
-          <p className="font-sans text-[var(--color-gray)] text-[15px] pb-2">{category.description}</p>
-        </div>
-
-        <div className="mx-auto max-w-[1280px] px-5 py-8 grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-x-10">
-          <ArticleGrid
-            articles={categoryArticles}
-            title={`${categoryArticles.length} ${categoryArticles.length === 1 ? "Story" : "Stories"}`}
-          />
-          <div className="mt-8 lg:mt-0">
-            <Sidebar articles={allArticles} />
+        <div className="border-b-4 border-[var(--color-navy)] bg-[var(--color-bg-off)]">
+          <div className="mx-auto max-w-[1280px] px-5 pt-8 pb-6 sm:pt-10 sm:pb-7">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="h-[9px] w-[9px] rounded-full bg-[var(--color-red)] shrink-0" />
+              <span className="font-headline uppercase font-bold text-[13px] sm:text-[14px] tracking-[0.06em] text-[var(--color-gray)]">
+                Section
+              </span>
+            </div>
+            <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-2">
+              <h1 className="font-headline text-[36px] sm:text-[50px] font-bold uppercase leading-[0.96] tracking-[-0.02em]">
+                {category.label}
+              </h1>
+              <span className="font-sans text-[12.5px] font-bold uppercase tracking-[0.04em] text-[var(--color-gray-light)] mb-1.5">
+                {categoryArticles.length} {categoryArticles.length === 1 ? "Story" : "Stories"}
+              </span>
+            </div>
+            {category.description && (
+              <p className="font-sans text-[var(--color-gray)] text-[15px] sm:text-[16px] leading-[1.5] mt-2.5 max-w-[70ch]">
+                {category.description}
+              </p>
+            )}
           </div>
         </div>
+
+        {categoryArticles.length === 0 ? (
+          <div className="mx-auto max-w-[1280px] px-5 py-16 text-center font-sans text-[var(--color-gray)]">
+            No stories in this category yet — check back soon.
+          </div>
+        ) : (
+          <>
+            <div className="mx-auto max-w-[1280px] px-5 pt-8 sm:pt-10">
+              <CategoryLead articles={leadArticles} />
+            </div>
+
+            <Reveal>
+              <div className="mx-auto max-w-[1280px] px-5 py-8 grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-x-10">
+                <ArticleGrid articles={remainingArticles} />
+                <div className="mt-8 lg:mt-0">
+                  <Sidebar articles={allArticles} />
+                </div>
+              </div>
+            </Reveal>
+          </>
+        )}
       </main>
       <SiteFooter />
     </>
