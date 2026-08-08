@@ -29,7 +29,7 @@ export default function SectionHeader({
   if (variant === "panel") {
     return (
       <div
-        className={`bg-[var(--color-navy)] text-white font-headline uppercase font-bold text-[15px] tracking-wide px-4 py-2.5 ${className}`}
+        className={`bg-[var(--color-navy)] text-white font-headline uppercase font-bold text-[14.5px] tracking-[0.03em] px-4 py-2.5 ${className}`}
       >
         {title}
       </div>
@@ -41,7 +41,7 @@ export default function SectionHeader({
       className={`flex items-center justify-between gap-3 ${compact ? "mb-2 sm:mb-3" : "mb-4 sm:mb-5"} ${className}`}
     >
       <h2
-        className={`font-headline uppercase font-bold ${compact ? "text-[16px] sm:text-[18px]" : "text-[19px] sm:text-[21px]"} tracking-[-0.005em] border-l-4 border-[var(--color-red)] pl-3 leading-none`}
+        className={`font-headline uppercase font-bold ${compact ? "text-[16px] sm:text-[18px]" : "text-[20px] sm:text-[23px]"} tracking-[-0.015em] border-l-4 border-[var(--color-red)] pl-3 leading-none`}
       >
         {title}
       </h2>

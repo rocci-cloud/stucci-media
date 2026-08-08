@@ -1133,3 +1133,83 @@ typography, or animation changes.
   wrapped nav rows collapsing the old 11-row link list into ~4 dense
   lines, the direct touch against `SubscribeStrip` above with no gap,
   and the tightened legal bar, at both breakpoints.
+
+## Phase 21 — done: premium editorial type system
+
+Every structural pass through Phase 20 reused the same handful of type
+sizes/tracking values (`tracking-[-0.005em]` on nearly every headline,
+`tracking-wide` on nearly every kicker) — visual hierarchy came entirely
+from layout, not from the type itself. This phase tunes size, weight,
+line-height, and letter-spacing at every tier so the hierarchy reads
+even with the layout held constant. Typography only — no color, no
+layout/structure changes, no animation. `font-headline` (Oswald) stays
+the display/UI face and the Georgia body serif is untouched; every
+change below is size/leading/tracking within the existing two-font
+system.
+
+- **Display tier (hero `<h1>`, `FeaturedSection`)**: `32/46/58px` →
+  `36/52/66px`, `leading-[1.02]` → `leading-[0.96]`,
+  `tracking-[-0.015em]` → `tracking-[-0.02em]` — a genuinely bigger,
+  tighter, more magazine-cover headline instead of a scaled-up card
+  title. The hero dek gained a touch of size/leading (`15/17px` →
+  `15.5/18px`, `leading-[1.5]`→`[1.55]`) for readability at the new
+  contrast level, and the byline row got `tracking-[0.01em]` so it
+  reads as a deliberately quieter UI tier under the display headline,
+  not just smaller text.
+- **Section-label tier (`SectionHeader`)**: non-compact `19/21px` →
+  `20/23px` with `tracking-[-0.005em]` → `tracking-[-0.015em]`; the
+  `panel` variant (Trending Now, "Also Developing") went from
+  `tracking-wide`'s default value to an explicit tuned
+  `tracking-[0.03em]`. Tighter tracking at a slightly larger size reads
+  as "authoritative label," not "slightly-bold paragraph text."
+  `FeaturedSection`'s own "Also Making Headlines" kicker (a bespoke
+  label, not `SectionHeader`) got the same treatment:
+  `tracking-[0.02em]` → `[0.06em]` for a sharper, more spaced-out
+  section-divider feel appropriate to its all-caps kicker role.
+- **Card-title tier (`ArticleCard`, all three variants)**: every
+  variant's headline gained tighter `tracking-[-0.01em]` (previously
+  `-0.005em` or untracked) and tighter `leading` (`1.25`→`1.15` on
+  `grid`, `1.3`→`1.2` on `list`); the `grid` variant's title also grew
+  `16/17px` → `17/18px` for more presence as the module's lead story.
+  Metadata rows (byline/date/dek) picked up small `tracking-[0.01em]`–
+  `[0.04em]` values instead of being untracked, so the metadata tier
+  reads as a distinct, deliberately-labeled register under the
+  headline rather than an afterthought.
+- **Page `<h1>` tier, unified sitewide**: category, search, about,
+  contact, and privacy pages all shared one `text-[32px] sm:
+  text-[42px] tracking-[-0.005em]` pattern — bumped together to
+  `text-[34px] sm:text-[46px] leading-[0.98] tracking-[-0.015em]` so
+  every non-article, non-hero page title reads at the same authoritative
+  weight. The article page's own `<h1>` (which needs to fit much longer
+  real headlines, so keeps its own smaller size) got the matching
+  `leading-[0.98] tracking-[-0.015em]` treatment: `28/38px` → `31/42px`.
+  `error.tsx`'s heading and `MobileMenu`'s wordmark/nav-link tracking
+  were tuned to match the same tightened-tracking language.
+  `SubscribeStrip`'s and `SiteFooter`'s brand-adjacent headings
+  (newsletter CTA `h2`, footer wordmark, `Sidebar`'s two promo-box
+  titles) all picked up the same tighter tracking + slightly larger
+  size pattern for consistency across every "this is a heading" moment
+  on the site.
+- **Article body (`prose`)**: `prose-headings` gained
+  `tracking-[-0.01em] leading-[1.1]` (previously only `tracking-[-0.005em]`,
+  no explicit leading — relied on the browser default), `prose-h2` grew
+  `24px` → `25px`, and `prose-blockquote` gained `leading-[1.3]` so a
+  pull-quote doesn't run loose at its larger `22px` size. The actual
+  body paragraph size/leading (`17/19px`, `leading-[1.75]`) is
+  untouched — it was already well-tuned for long-form serif readability
+  in Phase 4, and "highly readable body text" meant leaving it alone,
+  not changing it for its own sake.
+- **`Badge`**: `11px tracking-wide` → `10.5px tracking-[0.05em]` — a
+  hair smaller with deliberately wider, tuned tracking reads as a
+  sharper kicker/tag than the previous generic `tracking-wide` utility.
+- **Verified in a real production build** (`next build && next start`)
+  via Playwright full-page screenshots of the homepage (mobile 390px,
+  desktop 1440px) and an article page (mobile + desktop) — confirmed
+  the hero headline now reads with genuine magazine-cover weight at
+  both breakpoints, section labels and card titles are visibly tighter
+  and sharper without hurting legibility, the article `<h1>`/prose
+  hierarchy holds up on a real long-form piece, and mobile headlines
+  carry authority rather than reading like scaled-down desktop text.
+  Article cover images didn't load in this sandbox (same documented
+  CDN-egress limitation as prior phases) but every typographic change
+  verified correctly against the placeholder blocks.

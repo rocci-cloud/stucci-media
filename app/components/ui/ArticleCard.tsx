@@ -19,10 +19,10 @@ export default function ArticleCard({ article, variant = "grid", rank }: Article
         href={`/articles/${article.slug}`}
         className="flex gap-3 px-4 py-3 sm:py-3.5 min-h-11 group active:bg-[var(--color-bg-off)] transition-colors"
       >
-        <span className="font-headline text-[26px] font-bold text-[var(--color-red)]/25 leading-none shrink-0 w-[26px]">
+        <span className="font-headline text-[27px] font-bold tracking-[-0.01em] text-[var(--color-red)]/25 leading-none shrink-0 w-[26px]">
           {rank}
         </span>
-        <span className="font-sans text-[13.5px] font-bold leading-[1.35] group-hover:text-[var(--color-red)] transition-colors">
+        <span className="font-sans text-[13.5px] font-bold leading-[1.3] tracking-[-0.005em] group-hover:text-[var(--color-red)] transition-colors">
           {article.headline}
         </span>
       </Link>
@@ -46,10 +46,10 @@ export default function ArticleCard({ article, variant = "grid", rank }: Article
           <div className="w-[84px] h-[64px] bg-[#E5E4E0] rounded-control shrink-0" />
         )}
         <div className="min-w-0 flex flex-col justify-center">
-          <div className="font-headline text-[14.5px] font-bold leading-[1.3] tracking-[-0.005em] group-hover:text-[var(--color-red)] transition-colors line-clamp-3">
+          <div className="font-headline text-[15px] font-bold leading-[1.2] tracking-[-0.01em] group-hover:text-[var(--color-red)] transition-colors line-clamp-3">
             {article.headline}
           </div>
-          <div className="font-sans text-[11px] font-medium text-[var(--color-gray-light)] mt-1.5 uppercase tracking-wide">
+          <div className="font-sans text-[10.5px] font-bold text-[var(--color-gray-light)] mt-1.5 uppercase tracking-[0.04em]">
             {article.date}
           </div>
         </div>
@@ -76,11 +76,11 @@ export default function ArticleCard({ article, variant = "grid", rank }: Article
         <Badge variant="text" className="mb-2">
           {article.category}
         </Badge>
-        <div className="font-headline text-[16px] sm:text-[17px] font-bold leading-[1.25] mb-1.5 line-clamp-2 group-hover:text-[var(--color-red)] transition-colors">
+        <div className="font-headline text-[17px] sm:text-[18px] font-bold leading-[1.15] tracking-[-0.01em] mb-1.5 line-clamp-2 group-hover:text-[var(--color-red)] transition-colors">
           {article.headline}
         </div>
         <p className="text-[13.5px] text-[var(--color-gray)] leading-[1.5] line-clamp-2 mb-3">{article.dek}</p>
-        <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 font-sans text-[11px] text-[var(--color-gray-light)] pt-3 border-t border-[var(--color-hairline)]">
+        <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 font-sans text-[11px] tracking-[0.01em] text-[var(--color-gray-light)] pt-3 border-t border-[var(--color-hairline)]">
           <span className="font-bold text-[var(--color-text)]">{article.author}</span>
           <span>·</span>
           <span>{article.date}</span>

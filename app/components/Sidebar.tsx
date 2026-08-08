@@ -29,7 +29,7 @@ export default function Sidebar({
       )}
 
       <div className="rounded-card border border-[var(--color-hairline)] shadow-card px-5 py-4 sm:py-5 bg-white">
-        <h3 className="font-headline uppercase font-bold text-[17px] mb-1.5">Get The Real Story</h3>
+        <h3 className="font-headline uppercase font-bold text-[18px] tracking-[-0.01em] mb-1.5">Get The Real Story</h3>
         <p className="font-sans text-[13px] text-[var(--color-gray)] mb-4">
           Independent reporting, straight to your inbox.
         </p>
@@ -37,7 +37,7 @@ export default function Sidebar({
       </div>
 
       <div className="rounded-card border border-[var(--color-hairline)] shadow-card px-5 py-4 sm:py-5 bg-[var(--color-navy)] text-white">
-        <h3 className="font-headline uppercase font-bold text-[17px] mb-1.5">The Rocci Stucci Show</h3>
+        <h3 className="font-headline uppercase font-bold text-[18px] tracking-[-0.01em] mb-1.5">The Rocci Stucci Show</h3>
         <p className="font-sans text-[13px] text-white/70 mb-4">
           New episodes weekly — the stories mainstream media won&apos;t run.
         </p>

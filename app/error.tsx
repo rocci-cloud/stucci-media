@@ -10,7 +10,7 @@ export default function GlobalError({ error, reset }: { error: Error & { digest?
 
   return (
     <main className="mx-auto flex min-h-[60vh] max-w-[560px] flex-col items-center justify-center gap-4 px-5 text-center">
-      <h1 className="font-headline text-[28px] font-bold uppercase tracking-[-0.01em]">
+      <h1 className="font-headline text-[30px] font-bold uppercase leading-[1.02] tracking-[-0.015em]">
         Something went wrong
       </h1>
       <p className="font-sans text-[15px] text-[var(--color-gray)]">

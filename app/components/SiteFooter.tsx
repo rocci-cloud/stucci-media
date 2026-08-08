@@ -35,7 +35,7 @@ export default async function SiteFooter() {
     <footer className="font-sans bg-[var(--color-navy)] text-white">
       <div className="mx-auto max-w-[1280px] px-5 py-7 sm:py-10 grid grid-cols-1 sm:grid-cols-[1.1fr_1fr] gap-7 sm:gap-10">
         <div>
-          <div className="font-headline text-[20px] font-bold uppercase mb-2">
+          <div className="font-headline text-[21px] font-bold uppercase tracking-[-0.015em] mb-2">
             Stucci<span className="text-[var(--color-red)]">Media</span>
           </div>
           <p className="text-[13px] text-white/60 leading-[1.55] mb-4 max-w-[36ch]">
@@ -64,7 +64,7 @@ export default async function SiteFooter() {
         </div>
 
         <div>
-          <h4 className="text-[11px] font-bold uppercase tracking-wide text-white/50 mb-2.5">Sections</h4>
+          <h4 className="text-[10.5px] font-bold uppercase tracking-[0.06em] text-white/50 mb-2.5">Sections</h4>
           <nav aria-label="Footer sections" className="flex flex-wrap gap-x-4 gap-y-0.5 mb-4">
             {categories.map((c) => (
               <Link
@@ -77,7 +77,7 @@ export default async function SiteFooter() {
             ))}
           </nav>
 
-          <h4 className="text-[11px] font-bold uppercase tracking-wide text-white/50 mb-2.5">Company</h4>
+          <h4 className="text-[10.5px] font-bold uppercase tracking-[0.06em] text-white/50 mb-2.5">Company</h4>
           <nav aria-label="Footer company links" className="flex flex-wrap gap-x-4 gap-y-0.5">
             {COMPANY_LINKS.map((link) => (
               <Link
@@ -94,7 +94,7 @@ export default async function SiteFooter() {
 
       <div className="bg-[var(--color-navy-dark)] border-t border-white/10">
         <div className="mx-auto max-w-[1280px] px-5 py-3.5 sm:py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-          <div className="font-headline text-[12.5px] font-bold uppercase tracking-wide text-white/90">
+          <div className="font-headline text-[12.5px] font-bold uppercase tracking-[0.02em] text-white/90">
             Stucci Media · Independent News That Matters
           </div>
           <div className="text-[11.5px] text-white/50">

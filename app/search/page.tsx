@@ -18,7 +18,7 @@ export default async function SearchPage({ searchParams }: Props) {
       <BreakingBar />
       <SiteHeader />
       <main className="max-w-[720px] mx-auto px-5 pt-10 pb-20">
-        <h1 className="font-headline text-[32px] sm:text-[42px] font-bold uppercase tracking-[-0.005em] mb-6">
+        <h1 className="font-headline text-[34px] sm:text-[46px] font-bold uppercase leading-[0.98] tracking-[-0.015em] mb-6">
           Search
         </h1>
         <SearchClient articles={articles} initialQuery={q ?? ""} />
