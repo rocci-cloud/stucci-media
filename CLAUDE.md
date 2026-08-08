@@ -2074,3 +2074,39 @@ that also double as the visible on-page dek under each category `<h1>`.
   page, and a live article directly and confirmed every rendered
   `<title>` and `<meta name="description">` matches this phase's exact
   copy, with no double-branding or truncation issues.
+
+## Phase 35 — done: "Our Network" sister-site links in the footer
+
+`SiteFooter.tsx`'s right column (Sections, Company — see Phase 20's
+two-column rebuild) gained a third small labeled group linking to the
+two sister sites under the same ownership, Stucci Marketing Group and
+Stucci Apparel.
+
+- **Reuses the exact Sections/Company block pattern** — same `h4`
+  label style (`10.5px` uppercase, `white/50`), same link size/color/
+  hover-transition — rather than a bordered "sponsor" box, a different
+  background tint, or anything else that would read as a paid ad
+  placement sitting in the footer. This was the explicit goal: it
+  should feel like a natural continuation of the footer's own nav, not
+  an inserted promotion.
+- **A small `ArrowUpRight` icon** (lucide-react, already the site's
+  icon library — see `SiteHeader.tsx`) sits after each link instead of
+  a fabricated sister-site logo — there's no real logo asset for either
+  external brand in this codebase, and inventing one un-reviewed would
+  have been worse than a clean, understated external-link affordance
+  that still signals "this leaves the site" without adding visual
+  clutter.
+- **Both links are real external URLs** (`https://stuccimarketing.com`,
+  `https://stucciapparel.com`) with `target="_blank"` +
+  `rel="noopener noreferrer"`, matching how the existing Facebook social
+  icon link is handled.
+- **Mobile unaffected structurally** — this is the third group in the
+  same already-mobile-first-stacking right column, so it wraps/stacks
+  exactly like Sections and Company do at every breakpoint; no new
+  responsive logic was needed.
+- **Verified in a real production build** (`next build && next start`)
+  via Playwright screenshots of the footer at desktop (1440px) and
+  mobile (390px) — confirmed the new "Our Network" group sits cleanly
+  below Company with identical typography/spacing rhythm, the arrow
+  icons render without crowding the link text, and mobile stays fully
+  readable with normal touch targets.

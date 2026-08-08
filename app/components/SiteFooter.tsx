@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ArrowUpRight } from "lucide-react";
 import { getCategories } from "../lib/categories";
 
 const SOCIAL_LINKS = [
@@ -18,6 +19,15 @@ const COMPANY_LINKS = [
   { label: "Contact", href: "/contact" },
   { label: "Privacy Policy", href: "/privacy" },
   { label: "Search", href: "/search" },
+];
+
+// Sister sites under the same ownership — not ad placements, so this
+// deliberately reuses the exact Sections/Company nav treatment (same
+// label style, same link type/size/hover) rather than a bordered "sponsor"
+// box or anything else that would read as a paid placement.
+const NETWORK_LINKS = [
+  { label: "Stucci Marketing Group", href: "https://stuccimarketing.com" },
+  { label: "Stucci Apparel", href: "https://stucciapparel.com" },
 ];
 
 // Two columns, not four: brand+social+subscribe on the left, a dense
@@ -78,7 +88,7 @@ export default async function SiteFooter() {
           </nav>
 
           <h4 className="text-[10.5px] font-bold uppercase tracking-[0.06em] text-white/50 mb-2.5">Company</h4>
-          <nav aria-label="Footer company links" className="flex flex-wrap gap-x-4 gap-y-0.5">
+          <nav aria-label="Footer company links" className="flex flex-wrap gap-x-4 gap-y-0.5 mb-4">
             {COMPANY_LINKS.map((link) => (
               <Link
                 key={link.href}
@@ -87,6 +97,22 @@ export default async function SiteFooter() {
               >
                 {link.label}
               </Link>
+            ))}
+          </nav>
+
+          <h4 className="text-[10.5px] font-bold uppercase tracking-[0.06em] text-white/50 mb-2.5">Our Network</h4>
+          <nav aria-label="Our network" className="flex flex-wrap gap-x-4 gap-y-0.5">
+            {NETWORK_LINKS.map((link) => (
+              <a
+                key={link.href}
+                href={link.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="min-h-11 inline-flex items-center gap-1 text-[13.5px] text-white/80 hover:text-white transition-colors"
+              >
+                {link.label}
+                <ArrowUpRight className="h-3.5 w-3.5 text-white/40" aria-hidden />
+              </a>
             ))}
           </nav>
         </div>
