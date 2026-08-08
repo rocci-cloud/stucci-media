@@ -94,7 +94,7 @@ export default async function ArticlePage({ params }: Props) {
         <article className="max-w-[720px]">
           <Link
             href="/"
-            className="min-h-11 inline-flex items-center font-sans text-[13px] text-[var(--color-gray)] hover:text-[var(--color-text)] hover:underline mb-2"
+            className="min-h-11 flex w-fit items-center font-sans text-[13px] text-[var(--color-gray)] hover:text-[var(--color-text)] hover:underline mb-2"
           >
             ← Back to Home
           </Link>
@@ -104,12 +104,14 @@ export default async function ArticlePage({ params }: Props) {
           <h1 className="font-headline text-[31px] sm:text-[42px] font-bold uppercase leading-[0.98] tracking-[-0.015em] mb-4">
             {article.headline}
           </h1>
-          <div className="font-sans flex flex-wrap gap-4 py-3.5 border-y border-[var(--color-hairline)] mb-7 text-[13px] tracking-[0.005em] text-[var(--color-gray)]">
+          <div className="font-sans flex flex-wrap items-center gap-x-3 gap-y-1 py-3.5 border-y border-[var(--color-hairline)] mb-7 text-[13px] text-[var(--color-gray)]">
             <span>
               By <b className="text-[var(--color-text)]">{article.author}</b>
             </span>
-            <span>{article.date}</span>
-            <span>{article.readTime}</span>
+            <span className="text-[var(--color-hairline-strong)]/30">·</span>
+            <span className="text-[12px] uppercase tracking-[0.04em]">{article.date}</span>
+            <span className="text-[var(--color-hairline-strong)]/30">·</span>
+            <span className="text-[12px] uppercase tracking-[0.04em]">{article.readTime}</span>
           </div>
           {article.coverImageUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
