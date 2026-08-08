@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, Search } from "lucide-react";
+import { Menu, Search, User } from "lucide-react";
 import MobileMenu from "./MobileMenu";
 import SearchOverlay from "./SearchOverlay";
 
@@ -94,6 +94,19 @@ export default function SiteHeader() {
           >
             <Search className="h-[18px] w-[18px]" />
           </button>
+          <Link
+            href="/login"
+            aria-label="Sign in"
+            className="min-w-11 min-h-11 hidden sm:flex items-center justify-center text-white hover:text-white/80 transition-colors"
+          >
+            <User className="h-[18px] w-[18px]" />
+          </Link>
+          <Link
+            href="/register"
+            className="min-h-11 hidden sm:flex items-center text-[12px] font-bold uppercase tracking-wide text-white/70 hover:text-white transition-colors whitespace-nowrap"
+          >
+            Register
+          </Link>
           <Link
             href="/subscribe"
             className="sm:ml-2 my-0.5 sm:my-1.5 min-h-11 inline-flex items-center bg-[var(--color-red)] hover:bg-[var(--color-red-dark)] active:bg-[var(--color-red-dark)] text-white text-[12px] font-bold uppercase tracking-wide px-5 rounded-control shrink-0 shadow-[0_2px_8px_rgba(200,16,46,0.35)] transition active:scale-[0.97]"
