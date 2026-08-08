@@ -925,3 +925,49 @@ spacing only — no color, font, or animation changes.
   column. Article cover images didn't load in this sandbox (same
   documented CDN-egress limitation as Phase 15/11) but layout structure
   verified correctly against the placeholder blocks.
+
+## Phase 17 — done: tight, integrated masthead + nav
+
+`SiteHeader.tsx`'s two bands — a generously padded white logo band
+(`pt-5 pb-4`, 28px/40px logo) and a separately-proportioned navy nav band
+— read as loosely related layers sitting on top of `BreakingBar`, with a
+lot of dead white space around the wordmark. Compressed into a tight,
+high-authority masthead. Structure and spacing only — no color, font
+family, or animation changes.
+
+- **Logo band height cut roughly in half**: `pt-5 pb-4` → `py-2 sm:py-2.5`,
+  logo size trimmed `28px/40px` → `22px/30px` with `leading-none` so the
+  wordmark no longer carries extra line-height air above/below it. The
+  "Live · Florida" date block shrank to match (`text-xs` → `text-[11px]`).
+- **Nav band tightened to match**: the mobile hamburger and the desktop
+  Subscribe button's vertical margin (`my-1.5`/`sm:my-2.5`, the tallest
+  elements in the row and what was setting the band's real height) cut to
+  `my-1`/`sm:my-1.5` — every other element in the row was already pinned
+  to the 44px `min-h-11` floor, so this margin was the actual excess.
+- **Category nav gained real structure instead of a flat link list**:
+  hairline `border-l border-l-white/10` dividers between items (skipped
+  before the first) turn the 7 links into a segmented menu module — a
+  legitimate way to add visual hierarchy/intentionality without touching
+  color or type, per this task's constraints. Link padding trimmed
+  `px-3.5` → `px-3` and text `12.5px` → `12px` to fit the tighter band.
+  The active/hover state now targets `border-b-*` explicitly (previously
+  the shorthand `border-[var(--color-red)]` colored all four sides,
+  which would have also tinted the new left dividers red — had to split
+  it into a side-specific utility once dividers were introduced).
+- **`BreakingBar`**: `py-2.5` → `py-2` — its `min-h-11` was already the
+  effective floor (a real `<Link>` ticker item lives inside, so the
+  44px touch-target minimum can't drop further), this just trims the
+  padding actually available to shrink.
+- **`MobileMenu.tsx`'s drawer got the same treatment** for consistency
+  with the now-tighter collapsed header: its own logo band `pt-5 pb-4` →
+  `pt-3 pb-3`, the search field's `py-4` → `py-3`, each nav row
+  `min-h-14` (56px) → `min-h-12` (48px, still comfortably above the 44px
+  touch-target floor), and the bottom Subscribe padding `py-5` → `py-4`.
+- **Verified in a real production build** (`next build && next start`)
+  via Playwright screenshots at mobile (390px) and desktop (1440px), plus
+  the mobile drawer opened — confirmed the header now reads as one
+  compact, integrated unit sitting directly above the full-bleed hero
+  with no gap or competing whitespace, the desktop nav's divider-segmented
+  links, and the drawer's tightened rhythm. Article cover images/hero
+  photo didn't load in this sandbox (same documented CDN-egress
+  limitation as prior phases).
