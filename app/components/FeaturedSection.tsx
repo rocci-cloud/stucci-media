@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import type { Article } from "../lib/articles";
 import Badge from "./ui/Badge";
@@ -48,12 +49,13 @@ export default function FeaturedSection({
         className="group relative block w-full h-[85svh] min-h-[520px] max-h-[760px] sm:h-[72vh] sm:max-h-[680px] lg:h-[640px] lg:max-h-[74vh] overflow-hidden"
       >
         {lead.coverImageUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <Image
             src={lead.coverImageUrl}
             alt={lead.headline}
-            fetchPriority="high"
-            className="img-cinematic absolute inset-0 h-full w-full object-cover [animation:heroImageReveal_1.1s_cubic-bezier(0.16,1,0.3,1)_both] transition-transform duration-[600ms] group-hover:scale-[1.03]"
+            fill
+            priority
+            sizes="100vw"
+            className="img-cinematic object-cover [animation:heroImageReveal_1.1s_cubic-bezier(0.16,1,0.3,1)_both] transition-transform duration-[600ms] group-hover:scale-[1.03]"
           />
         ) : (
           <div className="img-placeholder absolute inset-0 [animation:heroImageReveal_1.1s_cubic-bezier(0.16,1,0.3,1)_both]" />
