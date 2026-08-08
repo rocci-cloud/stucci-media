@@ -218,3 +218,44 @@ model ActivityLog {
   @@index([createdAt(sort: Desc)])
   @@map("activity_logs")
 }
+
+// --- Promotional banners ---
+
+// The site's 3 fixed placement slots (homepage mid-content, mid-article,
+// near the top of category pages) — deliberately a closed enum, not a
+// free-text field, so the public site's slot components can each query
+// exactly the placement they render without an admin being able to invent
+// a slot nothing on the frontend actually shows.
+enum BannerPlacement {
+  HOMEPAGE
+  ARTICLE
+  CATEGORY
+
+  @@map("banner_placement")
+}
+
+model Banner {
+  id             String          @id @default(cuid())
+  name           String?
+  imageUrl       String          @map("image_url")
+  destinationUrl String          @map("destination_url")
+  placement      BannerPlacement
+  isActive       Boolean         @default(true) @map("is_active")
+
+  // Both optional — a banner with neither is simply always eligible
+  // (subject to isActive) whenever it's live long-term; either bound can
+  // be set independently for a scheduled start, an open-ended campaign
+  // that just needs to stop on a known date, etc.
+  startDate DateTime? @map("start_date")
+  endDate   DateTime? @map("end_date")
+
+  // Lower sorts first. Only meaningful relative to other banners in the
+  // same placement — no need to keep values globally unique.
+  sortOrder Int @default(0) @map("sort_order")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([placement, isActive, sortOrder])
+  @@map("banners")
+}
