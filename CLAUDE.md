@@ -1745,3 +1745,50 @@ paid flow that would silently do nothing.
   `IntersectionObserver` timing artifact in the screenshot tooling
   itself, not a site bug — consistent with the reveal-on-scroll
   behavior `Reveal` was built for in Phase 25.
+
+## Phase 29 — done: Subscribe page design refinement
+
+A follow-up design pass on Phase 28's `/subscribe` page, aimed
+specifically at the things that read as "template" rather than
+"cinematic": the hero was padding-driven instead of height-driven, every
+section used the same generous spacing as the very first draft, and the
+plan section had only one card with nothing to compare it against.
+Design/structure only — same components, same tokens, same copy voice.
+
+- **Hero became genuinely height-driven, not padding-driven**: `flex
+  min-h-[440px] h-[56svh] sm:h-[54vh] sm:max-h-[540px] items-center
+  justify-center` replaces the old `py-16 sm:py-24` block — the same
+  technique the homepage/article heroes use (a tall band with centered
+  content) rather than "text with some padding around it." Gained a
+  second layered overlay: a radial vignette
+  (`transparent_40%→rgba(0,0,0,0.35)_100%`) under the existing red glow,
+  matching the vignette+scrim layering `FeaturedSection` and the article
+  hero both use, for real cinematic depth instead of a flat gradient
+  fill.
+- **Section rhythm tightened sitewide on the page**: every section's
+  `py-14 sm:py-16` (and the plan section's `py-16 sm:py-20`) dropped to
+  `py-10 sm:py-12`(–`14`) — brings the page in line with the density
+  standard the rest of the site established, rather than reading as a
+  separately-paced "marketing page."
+- **Plan section rebuilt into a real two-card comparison**: "Free
+  Access" (active, dominant — navy-gradient header, red checkmarks, the
+  real working `SubscribeForm`) sits beside a new "Founding Supporter"
+  card (`border-dashed`, `bg-off`, muted gray checkmarks, a "Coming
+  Soon" badge) at an asymmetric `1.15fr/1fr` width split — the same
+  dominant-plus-secondary proportion `TopicRail`/`CategoryLead` use
+  elsewhere, rather than two equal-weight boxes. The second card is
+  **informational only** — a static "Not Yet Available" pill, not a
+  button — since there's no billing infrastructure in this codebase to
+  back a real founding-tier purchase; a clickable button that silently
+  did nothing would have been worse than no second card at all. This is
+  what gives the page real plan-selection hierarchy while staying
+  honest about what's actually available today.
+- **Verified in a real production build** (`next build && next start`)
+  via Playwright at desktop (1200px) and mobile (390px), this time
+  scrolling through the page in incremental steps before each
+  screenshot (learned from Phase 28's `fullPage`-vs-`IntersectionObserver`
+  timing artifact) — confirmed the taller vignetted hero, the tightened
+  section spacing, and the two-card plan comparison (including the
+  dashed/muted "Coming Soon" card reading as clearly secondary to Free
+  Access) all render correctly, and that mobile stacks both plan cards
+  with strong vertical rhythm and no wasted space.
