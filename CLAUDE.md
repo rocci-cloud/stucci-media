@@ -884,3 +884,44 @@ site's existing design tokens.
   Blob CDN, a known/documented environment limitation — see Phase 11) but
   the layout structure, gradient scrim, and text overlay all verified
   correctly against the placeholder.
+
+## Phase 16 — done: high-density post-hero editorial system
+
+Below the Phase 15 hero, the homepage's 7 stacked `TopicRail` category
+modules previously each rendered 4 uniform-weight `variant="grid"` cards
+with no internal hierarchy — combined with each rail's own padding plus
+`SectionHeader`'s margin repeated 7 times, this was the source of the
+"generic blog feed" / "large empty white bands" complaint. Structure and
+spacing only — no color, font, or animation changes.
+
+- **Every `TopicRail` now has a lead + briefs hierarchy** instead of 4
+  equal cards: one `variant="grid"` lead story (full image/dek/byline
+  treatment) alongside up to 3 secondary stories reusing the existing,
+  previously-unused-in-the-content-stream `ArticleCard` `variant="list"`
+  (small thumbnail + tight headline + date, no card chrome), grouped in a
+  single bordered/shadowed panel. Desktop is a `grid-cols-[1.4fr_1fr]`
+  split; mobile stacks the lead above the tight list. No new markup was
+  invented — both variants already existed in `ArticleCard.tsx`.
+- **`SectionHeader` gained an opt-in `compact` prop** (smaller kicker
+  text, tighter `mb-2.5 sm:mb-3` vs. the default `mb-4 sm:mb-5`) used only
+  by `TopicRail` — `RelatedArticles.tsx` and `ArticleGrid.tsx` (article
+  page's "You May Also Like", category pages) keep the original spacing
+  unchanged, since those are standalone-page contexts where the old
+  looser rhythm still reads correctly, not a repeated-7-times homepage
+  stack.
+- **Padding/margin trimmed at every level that compounded down the
+  stack**: each `TopicRail`'s own `py-6 sm:py-7` dropped to `py-4 sm:py-5`;
+  a hairline `border-t` (skipped on `alternate` rails, which already read
+  as a distinct block via `bg-[var(--color-bg-off)]`) replaces the old
+  `gap-1` flex spacing between rails for a crisper module boundary without
+  adding whitespace; `page.tsx`'s wrapping `py-2` was removed entirely;
+  `Sidebar.tsx`'s panel-to-panel `gap-7` tightened to `gap-5` and its two
+  promo boxes' `py-6` internal padding tightened to `py-5`.
+- **Verified in a real production build** (`next build && next start`) via
+  Playwright full-page screenshots at mobile (390px) and desktop (1440px)
+  — confirmed the lead/briefs hierarchy renders correctly in every rail,
+  alternating-background rails still read as distinct modules, and the
+  sidebar's tightened panel spacing holds up alongside the denser main
+  column. Article cover images didn't load in this sandbox (same
+  documented CDN-egress limitation as Phase 15/11) but layout structure
+  verified correctly against the placeholder blocks.
