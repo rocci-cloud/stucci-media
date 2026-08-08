@@ -32,7 +32,7 @@ export default async function SiteFooter() {
   const categories = await getCategories();
 
   return (
-    <footer className="font-sans bg-[var(--color-navy)] text-white">
+    <footer className="font-sans bg-gradient-to-b from-[var(--color-navy)] to-[var(--color-navy-dark)] text-white">
       <div className="mx-auto max-w-[1280px] px-5 py-7 sm:py-10 grid grid-cols-1 sm:grid-cols-[1.1fr_1fr] gap-7 sm:gap-10">
         <div>
           <div className="font-headline text-[21px] font-bold uppercase tracking-[-0.015em] mb-2">

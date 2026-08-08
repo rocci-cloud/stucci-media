@@ -9,7 +9,7 @@ export default async function BreakingBar() {
   if (items.length === 0) return null;
 
   return (
-    <div className="bg-[var(--color-red)]">
+    <div className="bg-gradient-to-r from-[var(--color-red)] to-[var(--color-red-dark)]">
       <div className="mx-auto max-w-[1280px] px-5 py-2 flex items-center gap-2.5 text-[13px] font-sans font-medium tracking-[0.005em] min-h-11">
         <Badge variant="navy" className="shrink-0">
           Breaking

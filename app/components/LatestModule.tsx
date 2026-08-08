@@ -15,7 +15,7 @@ export default function LatestModule({ articles }: { articles: Article[] }) {
   const items = articles.slice(0, 6);
 
   return (
-    <section className="py-3 sm:py-5 px-4 sm:px-6">
+    <section className="py-3 sm:py-5 px-4 sm:px-6 bg-[var(--color-bg-off)] rounded-card">
       <SectionHeader title="Latest" compact />
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px bg-[var(--color-hairline)] rounded-card border border-[var(--color-hairline)] shadow-card overflow-hidden">
         {items.map((a) => (

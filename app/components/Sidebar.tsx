@@ -36,7 +36,7 @@ export default function Sidebar({
         <SubscribeForm compact />
       </div>
 
-      <div className="rounded-card border border-[var(--color-hairline)] shadow-card px-5 py-4 sm:py-5 bg-[var(--color-navy)] text-white">
+      <div className="rounded-card border border-[var(--color-hairline)] shadow-card px-5 py-4 sm:py-5 bg-gradient-to-br from-[var(--color-navy)] to-[var(--color-navy-dark)] text-white">
         <h3 className="font-headline uppercase font-bold text-[18px] tracking-[-0.01em] mb-1.5">The Rocci Stucci Show</h3>
         <p className="font-sans text-[13px] text-white/70 mb-4">
           New episodes weekly — the stories mainstream media won&apos;t run.
