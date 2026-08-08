@@ -58,7 +58,7 @@ export default function FeaturedSection({
           <div className="absolute inset-0 bg-[#E5E4E0]" />
         )}
 
-        <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/45 to-black/10" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/97 via-black/55 to-black/5" />
 
         <div className="absolute inset-x-0 bottom-0 px-4 pb-5 sm:px-8 sm:pb-9 lg:px-10 lg:pb-11">
           <div className="mx-auto max-w-[1280px]">

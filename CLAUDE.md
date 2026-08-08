@@ -1213,3 +1213,87 @@ system.
   Article cover images didn't load in this sandbox (same documented
   CDN-egress limitation as prior phases) but every typographic change
   verified correctly against the placeholder blocks.
+
+## Phase 22 — done: color depth, surfaces, and contrast system
+
+Every prior phase built structure and type on top of the same three
+tokens doing double duty as both "brand color" and "surface treatment":
+`--color-bg-off` was nearly indistinguishable from white
+(`#f7f8fa`), navy/red panels were flat solid fills, and shadows were
+subtle enough to read as barely-there. This phase deepens the shared
+surface tokens and adds intentional depth (gradients, stronger shadows)
+at high-leverage spots, so richness cascades sitewide through the
+existing component system rather than needing per-component rewrites.
+Color/surface/contrast only — no layout, typography, or animation
+changes; the brand palette itself (navy `#0a1628`, red `#c8102e`,
+black, white) is unchanged, only how it's *used*.
+
+- **Two shared tokens deepened in `globals.css`, cascading everywhere**:
+  `--color-bg-off` (alternating `TopicRail`s, `LatestModule`, admin-
+  adjacent panels) `#f7f8fa` → `#eef1f6` — now a genuinely cooler,
+  navy-tinted surface instead of a shade barely different from white.
+  `--color-hairline` (every card border, divider, and the `gap-px`
+  hairline-grid technique in `LatestModule`/`OpinionModule`) `#e5e7eb`
+  → `#dde1e9` — sharper card edges without touching any text color.
+- **Shadow scale deepened in the same `@theme` block**: `--shadow-card`,
+  `--shadow-card-hover`, and `--shadow-pop` all gained more spread and
+  opacity (e.g. `shadow-card-hover`'s blur `28px`→`40px`, opacity
+  `0.14`→`0.18`). Every card sitewide (`ArticleCard`'s `grid` variant,
+  `TopicRail`'s briefs panel, `Sidebar`'s panels, `LatestModule`/
+  `OpinionModule`'s hairline-grid panels, `SubscribeStrip`'s form card)
+  now reads as genuinely lifted off its surface instead of barely
+  separated — a single token change with sitewide reach, deliberately
+  chosen over editing each component's own shadow class.
+- **Navy surfaces gained gradient depth instead of flat fills**:
+  `SiteHeader`'s sticky nav bar, `SiteFooter`'s main panel, and
+  `Sidebar`'s "The Rocci Stucci Show" promo box all went from solid
+  `bg-[var(--color-navy)]` to `bg-gradient-to-b` (or `-br`)
+  `from-[var(--color-navy)] to-[var(--color-navy-dark)]` — `--color-
+  navy-dark` already existed (used by the footer's bottom legal bar
+  since Phase 5/6) and is now reused rather than adding a new token,
+  giving these three navy panels atmospheric depth instead of a flat
+  poster-color fill.
+- **Red gained the same treatment where it's a large fill**:
+  `BreakingBar`'s background went from solid `bg-[var(--color-red)]` to
+  `bg-gradient-to-r from-[var(--color-red)] to-[var(--color-red-dark)]`
+  — badges and small CTAs (already small enough to read as flat, sharp
+  accent color) are untouched, this only applies where red covers a
+  large surface.
+- **`SubscribeStrip`'s inline gradient deepened**: the navy/red radial
+  wash behind the newsletter panel went from `rgba(10,22,40,0.06)`/
+  `rgba(200,16,46,0.03)` to `0.1`/`0.05` — more atmospheric without
+  approaching a contrast problem, since the section's actual text sits
+  on solid white/near-white, not on the gradient itself.
+- **`FeaturedSection`'s hero scrim deepened**: `from-black/95 via-
+  black/45 to-black/10` → `from-black/97 via-black/55 to-black/5` —
+  stronger falloff gives the overlaid white headline/dek more contrast
+  against the image (directly serving "do not reduce contrast on
+  text" — this increases it) while leaving more of the image visible
+  and untinted near the top.
+- **`LatestModule` gained its own `bg-[var(--color-bg-off)]`** (the
+  homepage's first post-hero module) so it doesn't read as a second
+  plain-white block sitting directly against `FeaturedSection`'s dark
+  hero — it's structurally isolated in its own container (not part of
+  the `TopicRail`/`OpinionModule`/`PodcastShelf` flex stack), so this
+  was safe to make a permanent tint rather than an alternating one.
+  **`OpinionModule` and `PodcastShelf` deliberately did NOT get the
+  same treatment**: they sit between `TopicRail`'s alternating rails in
+  the same unbroken flex column, and giving both a permanent tint would
+  have put three `bg-off` `rounded-card` blocks back-to-back (World
+  News → Opinion → Podcasts) with no border between them — since
+  adjacent same-tint rounded blocks touch with zero gap in this flex
+  stack, their independent corner-rounding would visibly collide at the
+  seam. Caught and reverted before shipping rather than risking a
+  layout artifact to get a color change.
+- **Verified in a real production build** (`next build && next start`)
+  via Playwright full-page screenshots of the homepage at mobile
+  (390px) and desktop (1440px) — confirmed the deepened `bg-off`/
+  hairline tokens read as genuinely richer surfaces (not just a barely-
+  perceptible tint), the gradient panels (nav, footer, sidebar promo,
+  breaking bar) show visible depth without looking like a color change,
+  the hero's stronger scrim keeps headline text sharply legible, and
+  mobile carries the identical depth treatment (same tokens, no
+  breakpoint-gated color logic). Article cover images didn't load in
+  this sandbox (same documented CDN-egress limitation as prior phases)
+  but every surface/contrast change verified correctly against the
+  placeholder blocks.

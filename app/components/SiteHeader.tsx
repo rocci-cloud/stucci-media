@@ -51,7 +51,7 @@ export default function SiteHeader() {
 
       <nav
         aria-label="Primary"
-        className={`font-sans bg-[var(--color-navy)] sticky top-0 z-30 transition-shadow duration-200 ${
+        className={`font-sans bg-gradient-to-b from-[var(--color-navy)] to-[var(--color-navy-dark)] sticky top-0 z-30 transition-shadow duration-200 ${
           scrolled ? "shadow-pop" : "shadow-none"
         }`}
       >

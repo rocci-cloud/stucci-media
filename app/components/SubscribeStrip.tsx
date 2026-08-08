@@ -14,7 +14,7 @@ export default function SubscribeStrip() {
       className="relative border-y border-[var(--color-hairline)] px-5 py-9 sm:py-16"
       style={{
         background:
-          "linear-gradient(135deg, rgba(10,22,40,0.06), rgba(200,16,46,0.03) 55%, rgba(255,255,255,1) 100%)",
+          "linear-gradient(135deg, rgba(10,22,40,0.1), rgba(200,16,46,0.05) 55%, rgba(255,255,255,1) 100%)",
       }}
     >
       <div className="mx-auto max-w-[1080px] grid grid-cols-1 lg:grid-cols-[1.15fr_1fr] gap-9 lg:gap-14 items-center">
