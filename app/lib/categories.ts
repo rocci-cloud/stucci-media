@@ -1,4 +1,7 @@
 import { prisma } from "./prisma";
+import type { NavPlacement as PrismaNavPlacement } from "@prisma/client";
+
+export type NavPlacement = "MAIN" | "MORE" | "HIDDEN";
 
 export type Category = {
   id: string;
@@ -6,7 +9,7 @@ export type Category = {
   label: string;
   description: string;
   color: string | null;
-  showInNav: boolean;
+  navPlacement: NavPlacement;
   navOrder: number;
   shareImage: string | null;
   createdAt: string;
@@ -19,7 +22,7 @@ export type CategoryInput = {
   slug: string;
   description: string;
   color: string | null;
-  showInNav: boolean;
+  navPlacement: NavPlacement;
   navOrder: number;
   shareImage: string | null;
 };
@@ -30,7 +33,7 @@ function mapRow(row: {
   name: string;
   description: string | null;
   color: string | null;
-  showInNav: boolean;
+  navPlacement: PrismaNavPlacement;
   navOrder: number;
   shareImage: string | null;
   createdAt: Date;
@@ -41,7 +44,7 @@ function mapRow(row: {
     label: row.name,
     description: row.description ?? "",
     color: row.color,
-    showInNav: row.showInNav,
+    navPlacement: row.navPlacement as NavPlacement,
     navOrder: row.navOrder,
     shareImage: row.shareImage,
     createdAt: row.createdAt.toISOString(),
@@ -53,14 +56,36 @@ export async function getCategories(): Promise<Category[]> {
   return rows.map(mapRow);
 }
 
-// The site's actual nav (SiteHeader, MobileMenu, SiteFooter) — showInNav
-// categories only, in the admin's chosen order. Nav visibility/order is
-// now real editorial control instead of a hardcoded list that had to be
-// hand-kept in sync with the category table.
-export async function getNavCategories(): Promise<Category[]> {
+// The site's top-bar nav — capped at a handful of items by design (see
+// SiteHeaderClient.tsx's "Featured" + up to 5 MAIN categories + "More"
+// = 7-item structure the nav was scoped to). This query itself doesn't
+// enforce a limit — that's an editorial choice made from
+// /admin/categories, not a hardcoded slice — but MAIN is meant to stay
+// small; anything else belongs in MORE.
+export async function getMainNavCategories(): Promise<Category[]> {
   const rows = await prisma.category.findMany({
-    where: { showInNav: true },
+    where: { navPlacement: "MAIN" },
     orderBy: [{ navOrder: "asc" }, { name: "asc" }],
+  });
+  return rows.map(mapRow);
+}
+
+// The "More" dropdown (desktop) / secondary section (mobile drawer).
+export async function getMoreNavCategories(): Promise<Category[]> {
+  const rows = await prisma.category.findMany({
+    where: { navPlacement: "MORE" },
+    orderBy: [{ navOrder: "asc" }, { name: "asc" }],
+  });
+  return rows.map(mapRow);
+}
+
+// SiteFooter's "Sections" list — every category actually reachable from
+// nav (MAIN or MORE), not just MAIN, since the footer is a full sitemap
+// rather than the space-constrained top bar.
+export async function getFooterNavCategories(): Promise<Category[]> {
+  const rows = await prisma.category.findMany({
+    where: { navPlacement: { in: ["MAIN", "MORE"] } },
+    orderBy: [{ navPlacement: "asc" }, { navOrder: "asc" }, { name: "asc" }],
   });
   return rows.map(mapRow);
 }
@@ -74,7 +99,7 @@ export async function getCategoryBySlug(slug: string): Promise<Category | undefi
 
 export async function getCategoriesWithCounts(): Promise<CategoryWithCount[]> {
   const [rows, counts] = await Promise.all([
-    prisma.category.findMany({ orderBy: [{ navOrder: "asc" }, { createdAt: "asc" }] }),
+    prisma.category.findMany({ orderBy: [{ navPlacement: "asc" }, { navOrder: "asc" }, { createdAt: "asc" }] }),
     prisma.article.groupBy({ by: ["categorySlug"], _count: { _all: true } }),
   ]);
   const countBySlug = new Map(counts.map((c) => [c.categorySlug, c._count._all]));
@@ -92,7 +117,7 @@ export async function createCategory(input: CategoryInput): Promise<Category> {
       slug: input.slug,
       description: input.description || null,
       color: input.color,
-      showInNav: input.showInNav,
+      navPlacement: input.navPlacement,
       navOrder: input.navOrder,
       shareImage: input.shareImage,
     },
@@ -111,7 +136,7 @@ export async function updateCategory(id: string, input: CategoryInput): Promise<
         slug: input.slug,
         description: input.description || null,
         color: input.color,
-        showInNav: input.showInNav,
+        navPlacement: input.navPlacement,
         navOrder: input.navOrder,
         shareImage: input.shareImage,
       },

@@ -93,6 +93,14 @@ enum ArticleStatus {
   @@map("article_status")
 }
 
+enum NavPlacement {
+  MAIN
+  MORE
+  HIDDEN
+
+  @@map("nav_placement")
+}
+
 model Category {
   id          String   @id @default(cuid())
   name        String
@@ -100,12 +108,16 @@ model Category {
   description String?
   color       String?
 
-  // Nav visibility/order — the site's SiteHeader/MobileMenu/SiteFooter nav
-  // now reads directly from these instead of a hand-maintained hardcoded
+  // Nav placement/order — the site's SiteHeader/MobileMenu/SiteFooter nav
+  // reads directly from these instead of a hand-maintained hardcoded
   // list, so adding a category no longer risks the nav silently drifting
-  // out of sync with the category list.
-  showInNav Boolean @default(true) @map("show_in_nav")
-  navOrder  Int     @default(0) @map("nav_order")
+  // out of sync with the category list. MAIN renders directly in the top
+  // bar (capped at a handful of items — see getMainNavCategories()'s
+  // comment), MORE sits in the "More" dropdown/mobile section, HIDDEN
+  // stays out of the nav entirely. navOrder is only meaningful relative
+  // to other categories in the same placement.
+  navPlacement NavPlacement @default(MAIN) @map("nav_placement")
+  navOrder     Int          @default(0) @map("nav_order")
 
   // Social-share image for the category page itself (og:image) — separate
   // from any article's own share image.

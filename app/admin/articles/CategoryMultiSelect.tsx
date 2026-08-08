@@ -109,6 +109,7 @@ export default function CategoryMultiSelect({
         open={createOpen}
         onOpenChange={setCreateOpen}
         category={null}
+        currentMainNavCount={categories.filter((c) => c.navPlacement === "MAIN").length}
         onSubmit={createCategoryAction}
         onSuccess={handleCategoryCreated}
       />
