@@ -88,7 +88,7 @@ export default function MobileMenu({ open, onClose }: { open: boolean; onClose: 
 
       <div className="px-5 py-4 border-t border-white/10 shrink-0">
         <Link
-          href="/#subscribe"
+          href="/subscribe"
           onClick={onClose}
           className="min-h-12 flex items-center justify-center bg-[var(--color-red)] hover:bg-[var(--color-red-dark)] text-white font-bold uppercase tracking-wide text-[14px] rounded-control transition active:scale-[0.97]"
         >

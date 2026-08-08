@@ -1675,3 +1675,73 @@ falling back to a generic listing page.
   sandbox (same documented CDN-egress limitation as prior phases) but
   every layout/component change verified correctly against the
   placeholder blocks.
+
+## Phase 28 — done: dedicated premium Subscribe / membership page
+
+The site's only subscribe experience was a compact inline strip
+(`SubscribeStrip`, anchored at `/#subscribe`) and a sidebar box — both
+functional, but neither gave the newsletter a real front door. New
+`/subscribe` route: a full landing page built from the same design
+language as the homepage/article/category rebuilds, using the site's
+actual (free, email-only) subscribe mechanism — no fabricated paid
+tiers or billing UI, since there's no payment infrastructure in this
+codebase to back one. The "membership"/"plan" framing the task asked
+for is applied to that real free product rather than inventing a fake
+paid flow that would silently do nothing.
+
+- **Cinematic header**: full-width navy-gradient band (`from-navy to-
+  navy-dark`, matching `SiteHeader`/`SiteFooter`'s established gradient
+  treatment) with a subtle red radial glow, a "Membership · Free"
+  badge, a homepage-hero-scale headline (`38/56/64px`), a direct-tone
+  value-prop subhead, and a CTA that anchor-scrolls to the join card
+  below (`scroll-mt-20` on the target section, consistent with the
+  site's sticky-nav-aware anchor pattern).
+- **"What You Get" benefit grid**: 4 cards (Breaking News First, Deep
+  Investigations, Zero Corporate Spin, Built By Florida For Everyone),
+  each a `rounded-card`/`shadow-card` panel with a `lucide-react` icon
+  in a tinted red circle — same card language as every other panel
+  sitewide, first use of icon-in-circle treatment on the public site.
+- **"Why it matters" pull-quote band**: a `bg-off` panel with a
+  large `border-l-4` red-rule statement, reusing the article page's
+  blockquote visual language for a direct, high-authority editorial
+  statement rather than soft "join our community" copy.
+- **Single "Free Access" plan card**: a navy-gradient header (Membership
+  badge + plan name + price line) atop a white body with a checkmark
+  "what's included" list (same check-bullet pattern `SubscribeStrip`
+  established) and the real, working `SubscribeForm` (`stacked`
+  variant) — the page's one actual conversion point. Deliberately only
+  one form on the page (the hero and FAQ don't duplicate it) since
+  `SubscribeForm`'s non-compact variant uses a static `id="email-input"`
+  — a second instance on the same page would've been a real duplicate-ID
+  bug, not just a style nit.
+- **FAQ section**: 4 direct, no-corporate-hedging Q&As (Is this really
+  free? / How often will I hear from you? / Do you sell my email? / Can
+  I unsubscribe anytime?) in a plain `dl`, no accordion/JS — matches the
+  task's "without clutter" instruction and keeps the page fully
+  functional with zero client-side state beyond the form itself.
+- **Restrained motion applied consistently**: hero text uses the
+  `heroTextReveal` keyframe from Phase 25; every section below it is
+  wrapped in `Reveal`, one per section — same pattern as every other
+  premium template.
+- **Sitewide Subscribe CTAs repointed**: `SiteHeader`'s nav button,
+  `MobileMenu`'s drawer button, and `SiteFooter`'s link all changed
+  from `#subscribe`/`/#subscribe` anchors to `/subscribe` — the new
+  page is now the primary conversion destination reached from anywhere
+  on the site. `SiteHeader`'s button changed from a plain `<a>` to
+  `next/link`'s `Link` for consistency with the rest of its nav.
+  `SubscribeStrip` (the homepage's inline strip) and `Sidebar`'s compact
+  box were deliberately left as-is — both already have their own
+  working inline forms and remain useful low-friction conversion points
+  in their own contexts.
+- **Verified in a real production build** (`next build && next start`)
+  via Playwright at desktop (1200px) and mobile (390px). One real
+  finding during verification: a `fullPage` screenshot taken immediately
+  on load showed a large blank gap where the "why it matters" panel,
+  plan card, and FAQ should be — investigated via `getComputedStyle`
+  (confirmed `opacity: 1` on those sections after a normal page load)
+  and a second screenshot taken after scrolling through the page in
+  steps (matching how a real visitor scrolls) showed every section
+  rendering correctly. This was a `fullPage`-capture-vs-
+  `IntersectionObserver` timing artifact in the screenshot tooling
+  itself, not a site bug — consistent with the reveal-on-scroll
+  behavior `Reveal` was built for in Phase 25.
