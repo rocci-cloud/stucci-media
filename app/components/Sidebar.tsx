@@ -14,7 +14,7 @@ export default function Sidebar({
   const trending = articles.filter((a) => a.slug !== excludeSlug).slice(0, 6);
 
   return (
-    <aside className="flex flex-col gap-5">
+    <aside className="flex flex-col gap-4 sm:gap-5">
       {trending.length > 0 && (
         <div className="rounded-card overflow-hidden border border-[var(--color-hairline)] shadow-card bg-white">
           <SectionHeader title="Trending Now" variant="panel" />
@@ -28,7 +28,7 @@ export default function Sidebar({
         </div>
       )}
 
-      <div className="rounded-card border border-[var(--color-hairline)] shadow-card px-5 py-5 bg-white">
+      <div className="rounded-card border border-[var(--color-hairline)] shadow-card px-5 py-4 sm:py-5 bg-white">
         <h3 className="font-headline uppercase font-bold text-[17px] mb-1.5">Get The Real Story</h3>
         <p className="font-sans text-[13px] text-[var(--color-gray)] mb-4">
           Independent reporting, straight to your inbox.
@@ -36,7 +36,7 @@ export default function Sidebar({
         <SubscribeForm compact />
       </div>
 
-      <div className="rounded-card border border-[var(--color-hairline)] shadow-card px-5 py-5 bg-[var(--color-navy)] text-white">
+      <div className="rounded-card border border-[var(--color-hairline)] shadow-card px-5 py-4 sm:py-5 bg-[var(--color-navy)] text-white">
         <h3 className="font-headline uppercase font-bold text-[17px] mb-1.5">The Rocci Stucci Show</h3>
         <p className="font-sans text-[13px] text-white/70 mb-4">
           New episodes weekly — the stories mainstream media won&apos;t run.

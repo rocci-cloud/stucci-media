@@ -60,7 +60,7 @@ export default function FeaturedSection({
 
         <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/45 to-black/10" />
 
-        <div className="absolute inset-x-0 bottom-0 px-5 pb-6 sm:px-8 sm:pb-9 lg:px-10 lg:pb-11">
+        <div className="absolute inset-x-0 bottom-0 px-4 pb-5 sm:px-8 sm:pb-9 lg:px-10 lg:pb-11">
           <div className="mx-auto max-w-[1280px]">
             <div className="flex flex-wrap items-center gap-2 mb-3">
               <Badge variant="red">{lead.category}</Badge>
@@ -89,14 +89,14 @@ export default function FeaturedSection({
       {/* --- Tight editorial secondary system --- */}
       {secondaryItems.length > 0 && (
         <div className="mx-auto max-w-[1280px] px-5">
-          <div className="flex items-center gap-2.5 pt-4 pb-3 sm:pt-5 sm:pb-3.5">
+          <div className="flex items-center gap-2.5 pt-3 pb-2.5 sm:pt-5 sm:pb-3.5">
             <span className="h-[9px] w-[9px] rounded-full bg-[var(--color-red)] shrink-0" />
             <h2 className="font-headline uppercase font-bold text-[15px] sm:text-[17px] tracking-[0.02em] leading-none text-[var(--color-gray)]">
               {isFallback ? "Latest Stories" : "Also Making Headlines"}
             </h2>
           </div>
 
-          <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory -mx-5 px-5 pb-4 sm:mx-0 sm:px-0 sm:pb-5 sm:grid sm:grid-cols-3 sm:gap-6 sm:overflow-visible scrollbar-none">
+          <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory -mx-5 px-5 pb-4 sm:mx-0 sm:px-0 sm:pb-5 sm:grid sm:grid-cols-3 sm:gap-6 sm:overflow-visible scrollbar-none">
             {secondaryItems.map((item, i) => (
               <Link
                 key={item.slug}
@@ -110,10 +110,10 @@ export default function FeaturedSection({
                   <img
                     src={item.coverImageUrl}
                     alt={item.headline}
-                    className="w-full aspect-[4/3] object-cover mb-2.5"
+                    className="w-full aspect-[3/2] sm:aspect-[4/3] object-cover mb-2.5"
                   />
                 ) : (
-                  <div className="w-full aspect-[4/3] bg-[#E5E4E0] mb-2.5" />
+                  <div className="w-full aspect-[3/2] sm:aspect-[4/3] bg-[#E5E4E0] mb-2.5" />
                 )}
                 <Badge variant="text" className="mb-1.5">
                   {item.category}

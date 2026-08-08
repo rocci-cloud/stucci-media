@@ -88,7 +88,7 @@ export default async function HomePage() {
               );
             })}
           </div>
-          <div className="pt-4 lg:pt-4">
+          <div className="pt-3 lg:pt-4">
             <Sidebar articles={railItems} />
           </div>
         </div>

@@ -17,7 +17,7 @@ export default function ArticleCard({ article, variant = "grid", rank }: Article
     return (
       <Link
         href={`/articles/${article.slug}`}
-        className="flex gap-3 px-4 py-3.5 min-h-11 group active:bg-[var(--color-bg-off)] transition-colors"
+        className="flex gap-3 px-4 py-3 sm:py-3.5 min-h-11 group active:bg-[var(--color-bg-off)] transition-colors"
       >
         <span className="font-headline text-[26px] font-bold text-[var(--color-red)]/25 leading-none shrink-0 w-[26px]">
           {rank}
@@ -33,7 +33,7 @@ export default function ArticleCard({ article, variant = "grid", rank }: Article
     return (
       <Link
         href={`/articles/${article.slug}`}
-        className="flex gap-3.5 px-4 py-3.5 min-h-11 group active:bg-[var(--color-bg-off)] transition-colors"
+        className="flex gap-3 sm:gap-3.5 px-4 py-3 sm:py-3.5 min-h-11 group active:bg-[var(--color-bg-off)] transition-colors"
       >
         {article.coverImageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -67,12 +67,12 @@ export default function ArticleCard({ article, variant = "grid", rank }: Article
         <img
           src={article.coverImageUrl}
           alt={article.headline}
-          className="aspect-[16/9] w-full object-cover"
+          className="aspect-[2/1] sm:aspect-[16/9] w-full object-cover"
         />
       ) : (
-        <div className="aspect-[16/9] bg-[#E5E4E0]" />
+        <div className="aspect-[2/1] sm:aspect-[16/9] bg-[#E5E4E0]" />
       )}
-      <div className="p-4">
+      <div className="p-3.5 sm:p-4">
         <Badge variant="text" className="mb-2">
           {article.category}
         </Badge>
