@@ -9,6 +9,7 @@ import Sidebar from "./components/Sidebar";
 import SubscribeStrip from "./components/SubscribeStrip";
 import SiteFooter from "./components/SiteFooter";
 import Reveal from "./components/Reveal";
+import BannerSlot from "./components/BannerSlot";
 import { getPublishedArticles, getFeaturedArticles } from "./lib/articles";
 import { getCategories } from "./lib/categories";
 
@@ -67,6 +68,12 @@ export default async function HomePage() {
             <LatestModule articles={latestItems} />
           </Reveal>
         </div>
+
+        {/* Homepage's one fixed banner slot — mid-content, between the
+            top wire desk and the category rail stack. BannerSlot returns
+            null with zero DOM output when there's no active banner, so
+            this never leaves an empty box behind. */}
+        <BannerSlot placement="HOMEPAGE" className="mx-auto max-w-[1280px] px-5 py-4" />
 
         <div className="mx-auto max-w-[1280px] px-5 grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-x-10">
           <div className="flex flex-col">

@@ -7,6 +7,7 @@ import ArticleGrid from "../../components/ArticleGrid";
 import Sidebar from "../../components/Sidebar";
 import SiteFooter from "../../components/SiteFooter";
 import Reveal from "../../components/Reveal";
+import BannerSlot from "../../components/BannerSlot";
 import { getCategories, getCategoryBySlug } from "../../lib/categories";
 import { getArticlesByCategory, getPublishedArticles } from "../../lib/articles";
 
@@ -100,6 +101,11 @@ export default async function CategoryPage({ params }: Props) {
             )}
           </div>
         </div>
+
+        {/* Category pages' fixed banner slot — near the top, directly
+            below the section masthead and above the lead/wire content.
+            Renders nothing when there's no active banner. */}
+        <BannerSlot placement="CATEGORY" className="mx-auto max-w-[1280px] px-5 pt-6" />
 
         {categoryArticles.length === 0 ? (
           <div className="mx-auto max-w-[1280px] px-5 py-16 text-center font-sans text-[var(--color-gray)]">

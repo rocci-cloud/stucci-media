@@ -9,12 +9,14 @@ import Sidebar from "../../components/Sidebar";
 import RelatedArticles from "../../components/RelatedArticles";
 import Reveal from "../../components/Reveal";
 import Badge from "../../components/ui/Badge";
+import BannerSlot from "../../components/BannerSlot";
 import LikeButton from "./LikeButton";
 import CommentSection from "./CommentSection";
 import { getArticleBySlug, getPublishedArticles, getRelatedArticles } from "../../lib/articles";
 import { getLikeCount, hasUserLiked } from "../../lib/likes";
 import { getApprovedCommentsForArticle } from "../../lib/comments";
 import { auth } from "../../lib/auth";
+import { splitHtmlAtMidpoint } from "../../lib/split-html-midpoint";
 
 function getInitials(name: string) {
   return name
@@ -112,6 +114,14 @@ export default async function ArticlePage({ params }: Props) {
     ? { id: session.user.id, name: session.user.name, image: session.user.image ?? null }
     : null;
   const pagePath = `/articles/${article.slug}`;
+
+  // Mid-article banner slot: split the sanitized body at the nearest
+  // top-level block boundary to its midpoint (see splitHtmlAtMidpoint) so
+  // the banner renders between two real paragraphs/blocks, never inside
+  // one. Short articles with fewer than 2 top-level blocks fall back to
+  // rendering the whole body with no split — no banner in the body in
+  // that case, since there's no real "middle" to put one at.
+  const [articleBodyFirstHalf, articleBodySecondHalf] = splitHtmlAtMidpoint(article.bodyHtml);
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://stuccimedia.com";
   const articleUrl = `${siteUrl}${pagePath}`;
@@ -239,8 +249,25 @@ export default async function ArticlePage({ params }: Props) {
                 prose-blockquote:font-headline prose-blockquote:text-[22px] prose-blockquote:leading-[1.3] prose-blockquote:not-italic
                 prose-img:rounded-control prose-img:border prose-img:border-[var(--color-hairline)]
                 prose-a:transition-colors"
-              dangerouslySetInnerHTML={{ __html: article.bodyHtml }}
+              dangerouslySetInnerHTML={{ __html: articleBodyFirstHalf }}
             />
+
+            {articleBodySecondHalf && (
+              <>
+                <BannerSlot placement="ARTICLE" className="my-6" />
+                <div
+                  className="prose prose-neutral max-w-none text-[17px] sm:text-[19px] leading-[1.75]
+                    prose-headings:font-headline prose-headings:font-bold prose-headings:uppercase prose-headings:tracking-[-0.01em] prose-headings:leading-[1.1]
+                    prose-h2:text-[25px] prose-h2:mt-10 prose-h3:text-[21px] prose-h3:mt-8
+                    prose-p:mb-5 prose-a:text-[var(--color-red)] prose-a:no-underline hover:prose-a:underline
+                    prose-strong:text-[var(--color-text)] prose-blockquote:border-l-[var(--color-red)]
+                    prose-blockquote:font-headline prose-blockquote:text-[22px] prose-blockquote:leading-[1.3] prose-blockquote:not-italic
+                    prose-img:rounded-control prose-img:border prose-img:border-[var(--color-hairline)]
+                    prose-a:transition-colors"
+                  dangerouslySetInnerHTML={{ __html: articleBodySecondHalf }}
+                />
+              </>
+            )}
 
             <div className="mt-8 flex items-center justify-between rounded-card border border-[var(--color-hairline)] bg-[var(--color-bg-off)] px-5 py-4">
               <span className="font-sans text-[13px] font-bold text-[var(--color-text)]">

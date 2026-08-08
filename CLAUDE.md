@@ -2110,3 +2110,109 @@ Stucci Apparel.
   below Company with identical typography/spacing rhythm, the arrow
   icons render without crowding the link text, and mobile stays fully
   readable with normal touch targets.
+
+## Phase 36 — done: Banner Management system
+
+A lightweight promotional-banner manager, fully admin-controlled — new
+`Banner` model/table, a full `/admin/banners` CRUD screen, and 3 fixed
+public-site placement slots. Deliberately not an ad server: no bidding,
+no impression/click tracking, no external ad-network integration — just
+upload an image, set a link, and choose where/when it shows.
+
+- **Data model**: `Banner` (`prisma/schema.prisma`, migration
+  `20260808000000_banners`) — `imageUrl`, `destinationUrl`, `placement`
+  (a closed `BannerPlacement` enum: `HOMEPAGE`/`ARTICLE`/`CATEGORY`,
+  matching the 3 real frontend slots one-for-one so an admin can't
+  invent a placement nothing on the site renders), `isActive`, optional
+  `startDate`/`endDate`, `sortOrder`, plus `name` (internal-only,
+  optional) for organization. `app/lib/banners.ts` holds the CRUD plus
+  the one query the public site actually uses,
+  `getActiveBanners(placement)` — active, within its optional date
+  window (`OR`ed null-or-in-range on both bounds independently), ordered
+  by `sortOrder` then `createdAt`.
+- **Real bug caught and fixed before shipping**: `BannerDialog.tsx` (a
+  `"use client"` component) originally did a *value* import of
+  `BANNER_PLACEMENT_LABELS` from `lib/banners.ts` — which also imports
+  the Prisma client at module scope. A value import (unlike `import
+  type`) pulls the whole module into the client bundle, so Prisma's
+  `DATABASE_URL` check ran in the browser and threw
+  `DATABASE_URL is not set` on every admin page load, since the browser
+  obviously has no access to that server env var. Fixed by splitting the
+  placement enum/labels into their own dependency-free
+  `app/lib/banner-placements.ts` that both the server module and client
+  components import from — `lib/banners.ts` still re-exports both for
+  server-side callers, but client components now import the label map
+  directly from the Prisma-free file. Caught via a live browser console
+  check during verification, not by code review alone — worth remembering
+  for any future shared lib that mixes a Prisma import with constants a
+  client component might want.
+- **Admin screen** (`app/admin/banners/`): follows the exact Phase 8/9
+  patterns rather than inventing new ones — `BannersClient.tsx` (table +
+  placement filter + `useOptimistic` active-toggle and delete, same shape
+  as the Categories/Articles list screens), `BannerDialog.tsx` (create/
+  edit form reusing `ImageField` verbatim from the article editor for
+  the image upload, plus a placement `Select`, `datetime-local` start/
+  end date inputs matching the article editor's published-date picker,
+  and a `sortOrder` number field), `actions.ts` (server actions gated by
+  the existing `requireAdminSession()` + `logActivity()` pattern every
+  other admin mutation uses). Added "Banners" to
+  `admin/components/nav-items.ts` between Categories and Comments.
+- **Frontend slot component** (`app/components/BannerSlot.tsx`): an
+  async server component that queries `getActiveBanners(placement)` and
+  returns `null` — zero DOM output, not just an empty styled box — when
+  there's nothing active for that slot, so an inactive/expired campaign
+  never leaves a blank placeholder in the layout. Multiple active
+  banners in one slot are simply stacked in the admin's `sortOrder`,
+  each its own card — no rotation widget/timer, matching this feature's
+  explicit "no complex ad server" scope. Each banner gets a small
+  "Advertisement" label above it (muted, matches the site's existing
+  metadata-text styling) for honest sponsored-content disclosure, and
+  the whole card is `rounded-card`/`shadow-card` with a hover-shadow
+  lift, the same elevated-card language as `ArticleCard`. Internal
+  destinations (`/...`) navigate via `next/link`; anything else opens in
+  a new tab (`rel="noopener noreferrer sponsored"`), matching how
+  `SiteFooter`'s external network links are already handled.
+- **3 fixed placements wired into their real pages**: `page.tsx` gets a
+  `HOMEPAGE` slot between `LatestModule` and the category-rail stack
+  (genuinely mid-content, not just "somewhere on the homepage");
+  `category/[slug]/page.tsx` gets a `CATEGORY` slot directly below the
+  section masthead, above `CategoryLead`; `articles/[slug]/page.tsx`
+  gets an `ARTICLE` slot spliced into the actual prose body, not just
+  appended after it.
+- **Real mid-article splitting, not an approximation**: the article
+  page's body is raw sanitized HTML rendered via
+  `dangerouslySetInnerHTML`, so "mid-article" needed an actual split of
+  that HTML string, not just a slot placed after the whole block. New
+  `app/lib/split-html-midpoint.ts` is a small hand-rolled depth-tracking
+  tag scanner (no new dependency, no real HTML parser) — deliberately
+  sized to `sanitize.ts`'s existing small fixed tag allowlist (`p`,
+  `h2-h4`, `ul`/`ol`/`li`, `blockquote`, `img`, `hr`, plus inline `b`/
+  `strong`/`i`/`em`/`a`/`br`), tracking nesting depth so it only
+  considers *top-level* block boundaries (never splits inside a `<ul>`
+  or mid-paragraph) and correctly treats void tags (`img`/`br`/`hr`) as
+  atomic. Picks the boundary closest to the string's midpoint; articles
+  with fewer than 2 top-level blocks render as one uninterrupted body
+  with no mid-article banner, since there's no real "middle" to split at.
+  Verified directly: splitting a synthetic mixed-tag-type document
+  (paragraphs, a heading, a list, inline bold/links, an inline `<img>`)
+  produced two valid HTML fragments whose concatenation exactly
+  reconstructed the original string, split at a real block boundary.
+- **Verified end-to-end against the live Neon DB and a real production
+  build** (`next build && next start`), not just code-reviewed: inserted
+  4 real test banner rows (3 active across all 3 placements, 1 inactive)
+  directly, confirmed via Playwright that all 3 public slots render the
+  correct banner and the inactive one renders nothing anywhere, then
+  created a throwaway admin account (registered via the real `/register`
+  flow, promoted via `promote-admin.mjs`, same pattern as every prior
+  phase's admin verification) and drove the actual `/admin/banners` UI
+  through edit → active-toggle → delete, confirming each round-tripped
+  correctly against the DB and the optimistic UI matched the server
+  result. The one step not exercised through the browser was a fresh
+  image upload itself — this sandbox has no `BLOB_READ_WRITE_TOKEN` set
+  (an environment limitation, not a code issue), so `ImageField`'s
+  upload call fails here the same way it would for any admin form; the
+  component is reused byte-for-byte from the article editor's
+  already-shipped, already-verified upload path, so this wasn't a new
+  risk. The test admin account, its sessions (cascade-deleted with the
+  user), all 4 test banner rows, and their activity-log entries were all
+  removed afterward — nothing test-related was left in the database.
