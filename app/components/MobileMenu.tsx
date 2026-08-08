@@ -86,13 +86,20 @@ export default function MobileMenu({ open, onClose }: { open: boolean; onClose: 
         })}
       </nav>
 
-      <div className="px-5 py-4 border-t border-white/10 shrink-0">
+      <div className="px-5 py-4 border-t border-white/10 shrink-0 flex flex-col gap-3">
         <Link
           href="/subscribe"
           onClick={onClose}
           className="min-h-12 flex items-center justify-center bg-[var(--color-red)] hover:bg-[var(--color-red-dark)] text-white font-bold uppercase tracking-wide text-[14px] rounded-control transition active:scale-[0.97]"
         >
           Subscribe
+        </Link>
+        <Link
+          href="/login"
+          onClick={onClose}
+          className="min-h-11 flex items-center justify-center text-white/70 hover:text-white font-sans font-bold uppercase tracking-wide text-[12.5px] transition-colors"
+        >
+          Sign In
         </Link>
       </div>
     </div>
