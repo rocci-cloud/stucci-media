@@ -5,6 +5,7 @@ type SectionHeaderProps = {
   href?: string;
   linkLabel?: string;
   variant?: "underline" | "panel";
+  compact?: boolean;
   className?: string;
 };
 
@@ -13,11 +14,16 @@ type SectionHeaderProps = {
 // navy bar used atop sidebar/rail panels (Trending Now, Also Developing).
 // Keeping both here means every module's heading treatment stays
 // pixel-identical instead of drifting component to component.
+//
+// `compact` is opt-in (default off) so the homepage's stacked TopicRails
+// can run a tighter kicker without changing RelatedArticles/ArticleGrid's
+// existing spacing on article/category pages.
 export default function SectionHeader({
   title,
   href,
   linkLabel = "View All",
   variant = "underline",
+  compact = false,
   className = "",
 }: SectionHeaderProps) {
   if (variant === "panel") {
@@ -31,8 +37,12 @@ export default function SectionHeader({
   }
 
   return (
-    <div className={`flex items-center justify-between gap-3 mb-4 sm:mb-5 ${className}`}>
-      <h2 className="font-headline uppercase font-bold text-[19px] sm:text-[21px] tracking-[-0.005em] border-l-4 border-[var(--color-red)] pl-3 leading-none">
+    <div
+      className={`flex items-center justify-between gap-3 ${compact ? "mb-2.5 sm:mb-3" : "mb-4 sm:mb-5"} ${className}`}
+    >
+      <h2
+        className={`font-headline uppercase font-bold ${compact ? "text-[16px] sm:text-[18px]" : "text-[19px] sm:text-[21px]"} tracking-[-0.005em] border-l-4 border-[var(--color-red)] pl-3 leading-none`}
+      >
         {title}
       </h2>
       {href && (

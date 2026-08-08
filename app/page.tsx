@@ -44,8 +44,8 @@ export default async function HomePage() {
       <main>
         <FeaturedSection featured={featuredArticles.slice(0, 4)} fallback={articles.slice(0, 4)} />
 
-        <div className="mx-auto max-w-[1280px] px-5 py-2 grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-x-10">
-          <div className="flex flex-col gap-1">
+        <div className="mx-auto max-w-[1280px] px-5 grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-x-10">
+          <div className="flex flex-col">
             {categories.map((category, index) => (
               <TopicRail
                 key={category.slug}
@@ -55,7 +55,7 @@ export default async function HomePage() {
               />
             ))}
           </div>
-          <div className="pt-6 lg:pt-6">
+          <div className="pt-4 lg:pt-4">
             <Sidebar articles={railItems} />
           </div>
         </div>
