@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Search, X } from "lucide-react";
 
 export default function SearchOverlay({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [query, setQuery] = useState("");
@@ -42,9 +43,7 @@ export default function SearchOverlay({ open, onClose }: { open: boolean; onClos
         onClick={(e) => e.stopPropagation()}
       >
         <form onSubmit={handleSubmit} className="flex items-center gap-2">
-          <span className="pl-3 text-[var(--color-gray-light)] text-lg shrink-0" aria-hidden>
-            🔍
-          </span>
+          <Search className="ml-3 h-[18px] w-[18px] text-[var(--color-gray-light)] shrink-0" aria-hidden />
           <input
             ref={inputRef}
             type="search"
@@ -60,7 +59,7 @@ export default function SearchOverlay({ open, onClose }: { open: boolean; onClos
             aria-label="Close search"
             className="min-w-11 min-h-11 flex items-center justify-center text-[var(--color-gray-light)] hover:text-[var(--color-text)] transition-colors shrink-0"
           >
-            ✕
+            <X className="h-5 w-5" />
           </button>
         </form>
       </div>

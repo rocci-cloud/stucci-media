@@ -61,13 +61,21 @@ body {
   color: var(--color-text);
 }
 
+/* `color-scheme: light only` above only hints browser-native UI (form
+   controls, scrollbars) — it does NOT stop `prefers-color-scheme: dark`
+   media queries from matching, so a visitor with OS-level dark mode on
+   still hits this block. Only forces the body's own background/text back
+   to light — deliberately does NOT touch `a` here: an earlier version did
+   (`a { color: inherit !important }`), which meant every colored link
+   and button (nav items, Subscribe, "More →" links) silently inherited
+   the near-black body text with !important, unreadable against navy/red
+   backgrounds, for any visitor in dark mode — found via a real iPhone
+   screenshot (Aug 2026) showing the mobile nav drawer's links unreadable
+   while non-link elements in the same drawer rendered fine. */
 @media (prefers-color-scheme: dark) {
   body {
     background: var(--color-bg) !important;
     color: var(--color-text) !important;
-  }
-  a {
-    color: inherit !important;
   }
 }
 

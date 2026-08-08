@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Menu, Search } from "lucide-react";
 import MobileMenu from "./MobileMenu";
 import SearchOverlay from "./SearchOverlay";
 
@@ -59,9 +60,9 @@ export default function SiteHeader() {
             aria-label="Open menu"
             aria-expanded={menuOpen}
             onClick={() => setMenuOpen(true)}
-            className="sm:hidden min-w-11 min-h-11 flex items-center justify-center border border-white/30 text-white rounded-control text-xl leading-none my-1.5"
+            className="sm:hidden min-w-11 min-h-11 flex items-center justify-center border border-white/30 text-white rounded-control my-1.5"
           >
-            ☰
+            <Menu className="h-5 w-5" />
           </button>
 
           <div className="hidden sm:flex flex-1 items-center gap-0.5">
@@ -87,9 +88,9 @@ export default function SiteHeader() {
             type="button"
             aria-label="Search"
             onClick={() => setSearchOpen(true)}
-            className="ml-auto sm:ml-4 min-w-11 min-h-11 flex items-center justify-center text-lg text-white hover:text-white/80 transition-colors"
+            className="ml-auto sm:ml-4 min-w-11 min-h-11 flex items-center justify-center text-white hover:text-white/80 transition-colors"
           >
-            🔍
+            <Search className="h-[18px] w-[18px]" />
           </button>
           <a
             href="#subscribe"
