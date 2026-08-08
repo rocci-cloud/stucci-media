@@ -1297,3 +1297,81 @@ black, white) is unchanged, only how it's *used*.
   this sandbox (same documented CDN-egress limitation as prior phases)
   but every surface/contrast change verified correctly against the
   placeholder blocks.
+
+## Phase 23 — done: premium component refinement (cards, badges, meta, headers)
+
+Structure (Phases 15-20), typography (21), and color/surfaces (22) were
+all tuned at the module/page level. This phase goes one level down —
+the shared primitives themselves (`ArticleCard`'s three variants,
+`Badge`, `SectionHeader`) — refining internal proportions, the badge
+system, and meta-information treatment so every card/badge/header feels
+individually crafted rather than a default theme component reused at
+scale. Component design only — no page-structure, type-system, or
+color-palette changes; every value here works within the existing
+tokens from Phases 21/22.
+
+- **`Badge` rebuilt for real hierarchy**: the `text` variant (the quiet
+  category kicker above most headlines) gained a small `4px` dot marker
+  before the label — graphic presence without the weight of a filled
+  pill, so it reads as deliberately quieter than the solid tags. The
+  `red`/`navy` solid variants (BREAKING, FEATURED, LIVE) grew
+  `10.5px`→`11px` text and `px-2 py-[3px] rounded-[3px]` →
+  `px-2.5 py-1 rounded-[4px]` — a real tag now, not a faint label. This
+  required restructuring `VARIANT_CLASSES` so text size lives per-
+  variant instead of one shared base size, and the dot only renders
+  conditionally for `variant="text"`.
+- **`ArticleCard` `grid` variant** (the flagship story card): padding
+  `p-3.5 sm:p-4` → `p-4 sm:p-5` and internal margins loosened a touch
+  (badge/title/dek/meta-divider spacing all gained ~0.5 units) so the
+  card breathes without undoing the section-level density from Phase
+  16-19. The image gained a `relative` wrapper with a `pointer-events-
+  none` bottom gradient overlay (`from-black/15 to-transparent`) — a
+  static, non-animated finishing touch that makes the image-to-text
+  transition feel considered instead of an abrupt crop. The meta row
+  (author/date/read-time) went fully uppercase-tracked with muted
+  `hairline-strong/30` dot separators replacing plain "·" characters —
+  reads as a precise editorial byline register instead of an
+  afterthought caption line.
+- **`ArticleCard` `list` variant**: thumbnail `84×64px` → `88×60px`
+  (a touch wider/shorter, closer to the site's dominant 16:9 image
+  language) and gained a subtle `ring-1 ring-black/5` for polish beyond
+  its existing shadow; gap widened slightly to match.
+- **`ArticleCard` `ranked` variant** (Sidebar's Trending Now,
+  `OpinionModule`'s headline wall): the numeral and headline are now
+  separated by a full-height `border-r`/`pl-3` rule instead of a plain
+  gap — required switching the flex container to default `stretch`
+  alignment (both spans get `flex items-center` internally) so the
+  rule's height tracks the taller sibling (a wrapped 2-3 line headline)
+  instead of just the numeral's own line height, which would have left
+  a short, oddly-cropped-looking divider. Numeral opacity `/25` → `/30`
+  for a touch more presence.
+- **`SectionHeader` strengthened for authority**: the `underline`
+  variant's rule grew `border-l-4` → `border-l-[5px]` with matching
+  `pl-3.5`; the `panel` variant (Trending Now, "Also Developing") gained
+  the same red left-rule language (`border-l-4 border-red`) it never
+  had before, unifying both header types under one visual accent system
+  instead of two unrelated treatments, plus `py-2.5`→`py-3` for more
+  presence.
+- **Article page byline row** got the matching uppercase-tracked
+  date/read-time treatment (author stays mixed-case — "By Rocci Stucci"
+  reads as a name, not a data field) with the same muted dot separators
+  as `ArticleCard`'s meta row, for sitewide consistency.
+- **Real bug caught and fixed while verifying**: the article page's
+  "← Back to Home" link and the category `Badge` directly below it were
+  both `inline-flex`, so with no text node between them in JSX they
+  rendered on the same line ("← Back to Home• VETERANS", visually
+  cramped) — invisible before this phase because the plain-text badge
+  had less visual weight, but the new dot marker made the crowding
+  obvious in a screenshot. Fixed by changing the link to `flex w-fit`
+  (block-level, so the next element wraps below it) — a display-property
+  fix, not a markup/structure change.
+- **Verified in a real production build** (`next build && next start`)
+  via Playwright screenshots of the homepage (desktop 1440px, mobile
+  390px) and an article page (desktop, before and after the byline-
+  crowding fix) — confirmed the badge dot markers, thicker section-
+  header rules, refined card meta rows, and the full-height ranked-list
+  divider all render correctly, and mobile cards carry the same refined
+  proportions rather than looking like shrunk desktop cards. Article
+  cover images didn't load in this sandbox (same documented CDN-egress
+  limitation as prior phases) but every component change verified
+  correctly against the placeholder blocks.
