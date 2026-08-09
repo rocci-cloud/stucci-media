@@ -9,6 +9,26 @@ if (!process.env.SESSION_SECRET) {
   );
 }
 
+// Better Auth rejects any request whose Origin header isn't baseURL (or
+// listed in trustedOrigins) with a silent-looking 403 — the sign-in
+// fetch just fails client-side with no obvious cause. The most common
+// real-world way to hit this: Vercel serves a project on both its apex
+// domain and a www subdomain (or an old preview URL lingers in
+// BETTER_AUTH_URL after a domain change), so a visitor lands on a host
+// that doesn't byte-for-byte match whatever's in the env var. Trusting
+// both the apex and www form of the configured host closes that gap
+// without needing to know which one is actually misconfigured.
+function deriveTrustedOrigins(baseUrl: string | undefined): string[] {
+  if (!baseUrl) return [];
+  try {
+    const { protocol, hostname } = new URL(baseUrl);
+    const bareHost = hostname.startsWith("www.") ? hostname.slice(4) : hostname;
+    return [`${protocol}//${bareHost}`, `${protocol}//www.${bareHost}`];
+  } catch {
+    return [baseUrl];
+  }
+}
+
 export const auth = betterAuth({
   database: prismaAdapter(prisma, { provider: "postgresql" }),
   secret: process.env.SESSION_SECRET,
@@ -16,6 +36,7 @@ export const auth = betterAuth({
   // NEXT_PUBLIC_ vars get statically inlined into the build, which would
   // freeze this to whatever it was at build time.
   baseURL: process.env.BETTER_AUTH_URL,
+  trustedOrigins: deriveTrustedOrigins(process.env.BETTER_AUTH_URL),
   emailAndPassword: {
     enabled: true,
     minPasswordLength: 8,

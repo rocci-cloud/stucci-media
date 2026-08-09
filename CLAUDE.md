@@ -2668,3 +2668,54 @@ did.
   related-article images, and both a local-file banner
   (`/banners/stucci-apparel-fell-hard.png`) and a remote Blob banner —
   all resolving through the optimizer, not just present as markup.
+
+## Phase 47 — done: fix admin login redirect loop
+
+Rocci reported that logging in to `/admin` would appear to work and
+then immediately bounce back to the login screen, blocking all admin
+access. Reproduced locally against the live Neon DB with a real browser
+(Playwright + a throwaway admin account) rather than guessed at.
+
+- **Root cause, `AuthForm.tsx`'s post-sign-in redirect**: after a
+  successful `authClient.signIn.email()`, the form did `router.push
+  (redirectTo); router.refresh()` — a client-side transition. Next.js's
+  client router can serve a cached RSC payload for the destination
+  route from before the new session cookie existed, so `/admin`'s
+  layout re-render doesn't reliably see the just-created session on the
+  very next navigation. Fixed by replacing the client-side push/refresh
+  with `window.location.href = redirectTo` — a full navigation
+  guarantees the next request is a fresh one carrying the new cookie.
+  Applied the same fix to `AdminTopbar`'s sign-out (the mirror-image
+  case: a stale pre-sign-out payload could just as easily linger).
+- **`AuthForm.tsx`'s submit handler had no try/catch** — if the sign-in
+  fetch itself threw (network blip, a rejected cross-origin request)
+  rather than returning `{ error }`, nothing caught it: no error
+  message shown, and the submit button could get stuck on "Signing
+  in…" forever. Now wrapped, with a plain "couldn't reach the server"
+  message on that path.
+- **Hardened `auth.ts` against a domain-mismatch class of bug that
+  produces the exact same symptom**: Better Auth rejects any request
+  whose `Origin` doesn't match `baseURL` (or an explicit
+  `trustedOrigins` entry) with a 403 — which, depending on how the
+  origin mismatch happens, can look like nothing happened rather than a
+  visible error. The most common real-world way to hit this: a Vercel
+  project serving both an apex domain and a `www` subdomain (or a
+  stale preview URL left in `BETTER_AUTH_URL` after a domain change),
+  so a visitor's actual host doesn't byte-for-byte match the configured
+  `baseURL`. Added `trustedOrigins`, derived from `BETTER_AUTH_URL` to
+  include both the apex and `www` form of whatever host is configured
+  — closes that gap without needing to know which form Vercel's env
+  var is actually set to today.
+- **Verified against the live Neon DB with a real browser**, not just
+  reasoned about: a throwaway admin account, driven through the actual
+  `/login` page (submit → land on `/admin` dashboard, confirmed by
+  page heading), sign-out (confirmed session cookie actually cleared —
+  re-visiting `/admin` correctly bounced to `/login?from=%2Fadmin`
+  afterward, not just a UI redirect). Test account, its sessions, and
+  its activity-log rows were all removed afterward.
+- **Checked the rest of the site for the same client-side-redirect-
+  after-mutation pattern** (the "no other little breaks" ask) — the
+  only other `router.push`/`router.refresh` call sites are the mobile
+  menu and search overlay's search-navigation, which don't depend on
+  session state and aren't at risk of this class of bug. No other
+  instances found.
