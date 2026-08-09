@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { LogOut, User as UserIcon } from "lucide-react";
 import { ADMIN_NAV_ITEMS } from "./nav-items";
 import MobileSidebar from "./MobileSidebar";
@@ -26,7 +26,6 @@ function initials(name: string) {
 
 export default function AdminTopbar() {
   const pathname = usePathname();
-  const router = useRouter();
   const { data: session } = useSession();
 
   const current =
@@ -36,8 +35,10 @@ export default function AdminTopbar() {
 
   async function handleSignOut() {
     await authClient.signOut();
-    router.push("/login");
-    router.refresh();
+    // Hard navigation, same reasoning as AuthForm's sign-in redirect —
+    // guarantees the next request sees the now-cleared session cookie
+    // instead of a cached pre-sign-out RSC payload.
+    window.location.href = "/login";
   }
 
   const user = session?.user;

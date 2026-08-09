@@ -1,14 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { authClient } from "../lib/auth-client";
 
 type Mode = "login" | "register";
 
 export default function AuthForm({ mode, redirectTo }: { mode: Mode; redirectTo: string }) {
-  const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -20,20 +18,34 @@ export default function AuthForm({ mode, redirectTo }: { mode: Mode; redirectTo:
     setError(null);
     setPending(true);
 
-    const { error: authError } =
-      mode === "login"
-        ? await authClient.signIn.email({ email, password })
-        : await authClient.signUp.email({ name, email, password });
+    try {
+      const { error: authError } =
+        mode === "login"
+          ? await authClient.signIn.email({ email, password })
+          : await authClient.signUp.email({ name, email, password });
 
-    setPending(false);
-
-    if (authError) {
-      setError(authError.message ?? "Something went wrong. Please try again.");
+      if (authError) {
+        setError(authError.message ?? "Something went wrong. Please try again.");
+        setPending(false);
+        return;
+      }
+    } catch {
+      // A thrown (rather than returned) error means the request itself
+      // never completed — e.g. a network blip or an origin mismatch the
+      // client rejected outright — so there's no authError to read.
+      setError("Couldn't reach the server. Please check your connection and try again.");
+      setPending(false);
       return;
     }
 
-    router.push(redirectTo);
-    router.refresh();
+    // A full navigation, not router.push()/router.refresh(): the very
+    // next request needs to see the session cookie the sign-in response
+    // just set, and a client-side transition can serve a cached RSC
+    // payload for the destination route from before that cookie existed
+    // — a known way for "sign in, land back on /login" to happen even
+    // though the sign-in itself succeeded. A hard navigation guarantees
+    // a fresh request with the new cookie attached.
+    window.location.href = redirectTo;
   }
 
   return (
