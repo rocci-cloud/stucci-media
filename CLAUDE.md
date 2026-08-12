@@ -2940,3 +2940,86 @@ signed-in state for the drawer.
   re-testing showed the Dashboard link appear, on both the desktop
   dropdown and the mobile drawer. Test account, its sessions, and
   activity-log rows were removed afterward.
+
+## Phase 53 — done: Tier 1 reader-engagement quick wins
+
+A competitive analysis of NYT, Washington Post, Axios, The Athletic, and
+Semafor's retention mechanics (delivered as an artifact — see the
+"Retention Playbook" report) turned into a build plan. This phase ships
+the first, cheapest tier: five features layered on the existing
+article/comment/account system, none of them requiring new
+infrastructure.
+
+- **"Bottom Line" box**: `Article.bulletPoints` (native `text[]`, same
+  pattern as `tags`) — an editor-authored 2–4 bullet "why this matters"
+  summary, entered one point per line in a new **Engagement** tab in
+  the article editor (alongside the existing Content/SEO tabs — same
+  "both tabs stay mounted" pattern Phase 9 established). Renders as a
+  red-rule callout at the very top of the reading column, above the
+  prose. Empty means no box, not auto-generated from body content.
+- **"What They're Not Telling You" box**: four new nullable `Article`
+  columns (`comparisonTitle`/`Body`/`SourceLabel`/`SourceUrl`) — an
+  optional callout contrasting mainstream coverage against the
+  article's own angle, with a link to the coverage being referenced.
+  Renders as a solid navy panel directly below the Bottom Line box —
+  this is arguably a sharper fit for Stucci than Semafor's original
+  "Room for Disagreement" (which argues with itself for even-handedness)
+  since it's a direct expression of the site's actual "stories
+  mainstream media won't run" premise, not a hedge.
+- **Exclusive badge**: `Article.isExclusive` boolean, toggled in the
+  Publish sidebar next to the existing Featured switch — distinct from
+  `isFeatured` (a homepage-curation choice) since a story can be a
+  scoop without currently being featured, or vice versa. Shows as a
+  navy "EXCLUSIVE" `Badge` next to the category badge in the article
+  hero, and as an absolute-positioned badge over the cover image on
+  `ArticleCard`'s `grid` variant.
+- **Reading List**: new `SavedArticle` model (`user_id`+`article_id`
+  unique constraint, cascades both directions — same shape as `Like`,
+  kept as its own model rather than overloading `Like` with a type flag
+  since the two mean different things). `lib/saved-articles.ts`
+  (`hasUserSaved`/`toggleSaved`) backs a new `SaveButton.tsx` (mirrors
+  `LikeButton.tsx`'s optimistic-toggle pattern exactly) next to the
+  existing Like button in the article page's "Enjoyed this story?" bar.
+  New `/saved` page (session-gated, redirects to `/login?from=/saved`)
+  lists saved articles as `ArticleCard` grid tiles with a remove
+  button; `getSavedArticlesForUser()` in `lib/articles.ts` reuses the
+  existing `mapRow`/category-label-lookup machinery rather than
+  duplicating it. Linked from `AccountMenu.tsx`'s dropdown and
+  `MobileMenu.tsx`'s signed-in row (both built in Phase 52), for every
+  signed-in account, not just admins.
+- **Editor's Picks**: `Comment.isPinned` boolean — an admin-only pin,
+  independent of `isApproved` (pinning doesn't bypass moderation).
+  `getApprovedCommentsForArticle()`'s tree-building now sorts pinned
+  top-level comments first via a stable sort (replies stay chronological
+  under whichever parent they belong to either way — pinning only
+  reorders roots). Scoped down from the original plan's "sort by likes"
+  once it turned out comments have no like/upvote mechanism at all yet
+  — Editor's Pick ended up closer to NYT's actual model (editor-curated)
+  than a vote-sorted one anyway, so this wasn't a compromise. Admin
+  `/admin/comments` gained a pin-toggle icon button (same
+  optimistic-update + `sonner`-toast pattern as the existing
+  approve/hide switch); pinned comments show an "Editor's Pick" badge
+  in both the admin table and the public comment thread.
+- **Migration applied by hand** (`20260812200000_engagement_quick_wins`,
+  via `scripts/apply-prisma-migration.mjs` per the project's standing
+  TCP-vs-HTTPS constraint): 6 new `articles` columns, 1 new `comments`
+  column, 1 new `saved_articles` table.
+- **Verified end-to-end against the live Neon database with a real
+  browser**, not just code-reviewed: a throwaway admin account drove
+  the actual `/admin/articles/new` editor's new Engagement tab
+  (bullet points, comparison box, Exclusive toggle all confirmed
+  persisted to the DB with the exact values entered), the published
+  article's public page (Bottom Line box, navy comparison callout,
+  Exclusive badge in the hero, Save button toggling to "Saved"), the
+  `/saved` page (showing the saved article with its Exclusive badge and
+  a working remove button), and the full comment-pin round trip
+  (posted a real comment, pinned it from `/admin/comments`, confirmed
+  the "Editor's Pick" badge appeared on the public article page). Test
+  article, test admin account, and all associated comments/saves/
+  sessions/activity-log rows were removed afterward — confirmed via a
+  direct query that nothing orphaned was left behind.
+- **Deliberately left for the next tier**: the report's Tier 2 (daily
+  news quiz, personalized homepage rail, reading streaks, browser-TTS
+  narration) and Tier 3 (push alerts, live blog format, personalized
+  weekly digest) items are unstarted — this phase scoped to exactly the
+  five Tier 1 items from the report, nothing more.

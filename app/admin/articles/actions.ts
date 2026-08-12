@@ -35,6 +35,10 @@ const MAX_LENGTHS = {
   seoTitle: 70,
   seoDescription: 200,
   seoKeywords: 300,
+  bulletPoint: 160,
+  comparisonTitle: 120,
+  comparisonBody: 600,
+  comparisonSourceLabel: 80,
 } as const;
 
 const URL_RE = /^https?:\/\/.+/i;
@@ -56,6 +60,12 @@ async function parseInput(formData: FormData): Promise<ArticleInput | { error: s
   const canonicalUrl = String(formData.get("canonicalUrl") || "").trim() || null;
   const publishedAt = String(formData.get("publishedAt") || "").trim() || null;
   const tags = parseTags(String(formData.get("tags") || ""));
+  const isExclusive = formData.get("isExclusive") === "true";
+  const bulletPoints = parseBulletPoints(String(formData.get("bulletPoints") || ""));
+  const comparisonTitle = String(formData.get("comparisonTitle") || "").trim() || null;
+  const comparisonBody = String(formData.get("comparisonBody") || "").trim() || null;
+  const comparisonSourceLabel = String(formData.get("comparisonSourceLabel") || "").trim() || null;
+  const comparisonSourceUrl = String(formData.get("comparisonSourceUrl") || "").trim() || null;
 
   if (!slug || !/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug)) {
     return { error: "Slug must be lowercase letters, numbers, and hyphens only (e.g. my-article-title)." };
@@ -91,6 +101,21 @@ async function parseInput(formData: FormData): Promise<ArticleInput | { error: s
   if (canonicalUrl && !URL_RE.test(canonicalUrl)) {
     return { error: "Canonical URL must start with http:// or https://." };
   }
+  if (bulletPoints.some((b) => b.length > MAX_LENGTHS.bulletPoint)) {
+    return { error: `Each bullet point must be ${MAX_LENGTHS.bulletPoint} characters or fewer.` };
+  }
+  if (comparisonTitle && comparisonTitle.length > MAX_LENGTHS.comparisonTitle) {
+    return { error: `Comparison title must be ${MAX_LENGTHS.comparisonTitle} characters or fewer.` };
+  }
+  if (comparisonBody && comparisonBody.length > MAX_LENGTHS.comparisonBody) {
+    return { error: `Comparison text must be ${MAX_LENGTHS.comparisonBody} characters or fewer.` };
+  }
+  if (comparisonSourceLabel && comparisonSourceLabel.length > MAX_LENGTHS.comparisonSourceLabel) {
+    return { error: `Comparison source label must be ${MAX_LENGTHS.comparisonSourceLabel} characters or fewer.` };
+  }
+  if (comparisonSourceUrl && !URL_RE.test(comparisonSourceUrl)) {
+    return { error: "Comparison source URL must start with http:// or https://." };
+  }
 
   const bodyHtml = bodyInputToHtml(rawBody);
 
@@ -104,7 +129,13 @@ async function parseInput(formData: FormData): Promise<ArticleInput | { error: s
     coverImageUrl,
     status,
     isFeatured,
+    isExclusive,
     tags,
+    bulletPoints,
+    comparisonTitle,
+    comparisonBody,
+    comparisonSourceLabel,
+    comparisonSourceUrl,
     seoTitle,
     seoDescription,
     seoKeywords,
@@ -112,6 +143,19 @@ async function parseInput(formData: FormData): Promise<ArticleInput | { error: s
     canonicalUrl,
     publishedAt,
   };
+}
+
+const MAX_BULLET_POINTS = 4;
+
+// One bullet per line from the admin's textarea, trimmed, blank lines
+// dropped, capped at MAX_BULLET_POINTS — the "Bottom Line Up Front" box
+// is meant to stay scannable, not become a second body.
+function parseBulletPoints(raw: string): string[] {
+  return raw
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .slice(0, MAX_BULLET_POINTS);
 }
 
 const MAX_TAGS = 15;

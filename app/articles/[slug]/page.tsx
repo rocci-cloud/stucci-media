@@ -12,6 +12,7 @@ import Reveal from "../../components/Reveal";
 import Badge from "../../components/ui/Badge";
 import BannerSlot from "../../components/BannerSlot";
 import LikeButton from "./LikeButton";
+import SaveButton from "./SaveButton";
 import CommentSection from "./CommentSection";
 import {
   getArticleBySlug,
@@ -20,6 +21,7 @@ import {
   incrementArticleViewCount,
 } from "../../lib/articles";
 import { getLikeCount, hasUserLiked } from "../../lib/likes";
+import { hasUserSaved } from "../../lib/saved-articles";
 import { getApprovedCommentsForArticle } from "../../lib/comments";
 import { auth } from "../../lib/auth";
 import { splitHtmlAtMidpoint } from "../../lib/split-html-midpoint";
@@ -112,9 +114,10 @@ export default async function ArticlePage({ params }: Props) {
   // Fire-and-forget — never block rendering on a write.
   incrementArticleViewCount(article.id).catch(() => {});
 
-  const [likeCount, liked, comments, relatedArticles] = await Promise.all([
+  const [likeCount, liked, saved, comments, relatedArticles] = await Promise.all([
     getLikeCount(article.id),
     session ? hasUserLiked(article.id, session.user.id) : Promise.resolve(false),
+    session ? hasUserSaved(article.id, session.user.id) : Promise.resolve(false),
     getApprovedCommentsForArticle(article.id),
     getRelatedArticles(article, 6),
   ]);
@@ -225,9 +228,10 @@ export default async function ArticlePage({ params }: Props) {
 
             <div className="absolute inset-x-0 bottom-0 px-5 pb-6 sm:px-8 sm:pb-9">
               <div className="mx-auto max-w-[820px] [animation:heroTextReveal_0.9s_cubic-bezier(0.16,1,0.3,1)_0.15s_both]">
-                <Badge variant="red" className="mb-3">
-                  {article.category}
-                </Badge>
+                <div className="flex flex-wrap items-center gap-2 mb-3">
+                  <Badge variant="red">{article.category}</Badge>
+                  {article.isExclusive && <Badge variant="navy">Exclusive</Badge>}
+                </div>
                 <h1 className="font-headline text-white text-[30px] sm:text-[42px] lg:text-[48px] font-bold uppercase leading-[0.98] tracking-[-0.015em] mb-3">
                   {article.headline}
                 </h1>
@@ -253,6 +257,44 @@ export default async function ArticlePage({ params }: Props) {
 
         <div className="mx-auto max-w-[1280px] px-5 pt-8 sm:pt-10 pb-18 grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-x-10">
           <article className="max-w-[720px]">
+            {article.bulletPoints.length > 0 && (
+              <div className="mb-7 rounded-card border-l-4 border-[var(--color-red)] bg-[var(--color-bg-off)] px-5 py-4">
+                <span className="mb-2 block font-sans text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--color-red)]">
+                  Bottom Line
+                </span>
+                <ul className="flex flex-col gap-2">
+                  {article.bulletPoints.map((point, i) => (
+                    <li key={i} className="flex gap-2.5 font-sans text-[14.5px] leading-[1.5] text-[var(--color-text)]">
+                      <span className="mt-[7px] h-[5px] w-[5px] shrink-0 rounded-full bg-[var(--color-red)]" />
+                      {point}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {article.comparisonTitle && article.comparisonBody && (
+              <div className="mb-7 rounded-card border border-[var(--color-navy)]/15 bg-[var(--color-navy)] px-5 py-5">
+                <span className="mb-2 block font-sans text-[11px] font-bold uppercase tracking-[0.08em] text-white/60">
+                  What They&rsquo;re Not Telling You
+                </span>
+                <h2 className="mb-2 font-headline text-[18px] font-bold uppercase leading-[1.15] tracking-[-0.005em] text-white">
+                  {article.comparisonTitle}
+                </h2>
+                <p className="font-sans text-[14.5px] leading-[1.55] text-white/85">{article.comparisonBody}</p>
+                {article.comparisonSourceUrl && (
+                  <a
+                    href={article.comparisonSourceUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-3 inline-flex min-h-11 items-center font-sans text-[12.5px] font-bold text-[var(--color-red)] hover:underline"
+                  >
+                    See how {article.comparisonSourceLabel || "mainstream coverage"} framed it →
+                  </a>
+                )}
+              </div>
+            )}
+
             <div
               className="prose prose-neutral max-w-none text-[17px] sm:text-[19px] leading-[1.75]
                 prose-headings:font-headline prose-headings:font-bold prose-headings:uppercase prose-headings:tracking-[-0.01em] prose-headings:leading-[1.1]
@@ -300,13 +342,21 @@ export default async function ArticlePage({ params }: Props) {
               <span className="font-sans text-[13px] font-bold text-[var(--color-text)]">
                 Enjoyed this story?
               </span>
-              <LikeButton
-                articleId={article.id}
-                initialCount={likeCount}
-                initialLiked={liked}
-                isSignedIn={Boolean(currentUser)}
-                signInRedirect={pagePath}
-              />
+              <div className="flex items-center gap-2">
+                <LikeButton
+                  articleId={article.id}
+                  initialCount={likeCount}
+                  initialLiked={liked}
+                  isSignedIn={Boolean(currentUser)}
+                  signInRedirect={pagePath}
+                />
+                <SaveButton
+                  articleId={article.id}
+                  initialSaved={saved}
+                  isSignedIn={Boolean(currentUser)}
+                  signInRedirect={pagePath}
+                />
+              </div>
             </div>
 
             <Reveal>

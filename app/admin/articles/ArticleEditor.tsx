@@ -2,7 +2,7 @@
 
 import { useActionState, useMemo, useState } from "react";
 import Link from "next/link";
-import { ExternalLink, Loader2, Sparkles } from "lucide-react";
+import { ExternalLink, Loader2, Sparkles, Zap } from "lucide-react";
 import { Input } from "../components/ui/input";
 import { Textarea } from "../components/ui/textarea";
 import { Label } from "../components/ui/label";
@@ -39,7 +39,7 @@ export default function ArticleEditor({ article, categories: initialCategories, 
   const isEdit = Boolean(article);
   const [state, formAction, pending] = useActionState(action, {});
 
-  const [tab, setTab] = useState<"content" | "seo">("content");
+  const [tab, setTab] = useState<"content" | "engagement" | "seo">("content");
 
   const [headline, setHeadline] = useState(article?.headline ?? "");
   const [slug, setSlug] = useState(article?.slug ?? "");
@@ -50,8 +50,14 @@ export default function ArticleEditor({ article, categories: initialCategories, 
   const [coverImageUrl, setCoverImageUrl] = useState<string | null>(article?.coverImageUrl ?? null);
   const [status, setStatus] = useState<"draft" | "published">(article?.status ?? "draft");
   const [isFeatured, setIsFeatured] = useState(article?.isFeatured ?? false);
+  const [isExclusive, setIsExclusive] = useState(article?.isExclusive ?? false);
   const [publishedAt, setPublishedAt] = useState(toLocalInputValue(article?.publishedAt ?? null));
   const [tags, setTags] = useState((article?.tags ?? []).map((t) => `#${t}`).join(", "));
+  const [bulletPoints, setBulletPoints] = useState((article?.bulletPoints ?? []).join("\n"));
+  const [comparisonTitle, setComparisonTitle] = useState(article?.comparisonTitle ?? "");
+  const [comparisonBody, setComparisonBody] = useState(article?.comparisonBody ?? "");
+  const [comparisonSourceLabel, setComparisonSourceLabel] = useState(article?.comparisonSourceLabel ?? "");
+  const [comparisonSourceUrl, setComparisonSourceUrl] = useState(article?.comparisonSourceUrl ?? "");
 
   const isScheduled = status === "published" && Boolean(publishedAt) && new Date(publishedAt) > new Date();
 
@@ -94,6 +100,7 @@ export default function ArticleEditor({ article, categories: initialCategories, 
       <input type="hidden" name="coverImageUrl" value={coverImageUrl ?? ""} />
       <input type="hidden" name="ogImage" value={ogImage ?? ""} />
       <input type="hidden" name="isFeatured" value={isFeatured ? "true" : "false"} />
+      <input type="hidden" name="isExclusive" value={isExclusive ? "true" : "false"} />
       {selectedSlugs.map((s) => (
         <input key={s} type="hidden" name="categorySlugs" value={s} />
       ))}
@@ -130,7 +137,7 @@ export default function ArticleEditor({ article, categories: initialCategories, 
           </div>
 
           <div className="flex gap-1 border-b border-[var(--admin-border)]">
-            {(["content", "seo"] as const).map((key) => (
+            {(["content", "engagement", "seo"] as const).map((key) => (
               <button
                 key={key}
                 type="button"
@@ -139,7 +146,7 @@ export default function ArticleEditor({ article, categories: initialCategories, 
                   tab === key ? "text-[var(--admin-fg)]" : "text-[var(--admin-fg-muted)] hover:text-[var(--admin-fg)]"
                 }`}
               >
-                {key === "content" ? "Content" : "SEO"}
+                {key === "content" ? "Content" : key === "engagement" ? "Engagement" : "SEO"}
                 {key === "seo" && (
                   <Badge variant={seoScore >= 80 ? "success" : seoScore >= 50 ? "default" : "danger"} className="ml-0.5">
                     {seoScore}
@@ -196,6 +203,76 @@ export default function ArticleEditor({ article, categories: initialCategories, 
             </div>
           </div>
 
+          <div className={tab === "engagement" ? "flex flex-col gap-5" : "hidden"}>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="bulletPoints">Bottom line up front</Label>
+              <Textarea
+                id="bulletPoints"
+                name="bulletPoints"
+                value={bulletPoints}
+                onChange={(e) => setBulletPoints(e.target.value)}
+                rows={4}
+                placeholder={"One point per line — up to 4.\nWhy this story matters.\nWhat changes because of it."}
+              />
+              <p className="text-[11.5px] text-[var(--admin-fg-muted)]">
+                A punchy 2–4 bullet summary shown above the story. One point per line, up to 4. Leave blank to skip it.
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-1.5 rounded-md border border-[var(--admin-border)] p-4">
+              <span className="text-[13px] font-medium text-[var(--admin-fg)]">What They&rsquo;re Not Telling You</span>
+              <p className="mb-1 text-[11.5px] text-[var(--admin-fg-muted)]">
+                An optional callout contrasting mainstream coverage against this story&rsquo;s angle. Leave the title
+                blank to skip it.
+              </p>
+              <Label htmlFor="comparisonTitle">Callout title</Label>
+              <Input
+                id="comparisonTitle"
+                name="comparisonTitle"
+                value={comparisonTitle}
+                onChange={(e) => setComparisonTitle(e.target.value)}
+                maxLength={120}
+                placeholder="What the networks left out"
+              />
+              <Label htmlFor="comparisonBody" className="mt-2">
+                Callout text
+              </Label>
+              <Textarea
+                id="comparisonBody"
+                name="comparisonBody"
+                value={comparisonBody}
+                onChange={(e) => setComparisonBody(e.target.value)}
+                rows={3}
+                maxLength={600}
+                placeholder="How mainstream outlets framed this story, and what they missed."
+              />
+              <div className="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <div className="flex flex-col gap-1.5">
+                  <Label htmlFor="comparisonSourceLabel">Source label</Label>
+                  <Input
+                    id="comparisonSourceLabel"
+                    name="comparisonSourceLabel"
+                    value={comparisonSourceLabel}
+                    onChange={(e) => setComparisonSourceLabel(e.target.value)}
+                    maxLength={80}
+                    placeholder="CNN, NYT coverage"
+                  />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <Label htmlFor="comparisonSourceUrl">Source link</Label>
+                  <Input
+                    id="comparisonSourceUrl"
+                    name="comparisonSourceUrl"
+                    type="url"
+                    value={comparisonSourceUrl}
+                    onChange={(e) => setComparisonSourceUrl(e.target.value)}
+                    placeholder="https://..."
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div className={tab === "seo" ? "contents" : "hidden"}>
             <SeoPanel
               headline={headline}
@@ -244,6 +321,14 @@ export default function ArticleEditor({ article, categories: initialCategories, 
                   <span className="text-[13px] font-medium text-[var(--admin-fg)]">Featured</span>
                 </div>
                 <Switch checked={isFeatured} onCheckedChange={setIsFeatured} />
+              </div>
+
+              <div className="flex items-center justify-between rounded-md border border-[var(--admin-border)] px-3 py-2.5">
+                <div className="flex items-center gap-2">
+                  <Zap className="h-4 w-4 text-[var(--admin-primary)]" />
+                  <span className="text-[13px] font-medium text-[var(--admin-fg)]">Exclusive</span>
+                </div>
+                <Switch checked={isExclusive} onCheckedChange={setIsExclusive} />
               </div>
 
               <div className="flex flex-col gap-1.5">

@@ -10,6 +10,7 @@ export type CommentNode = {
   authorImage: string | null;
   parentId: string | null;
   isApproved: boolean;
+  isPinned: boolean;
   replies: CommentNode[];
 };
 
@@ -20,6 +21,7 @@ export type AdminComment = {
   authorName: string;
   authorEmail: string;
   isApproved: boolean;
+  isPinned: boolean;
   articleSlug: string;
   articleHeadline: string;
 };
@@ -36,6 +38,7 @@ function mapRow(row: CommentRow): CommentNode {
     authorImage: row.user.image,
     parentId: row.parentId,
     isApproved: row.isApproved,
+    isPinned: row.isPinned,
     replies: [],
   };
 }
@@ -44,6 +47,10 @@ function mapRow(row: CommentRow): CommentNode {
 // used for post-moderation (an admin taking something down), not a queue
 // new comments wait in. So this only needs to filter out anything an admin
 // has since unapproved.
+//
+// Pinned top-level comments ("Editor's Picks") sort first, then everything
+// else stays in posting order — pinning only reorders roots, replies stay
+// chronological under whichever parent they belong to either way.
 function buildTree(rows: CommentRow[]): CommentNode[] {
   const byId = new Map<string, CommentNode>();
   for (const row of rows) byId.set(row.id, mapRow(row));
@@ -55,6 +62,7 @@ function buildTree(rows: CommentRow[]): CommentNode[] {
     if (parent) parent.replies.push(node);
     else roots.push(node);
   }
+  roots.sort((a, b) => Number(b.isPinned) - Number(a.isPinned));
   return roots;
 }
 
@@ -104,6 +112,7 @@ export async function getAllCommentsAdmin(): Promise<AdminComment[]> {
     authorName: row.user.name,
     authorEmail: row.user.email,
     isApproved: row.isApproved,
+    isPinned: row.isPinned,
     articleSlug: row.article.slug,
     articleHeadline: row.article.headline,
   }));
@@ -111,6 +120,13 @@ export async function getAllCommentsAdmin(): Promise<AdminComment[]> {
 
 export async function setCommentApproved(id: string, isApproved: boolean): Promise<void> {
   await prisma.comment.update({ where: { id }, data: { isApproved } });
+}
+
+// "Editor's Pick" — pinning a reply is allowed (no parentId check) but
+// only affects display order for top-level comments; buildTree only
+// re-sorts roots, so pinning a reply just marks it without moving it.
+export async function setCommentPinned(id: string, isPinned: boolean): Promise<void> {
+  await prisma.comment.update({ where: { id }, data: { isPinned } });
 }
 
 export async function deleteCommentAdmin(id: string): Promise<void> {

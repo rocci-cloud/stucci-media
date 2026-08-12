@@ -78,6 +78,11 @@ export default function ArticleCard({ article, variant = "grid", rank }: Article
         ) : (
           <div className="img-placeholder absolute inset-0" />
         )}
+        {article.isExclusive && (
+          <Badge variant="navy" className="absolute left-3 top-3">
+            Exclusive
+          </Badge>
+        )}
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-black/18 to-transparent" />
       </div>
       <div className="p-4 sm:p-5">

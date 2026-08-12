@@ -139,15 +139,24 @@ export default function MobileMenu({
               </span>
               <div className="min-w-0">
                 <div className="text-[13px] font-bold text-white truncate">{session.user.name}</div>
-                {session.user.role === "ADMIN" && (
+                <div className="flex items-center gap-2 text-[11.5px] font-sans font-bold uppercase tracking-wide">
                   <Link
-                    href="/admin"
+                    href="/saved"
                     onClick={onClose}
-                    className="text-[11.5px] font-sans font-bold uppercase tracking-wide text-white/60 hover:text-white transition-colors"
+                    className="text-white/60 hover:text-white transition-colors"
                   >
-                    Dashboard →
+                    Saved →
                   </Link>
-                )}
+                  {session.user.role === "ADMIN" && (
+                    <Link
+                      href="/admin"
+                      onClick={onClose}
+                      className="text-white/60 hover:text-white transition-colors"
+                    >
+                      Dashboard →
+                    </Link>
+                  )}
+                </div>
               </div>
             </div>
             <button
