@@ -28,12 +28,21 @@ model User {
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
 
-  sessions      Session[]
-  accounts      Account[]
-  articles      Article[]
-  likes         Like[]
-  comments      Comment[]
-  savedArticles SavedArticle[]
+  // Reading-streak tracking (see lib/streaks.ts) — lastActiveDate is
+  // compared by calendar day (UTC), not a precise timestamp, so a visit
+  // any time on consecutive days counts; currentStreak resets to 1 on a
+  // gap rather than going to 0, since the visit that resets it IS day 1
+  // of a new streak.
+  currentStreak  Int       @default(0) @map("current_streak")
+  lastActiveDate DateTime? @map("last_active_date")
+
+  sessions          Session[]
+  accounts          Account[]
+  articles          Article[]
+  likes             Like[]
+  comments          Comment[]
+  savedArticles     SavedArticle[]
+  categoryInterests CategoryInterest[]
 
   @@map("users")
 }
@@ -247,6 +256,26 @@ model Comment {
   @@index([articleId, isApproved])
   @@index([parentId])
   @@map("comments")
+}
+
+// Tracks how many times a reader has viewed an article in each category —
+// incremented fire-and-forget on every article view (see lib/streaks.ts's
+// sibling function in lib/interests.ts), read back to build the homepage's
+// personalized "Recommended For You" rail. Deliberately not a full
+// per-article reading-history log — a per-category counter is all the
+// personalization rail needs and is far cheaper to query.
+model CategoryInterest {
+  id           String   @id @default(cuid())
+  userId       String   @map("user_id")
+  categorySlug String   @map("category_slug")
+  count        Int      @default(1)
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, categorySlug])
+  @@index([userId])
+  @@map("category_interests")
 }
 
 // A reader's private "read later" list — same shape as Like, kept as its

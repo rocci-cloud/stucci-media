@@ -2,8 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { LogOut, User as UserIcon } from "lucide-react";
+import { Flame, LogOut, User as UserIcon } from "lucide-react";
 import { authClient, useSession } from "../lib/auth-client";
+import { getMyStreakAction } from "../lib/streak-actions";
 
 function initials(name: string) {
   return name
@@ -24,7 +25,15 @@ function initials(name: string) {
 export default function AccountMenu() {
   const { data: session, isPending } = useSession();
   const [open, setOpen] = useState(false);
+  const [streak, setStreak] = useState<number | null>(null);
   const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!session) return;
+    // Fire-and-forget-ish: shows the streak once it resolves, no loading
+    // state needed since it's a small secondary detail, not core content.
+    getMyStreakAction().then(setStreak);
+  }, [session]);
 
   useEffect(() => {
     if (!open) return;
@@ -93,6 +102,12 @@ export default function AccountMenu() {
           <div className="px-4 py-3 border-b border-white/10">
             <div className="text-[13px] font-bold text-white truncate">{user.name}</div>
             <div className="text-[11.5px] text-white/50 truncate">{user.email}</div>
+            {streak !== null && streak >= 2 && (
+              <div className="mt-1.5 inline-flex items-center gap-1 text-[11.5px] font-bold text-[var(--color-red)]">
+                <Flame className="h-3.5 w-3.5" fill="currentColor" />
+                {streak}-day streak
+              </div>
+            )}
           </div>
           <Link
             href="/saved"
