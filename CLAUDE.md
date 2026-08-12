@@ -2909,3 +2909,34 @@ zero indication anything happened.
   same login form with no obvious sign they're already authenticated.
   Worth a follow-up if that becomes a real complaint, not addressed
   here to keep this fix narrowly scoped under time pressure.
+
+## Phase 52 — done: session-aware header (the gap Phase 51 flagged)
+
+The one honest gap Phase 51 left open, closed: the public header never
+checked session state at all, for *any* account — signed in or not,
+"Sign In" / "Register" looked identical. New `AccountMenu.tsx` fixes
+this for the desktop header, and `MobileMenu.tsx` gained the matching
+signed-in state for the drawer.
+
+- **`AccountMenu.tsx`**: replaces the desktop header's bare Sign In
+  icon + Register link once a session exists (any role, not just
+  admin) with a red avatar-initials button. Its dropdown shows the
+  signed-in name/email, a "Dashboard" link (only when `role ===
+  "ADMIN"`), and "Sign Out" — same click-outside/Escape-close pattern
+  the existing `MoreNavDropdown` already established, no new
+  dependency. Reserves the same footprint during `useSession()`'s
+  `isPending` state so the header doesn't visibly jump once the
+  session check resolves.
+- **`MobileMenu.tsx`**'s bottom Sign In / Register row now branches the
+  same way: signed-in shows the avatar, name, a "Dashboard →" link for
+  admins, and a Sign Out button in place of the old two links.
+- **Sign-out is a hard navigation** (`window.location.href = "/"`)
+  after `authClient.signOut()`, same reasoning as `AdminTopbar`'s
+  existing sign-out — guarantees the next request sees the now-cleared
+  cookie instead of a cached signed-in payload.
+- **Verified against the live Neon database with a real browser**: a
+  throwaway reader account showed the avatar + name/email + Sign Out
+  with no Dashboard link; promoting that same account to ADMIN and
+  re-testing showed the Dashboard link appear, on both the desktop
+  dropdown and the mobile drawer. Test account, its sessions, and
+  activity-log rows were removed afterward.
