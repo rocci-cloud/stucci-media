@@ -2719,3 +2719,60 @@ access. Reproduced locally against the live Neon DB with a real browser
   menu and search overlay's search-navigation, which don't depend on
   session state and aren't at risk of this class of bug. No other
   instances found.
+
+## Phase 48 — done: the real root cause — BETTER_AUTH_URL was never set in production
+
+Phase 47's fixes were real bugs worth fixing, but not the actual cause
+of Rocci's report — after that shipped, he still couldn't log in on the
+live site. Walked him through the Vercel dashboard directly:
+`BETTER_AUTH_URL` did not exist as an environment variable at all, in
+any environment. This was a Phase 7 setup step the original CLAUDE.md
+documented as required ("set... `BETTER_AUTH_URL`... pull them locally
+via `vercel env pull`") but that step was apparently never actually
+completed against the real Vercel project — every login on the live
+site had been silently rejected since Phase 7, and nothing in this
+project's extensive verification history ever caught it because every
+prior phase's "verified in a real browser" testing ran against a local
+dev server hitting the same production database, never against the
+actual deployed Vercel URL.
+
+- **He added the variable and redeployed — still broken**, which is
+  the interesting part. Reproduced the exact failure mode locally: with
+  `BETTER_AUTH_URL` unset and a real browser request carrying
+  `Origin: https://stuccimedia.com`, Better Auth's cookie changes
+  character entirely — `baseURL` being undefined means Better Auth
+  doesn't know the app is served over HTTPS, so it sets a plain
+  `better-auth.session_token` cookie without the `Secure` flag or the
+  `__Secure-` name prefix, instead of the `__Secure-`-prefixed cookie a
+  real HTTPS production site needs. Once `baseURL` is set correctly,
+  the cookie is `__Secure-better-auth.session_token` with `Secure` —
+  confirmed directly by comparing the two `Set-Cookie` responses side
+  by side. So the missing env var was breaking auth two ways, not one:
+  the origin check (Phase 47's `trustedOrigins` fix) and the cookie's
+  own security attributes (this phase).
+- **Stopped depending on the env var being present or typo-free at
+  all**: `auth.ts` now hardcodes `PRODUCTION_URL =
+  "https://stuccimedia.com"` as a fallback — `baseURL` becomes
+  `process.env.BETTER_AUTH_URL || PRODUCTION_URL` (never undefined in
+  production regardless of Vercel config), and
+  `deriveTrustedOrigins()` always includes the apex+www form of
+  `PRODUCTION_URL` in addition to whatever `BETTER_AUTH_URL` resolves
+  to. `BETTER_AUTH_URL` still takes priority when set (still needed for
+  local dev and Preview deployments, where the real URL isn't the
+  production domain), so nothing about non-production environments
+  changed — only production stopped being a single missing env var away
+  from a silent, sitewide auth outage.
+- **Verified the fix directly reproduces and then resolves the exact
+  failure**: with `BETTER_AUTH_URL` removed from the environment
+  entirely and a curl request carrying `Origin: https://stuccimedia.com`
+  (matching what a real browser on the live site sends), sign-up/sign-in
+  now succeed with a correctly `Secure`-flagged, `__Secure-`-prefixed
+  cookie, and a follow-up request to `/admin` with that cookie returns
+  the real Dashboard — against the live production Neon database, not a
+  fixture. Test account, its sessions, and its activity-log rows were
+  removed afterward.
+- **The actual environment variable is still worth having set
+  correctly in Vercel** (this phase doesn't make it pointless) — it's
+  what lets Better Auth generate correct absolute URLs elsewhere (email
+  verification links, OAuth callback URLs if those are ever added), the
+  code fallback only covers what login itself needs.

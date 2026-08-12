@@ -18,15 +18,34 @@ if (!process.env.SESSION_SECRET) {
 // that doesn't byte-for-byte match whatever's in the env var. Trusting
 // both the apex and www form of the configured host closes that gap
 // without needing to know which one is actually misconfigured.
+//
+// BETTER_AUTH_URL turned out to be entirely unset in the live Vercel
+// project's Production environment (a Phase 7 setup step that was
+// documented but never actually completed) — every login on the real
+// site was rejected with no visible cause until that was fixed by hand
+// in the Vercel dashboard. Rather than stay fully dependent on that
+// env var existing and being typo-free, PRODUCTION_URL below is a
+// hardcoded fallback for the one domain that matters in production, so
+// this can't regress into the same silent failure from a missing or
+// mistyped env var again. BETTER_AUTH_URL still takes priority when
+// set (needed for local dev and Preview deployments, where the real
+// URL isn't known ahead of time).
+const PRODUCTION_URL = "https://stuccimedia.com";
+
 function deriveTrustedOrigins(baseUrl: string | undefined): string[] {
-  if (!baseUrl) return [];
-  try {
-    const { protocol, hostname } = new URL(baseUrl);
-    const bareHost = hostname.startsWith("www.") ? hostname.slice(4) : hostname;
-    return [`${protocol}//${bareHost}`, `${protocol}//www.${bareHost}`];
-  } catch {
-    return [baseUrl];
+  const origins = new Set<string>();
+  for (const candidate of [baseUrl, PRODUCTION_URL]) {
+    if (!candidate) continue;
+    try {
+      const { protocol, hostname } = new URL(candidate);
+      const bareHost = hostname.startsWith("www.") ? hostname.slice(4) : hostname;
+      origins.add(`${protocol}//${bareHost}`);
+      origins.add(`${protocol}//www.${bareHost}`);
+    } catch {
+      origins.add(candidate);
+    }
   }
+  return Array.from(origins);
 }
 
 export const auth = betterAuth({
@@ -34,8 +53,10 @@ export const auth = betterAuth({
   secret: process.env.SESSION_SECRET,
   // Server-only (not NEXT_PUBLIC_) so it's read fresh at request time —
   // NEXT_PUBLIC_ vars get statically inlined into the build, which would
-  // freeze this to whatever it was at build time.
-  baseURL: process.env.BETTER_AUTH_URL,
+  // freeze this to whatever it was at build time. Falls back to the
+  // known production URL rather than being undefined if the env var
+  // isn't set — see the PRODUCTION_URL comment above.
+  baseURL: process.env.BETTER_AUTH_URL || PRODUCTION_URL,
   trustedOrigins: deriveTrustedOrigins(process.env.BETTER_AUTH_URL),
   emailAndPassword: {
     enabled: true,
