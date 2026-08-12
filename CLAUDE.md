@@ -2821,3 +2821,45 @@ were downstream of — the app already assumed one canonical domain
   Vercel/the browser would actually have the matching cookie) instead
   of ever rendering a www version that couldn't see it. Test account,
   its sessions, and its activity-log rows were removed afterward.
+
+## Phase 50 — done: hotfix — Phase 49 had the canonical domain backwards
+
+Phase 49 shipped, and within minutes Rocci hit `Safari can't open the
+page because too many redirects occurred` on the apex domain — a real
+outage, worse than the original bug. Root cause: Vercel's own domain
+configuration already redirects the apex domain to `www` at the
+platform edge, ahead of `proxy.ts` ever running. Phase 49's redirect
+went the opposite direction (www → apex), so the two redirects fought
+each other in an infinite loop: Vercel sends apex → www, `proxy.ts`
+sends www → apex, forever. This is also the real explanation for the
+www landing Phase 49 was built to fix in the first place — www was the
+site's actual canonical domain all along, not apex.
+
+- **Removed the in-app host redirect entirely** — `proxy.ts` is back to
+  only its original job (the admin session-cookie check), since Vercel
+  already handles the apex→www redirect at the platform level and
+  doesn't need an in-app duplicate.
+- **Fixed the actual direction of the mistake**: every hardcoded
+  `https://stuccimedia.com` fallback in the codebase — `PRODUCTION_URL`
+  in `app/lib/auth.ts`, and the `siteUrl` fallback in `app/layout.tsx`,
+  `app/robots.ts`, `app/sitemap.ts`, the article and category pages'
+  JSON-LD URL building, and the admin article editor's preview-link
+  builder — now points at `https://www.stuccimedia.com` instead. This
+  is the fix that actually resolves the original report: `auth.ts`'s
+  trusted-origin fallback now matches the domain sign-in actually
+  happens on.
+- **Verified fast, under real time pressure, but still against the
+  live systems, not just re-reasoned about**: confirmed via `Host:
+  www.stuccimedia.com` and plain requests that neither host produces a
+  redirect loop or any redirect at all now, then ran the full sign-up →
+  promote → sign-in → `/admin` round trip against the live Neon
+  database with `Origin: https://www.stuccimedia.com` (the domain this
+  phase now treats as canonical) and confirmed it returns the real
+  Dashboard. Test account, its sessions, and its activity-log rows were
+  removed afterward.
+- **Lesson for next time**: verify which domain a Vercel project
+  actually treats as canonical (Vercel dashboard → Domains → look for
+  which one is marked primary / which one has "Redirect to" pointing at
+  the other) before writing any code that assumes a direction — this
+  phase inferred it after the fact, from a live outage, instead of
+  checking it up front.

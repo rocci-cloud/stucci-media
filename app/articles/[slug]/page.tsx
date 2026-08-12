@@ -132,7 +132,9 @@ export default async function ArticlePage({ params }: Props) {
   // that case, since there's no real "middle" to put one at.
   const [articleBodyFirstHalf, articleBodySecondHalf] = splitHtmlAtMidpoint(article.bodyHtml);
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://stuccimedia.com";
+  // www, not the apex domain — see the PRODUCTION_URL comment in
+  // app/lib/auth.ts.
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.stuccimedia.com";
   const articleUrl = `${siteUrl}${pagePath}`;
   // Same canonical-override logic as generateMetadata's `alternates.canonical`
   // above — mainEntityOfPage must point at the same URL Google is told is

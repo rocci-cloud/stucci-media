@@ -22,7 +22,9 @@ export default async function EditArticlePage({ params }: Props) {
 
   const boundUpdate = updateArticleAction.bind(null, article.id);
   const boundDelete = deleteArticleAction.bind(null, article.id);
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://stuccimedia.com";
+  // www, not the apex domain — see the PRODUCTION_URL comment in
+  // app/lib/auth.ts.
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.stuccimedia.com";
 
   return (
     <div className="max-w-[1100px]">

@@ -2,7 +2,9 @@ import type { MetadataRoute } from "next";
 import { getPublishedArticles } from "./lib/articles";
 import { getCategories } from "./lib/categories";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://stuccimedia.com";
+// www, not the apex domain — see the PRODUCTION_URL comment in
+// app/lib/auth.ts.
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.stuccimedia.com";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [articles, categories] = await Promise.all([getPublishedArticles(), getCategories()]);
