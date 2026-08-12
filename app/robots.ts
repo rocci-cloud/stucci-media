@@ -1,6 +1,8 @@
 import type { MetadataRoute } from "next";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://stuccimedia.com";
+// www, not the apex domain — see the PRODUCTION_URL comment in
+// app/lib/auth.ts.
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.stuccimedia.com";
 
 // /admin and /api are genuinely private/functional — everything else
 // (including /search, /login, /register) stays crawlable, but those

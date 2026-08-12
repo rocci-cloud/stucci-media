@@ -65,7 +65,9 @@ export default async function CategoryPage({ params }: Props) {
   const leadArticles = categoryArticles.slice(0, 4);
   const remainingArticles = categoryArticles.slice(4);
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://stuccimedia.com";
+  // www, not the apex domain — see the PRODUCTION_URL comment in
+  // app/lib/auth.ts.
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.stuccimedia.com";
   const breadcrumbSchema = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",

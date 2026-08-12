@@ -30,7 +30,14 @@ if (!process.env.SESSION_SECRET) {
 // mistyped env var again. BETTER_AUTH_URL still takes priority when
 // set (needed for local dev and Preview deployments, where the real
 // URL isn't known ahead of time).
-const PRODUCTION_URL = "https://stuccimedia.com";
+//
+// This is `www.stuccimedia.com`, not the apex domain — confirmed to be
+// the site's actual canonical host by observation: Vercel's own domain
+// configuration redirects the apex domain to www at the platform edge
+// (an in-app middleware redirect in the opposite direction was tried
+// first and produced an infinite redirect loop against that existing
+// platform redirect, which is how this was discovered).
+const PRODUCTION_URL = "https://www.stuccimedia.com";
 
 function deriveTrustedOrigins(baseUrl: string | undefined): string[] {
   const origins = new Set<string>();

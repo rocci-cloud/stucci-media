@@ -5,7 +5,11 @@ import "@fontsource/oswald/600.css";
 import "@fontsource/oswald/700.css";
 import "./globals.css";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://stuccimedia.com";
+// www, not the apex domain — see the PRODUCTION_URL comment in
+// app/lib/auth.ts for why: Vercel's own domain config redirects the
+// apex domain to www at the platform edge, so www is the real
+// canonical host.
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.stuccimedia.com";
 const title = "Stucci Media | Independent News That Matters";
 const description =
   "Stucci Media: independent news and investigations from Florida — politics, world events, crime, veterans, social issues, and free speech, without the spin.";
