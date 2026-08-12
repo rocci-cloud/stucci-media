@@ -19,6 +19,7 @@ export type Article = {
   status: "draft" | "published";
   isFeatured: boolean;
   isExclusive: boolean;
+  isLiveBlog: boolean;
   viewCount: number;
   tags: string[];
   bulletPoints: string[];
@@ -51,6 +52,7 @@ export type ArticleInput = {
   status: "draft" | "published";
   isFeatured: boolean;
   isExclusive: boolean;
+  isLiveBlog: boolean;
   tags: string[];
   bulletPoints: string[];
   comparisonTitle: string | null;
@@ -121,6 +123,7 @@ function mapRow(row: PrismaArticle | ArticleWithCategories, labelBySlug: Map<str
     status: toStatus(row.status),
     isFeatured: row.isFeatured,
     isExclusive: row.isExclusive,
+    isLiveBlog: row.isLiveBlog,
     viewCount: row.viewCount,
     tags: row.tags,
     bulletPoints: row.bulletPoints,
@@ -307,6 +310,7 @@ export async function createArticle(input: ArticleInput): Promise<Article> {
           status,
           isFeatured: input.isFeatured,
           isExclusive: input.isExclusive,
+          isLiveBlog: input.isLiveBlog,
           tags: input.tags,
           bulletPoints: input.bulletPoints,
           comparisonTitle: input.comparisonTitle,
@@ -354,6 +358,7 @@ export async function updateArticle(id: number, input: ArticleInput): Promise<Ar
           status,
           isFeatured: input.isFeatured,
           isExclusive: input.isExclusive,
+          isLiveBlog: input.isLiveBlog,
           tags: input.tags,
           bulletPoints: input.bulletPoints,
           comparisonTitle: input.comparisonTitle,

@@ -7,6 +7,7 @@ import {
   Images,
   Link2,
   MessageSquare,
+  Mail,
   Settings,
 } from "lucide-react";
 
@@ -24,5 +25,6 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
   { label: "Media", href: "/admin/media", icon: Images },
   { label: "Redirects", href: "/admin/redirects", icon: Link2 },
   { label: "Comments", href: "/admin/comments", icon: MessageSquare },
+  { label: "Weekly Digest", href: "/admin/digest", icon: Mail },
   { label: "Settings", href: "/admin/settings", icon: Settings },
 ];

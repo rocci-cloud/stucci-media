@@ -43,6 +43,7 @@ model User {
   comments          Comment[]
   savedArticles     SavedArticle[]
   categoryInterests CategoryInterest[]
+  pushSubscriptions PushSubscription[]
 
   @@map("users")
 }
@@ -181,6 +182,14 @@ model Article {
   // an exclusive/scoop regardless of whether it's currently featured.
   isExclusive Boolean @default(false) @map("is_exclusive")
 
+  // Live blog format — when true, the public article page renders a
+  // reverse-chronological LiveBlogEntry timeline (see lib/live-blog.ts)
+  // instead of/above the normal static body, with a pulsing "LIVE" badge.
+  // The article's own `body` field still exists underneath (e.g. as an
+  // intro/context blurb) — this is additive, not a replacement content
+  // model, so turning the flag off doesn't lose anything.
+  isLiveBlog Boolean @default(false) @map("is_live_blog")
+
   status      ArticleStatus @default(DRAFT)
   isFeatured  Boolean       @default(false) @map("is_featured")
   viewCount   Int           @default(0) @map("view_count")
@@ -198,10 +207,11 @@ model Article {
   createdAt   DateTime  @default(now()) @map("created_at")
   updatedAt   DateTime  @updatedAt @map("updated_at")
 
-  categories    ArticleCategory[]
-  likes         Like[]
-  comments      Comment[]
-  savedBy       SavedArticle[]
+  categories      ArticleCategory[]
+  likes           Like[]
+  comments        Comment[]
+  savedBy         SavedArticle[]
+  liveBlogEntries LiveBlogEntry[]
 
   @@index([categorySlug], map: "articles_category_slug_idx")
   @@index([status, publishedAt(sort: Desc)], map: "articles_status_published_at_idx")
@@ -294,6 +304,46 @@ model SavedArticle {
   @@index([articleId])
   @@index([userId, createdAt(sort: Desc)])
   @@map("saved_articles")
+}
+
+// Individual timestamped updates within a live-blog-format Article (see
+// Article.isLiveBlog). Deliberately its own append-only table rather than
+// reusing Comment or stuffing entries into `body` — an entry needs its own
+// timestamp shown to readers and independent create/delete, and unlike a
+// comment it's editor-authored, not reader-submitted.
+model LiveBlogEntry {
+  id        String   @id @default(cuid())
+  articleId Int      @map("article_id")
+  headline  String?
+  body      String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  article Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@index([articleId, createdAt(sort: Desc)])
+  @@map("live_blog_entries")
+}
+
+// Browser Push API subscriptions (see lib/push.ts) — endpoint/p256dh/auth
+// are exactly the fields the Push API's PushSubscription object provides,
+// stored verbatim so web-push can target them later. userId is optional:
+// a signed-out visitor can still opt into "Breaking News Alerts" for the
+// browser they're on, same as most news sites' push prompts don't require
+// an account. Deleting a User cascades their subscription rows, but an
+// anonymous subscription has no user to cascade from and is only ever
+// cleaned up when the endpoint itself goes stale (a failed send).
+model PushSubscription {
+  id        String   @id @default(cuid())
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  userId    String?  @map("user_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("push_subscriptions")
 }
 
 model Subscriber {

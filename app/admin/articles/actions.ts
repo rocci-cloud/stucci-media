@@ -20,6 +20,8 @@ import { getCategories } from "../../lib/categories";
 import { bodyInputToHtml } from "../../lib/sanitize";
 import { requireAdminSession } from "../../lib/require-admin";
 import { logActivity } from "../../lib/activity";
+import { addLiveBlogEntry, deleteLiveBlogEntry, getLiveBlogEntryPreview } from "../../lib/live-blog";
+import { sendPushToAllSubscribers } from "../../lib/push";
 
 export type ArticleFormState = { error?: string };
 
@@ -53,6 +55,7 @@ async function parseInput(formData: FormData): Promise<ArticleInput | { error: s
   const coverImageUrl = String(formData.get("coverImageUrl") || "").trim() || null;
   const status = formData.get("status") === "published" ? "published" : "draft";
   const isFeatured = formData.get("isFeatured") === "true";
+  const isLiveBlog = formData.get("isLiveBlog") === "true";
   const seoTitle = String(formData.get("seoTitle") || "").trim() || null;
   const seoDescription = String(formData.get("seoDescription") || "").trim() || null;
   const seoKeywords = String(formData.get("seoKeywords") || "").trim() || null;
@@ -130,6 +133,7 @@ async function parseInput(formData: FormData): Promise<ArticleInput | { error: s
     status,
     isFeatured,
     isExclusive,
+    isLiveBlog,
     tags,
     bulletPoints,
     comparisonTitle,
@@ -178,6 +182,24 @@ function parseTags(raw: string): string[] {
   return tags;
 }
 
+// www, not the apex domain — see the PRODUCTION_URL comment in
+// app/lib/auth.ts.
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.stuccimedia.com";
+
+// Fire-and-forget — never awaited by the caller (a slow/failed push send
+// must never delay redirecting the admin back to the articles list).
+// Skips scheduled articles (isScheduled true means publishedAt is still in
+// the future — nothing is actually live yet) and no-ops entirely when
+// VAPID isn't configured (see lib/push.ts).
+function notifyOnPublish(article: { status: "draft" | "published"; isScheduled: boolean; headline: string; dek: string; slug: string }) {
+  if (article.status !== "published" || article.isScheduled) return;
+  sendPushToAllSubscribers({
+    title: article.headline,
+    body: article.dek,
+    url: `${SITE_URL}/articles/${article.slug}`,
+  }).catch(() => {});
+}
+
 export async function createArticleAction(
   _prevState: ArticleFormState,
   formData: FormData
@@ -188,8 +210,9 @@ export async function createArticleAction(
   const input = await parseInput(formData);
   if ("error" in input) return input;
 
+  let created;
   try {
-    await createArticle(input);
+    created = await createArticle(input);
   } catch (error) {
     if (isUniqueConstraintError(error)) {
       return { error: `Slug "${input.slug}" is already in use.` };
@@ -198,6 +221,7 @@ export async function createArticleAction(
   }
 
   await logActivity({ actor: session.user, action: "article.created", targetType: "article", targetLabel: input.headline });
+  notifyOnPublish(created);
   revalidatePath("/", "layout");
   redirect("/admin/articles");
 }
@@ -213,8 +237,10 @@ export async function updateArticleAction(
   const input = await parseInput(formData);
   if ("error" in input) return input;
 
+  const before = await getArticleByIdAdmin(id);
+  let updated;
   try {
-    await updateArticle(id, input);
+    updated = await updateArticle(id, input);
   } catch (error) {
     if (isUniqueConstraintError(error)) {
       return { error: `Slug "${input.slug}" is already in use.` };
@@ -223,6 +249,10 @@ export async function updateArticleAction(
   }
 
   await logActivity({ actor: session.user, action: "article.updated", targetType: "article", targetLabel: input.headline });
+  // Only a genuine draft → published transition triggers a push — saving
+  // an already-published article again (a typo fix, a re-categorize)
+  // shouldn't re-notify every subscriber.
+  if (before?.status !== "published") notifyOnPublish(updated);
   revalidatePath("/", "layout");
   redirect("/admin/articles");
 }
@@ -366,6 +396,64 @@ export async function bulkSetFeaturedAction(ids: number[], isFeatured: boolean):
     return { success: true };
   } catch {
     return { success: false, error: "Something went wrong updating those articles." };
+  }
+}
+
+// --- Live blog entries (see lib/live-blog.ts) — managed independently of
+// the main article form, since an entry is its own timestamped, append-
+// only record rather than a field the big Save button submits. ---
+
+const MAX_LIVE_BLOG_HEADLINE = 120;
+const MAX_LIVE_BLOG_BODY = 2000;
+
+export async function addLiveBlogEntryAction(
+  articleId: number,
+  headline: string,
+  body: string
+): Promise<ActionResult> {
+  const session = await requireAdminSession();
+  if (!session) return UNAUTHORIZED;
+  const trimmedBody = body.trim();
+  if (!trimmedBody) return { success: false, error: "Entry text is required." };
+  if (trimmedBody.length > MAX_LIVE_BLOG_BODY) {
+    return { success: false, error: `Entry must be ${MAX_LIVE_BLOG_BODY} characters or fewer.` };
+  }
+  const trimmedHeadline = headline.trim().slice(0, MAX_LIVE_BLOG_HEADLINE) || null;
+  try {
+    await addLiveBlogEntry(articleId, { headline: trimmedHeadline, bodyHtml: bodyInputToHtml(trimmedBody) });
+    const article = await getArticleByIdAdmin(articleId);
+    await logActivity({
+      actor: session.user,
+      action: "live_blog.entry_added",
+      targetType: "article",
+      targetLabel: article?.headline ?? `#${articleId}`,
+    });
+    revalidatePath("/", "layout");
+    revalidatePath(`/admin/articles/${articleId}/edit`);
+    return { success: true };
+  } catch {
+    return { success: false, error: "Couldn't add that update." };
+  }
+}
+
+export async function deleteLiveBlogEntryAction(entryId: string, articleId: number): Promise<ActionResult> {
+  const session = await requireAdminSession();
+  if (!session) return UNAUTHORIZED;
+  try {
+    const preview = await getLiveBlogEntryPreview(entryId);
+    await deleteLiveBlogEntry(entryId);
+    const article = await getArticleByIdAdmin(articleId);
+    await logActivity({
+      actor: session.user,
+      action: "live_blog.entry_deleted",
+      targetType: "article",
+      targetLabel: `${article?.headline ?? `#${articleId}`} — ${preview ?? entryId}`,
+    });
+    revalidatePath("/", "layout");
+    revalidatePath(`/admin/articles/${articleId}/edit`);
+    return { success: true };
+  } catch {
+    return { success: false, error: "Couldn't delete that update." };
   }
 }
 

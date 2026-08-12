@@ -2,7 +2,7 @@
 
 import { useActionState, useMemo, useState } from "react";
 import Link from "next/link";
-import { ExternalLink, Loader2, Sparkles, Zap } from "lucide-react";
+import { ExternalLink, Loader2, Radio, Sparkles, Zap } from "lucide-react";
 import { Input } from "../components/ui/input";
 import { Textarea } from "../components/ui/textarea";
 import { Label } from "../components/ui/label";
@@ -15,10 +15,12 @@ import RichTextEditor from "./RichTextEditor";
 import CategoryMultiSelect from "./CategoryMultiSelect";
 import ImageField from "./ImageField";
 import SeoPanel from "./SeoPanel";
+import LiveBlogPanel from "./LiveBlogPanel";
 import { slugify } from "../../lib/slugify";
 import { computeSeoScore } from "../../lib/seo-score";
 import type { Article } from "../../lib/articles";
 import type { Category } from "../../lib/categories";
+import type { LiveBlogEntry } from "../../lib/live-blog";
 import type { ArticleFormState } from "./actions";
 
 type Props = {
@@ -26,6 +28,7 @@ type Props = {
   categories: Category[];
   action: (prevState: ArticleFormState, formData: FormData) => Promise<ArticleFormState>;
   siteUrl: string;
+  liveBlogEntries?: LiveBlogEntry[];
 };
 
 function toLocalInputValue(iso: string | null): string {
@@ -35,11 +38,17 @@ function toLocalInputValue(iso: string | null): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-export default function ArticleEditor({ article, categories: initialCategories, action, siteUrl }: Props) {
+export default function ArticleEditor({
+  article,
+  categories: initialCategories,
+  action,
+  siteUrl,
+  liveBlogEntries = [],
+}: Props) {
   const isEdit = Boolean(article);
   const [state, formAction, pending] = useActionState(action, {});
 
-  const [tab, setTab] = useState<"content" | "engagement" | "seo">("content");
+  const [tab, setTab] = useState<"content" | "engagement" | "live-blog" | "seo">("content");
 
   const [headline, setHeadline] = useState(article?.headline ?? "");
   const [slug, setSlug] = useState(article?.slug ?? "");
@@ -51,6 +60,7 @@ export default function ArticleEditor({ article, categories: initialCategories, 
   const [status, setStatus] = useState<"draft" | "published">(article?.status ?? "draft");
   const [isFeatured, setIsFeatured] = useState(article?.isFeatured ?? false);
   const [isExclusive, setIsExclusive] = useState(article?.isExclusive ?? false);
+  const [isLiveBlog, setIsLiveBlog] = useState(article?.isLiveBlog ?? false);
   const [publishedAt, setPublishedAt] = useState(toLocalInputValue(article?.publishedAt ?? null));
   const [tags, setTags] = useState((article?.tags ?? []).map((t) => `#${t}`).join(", "));
   const [bulletPoints, setBulletPoints] = useState((article?.bulletPoints ?? []).join("\n"));
@@ -101,6 +111,7 @@ export default function ArticleEditor({ article, categories: initialCategories, 
       <input type="hidden" name="ogImage" value={ogImage ?? ""} />
       <input type="hidden" name="isFeatured" value={isFeatured ? "true" : "false"} />
       <input type="hidden" name="isExclusive" value={isExclusive ? "true" : "false"} />
+      <input type="hidden" name="isLiveBlog" value={isLiveBlog ? "true" : "false"} />
       {selectedSlugs.map((s) => (
         <input key={s} type="hidden" name="categorySlugs" value={s} />
       ))}
@@ -137,24 +148,32 @@ export default function ArticleEditor({ article, categories: initialCategories, 
           </div>
 
           <div className="flex gap-1 border-b border-[var(--admin-border)]">
-            {(["content", "engagement", "seo"] as const).map((key) => (
-              <button
-                key={key}
-                type="button"
-                onClick={() => setTab(key)}
-                className={`relative flex items-center gap-1.5 px-3 py-2.5 text-[13px] font-medium transition-colors ${
-                  tab === key ? "text-[var(--admin-fg)]" : "text-[var(--admin-fg-muted)] hover:text-[var(--admin-fg)]"
-                }`}
-              >
-                {key === "content" ? "Content" : key === "engagement" ? "Engagement" : "SEO"}
-                {key === "seo" && (
-                  <Badge variant={seoScore >= 80 ? "success" : seoScore >= 50 ? "default" : "danger"} className="ml-0.5">
-                    {seoScore}
-                  </Badge>
-                )}
-                {tab === key && <span className="absolute inset-x-0 -bottom-px h-0.5 bg-[var(--admin-primary)]" />}
-              </button>
-            ))}
+            {(["content", "engagement", "live-blog", "seo"] as const)
+              .filter((key) => key !== "live-blog" || isEdit)
+              .map((key) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => setTab(key)}
+                  className={`relative flex items-center gap-1.5 px-3 py-2.5 text-[13px] font-medium transition-colors ${
+                    tab === key ? "text-[var(--admin-fg)]" : "text-[var(--admin-fg-muted)] hover:text-[var(--admin-fg)]"
+                  }`}
+                >
+                  {key === "content"
+                    ? "Content"
+                    : key === "engagement"
+                      ? "Engagement"
+                      : key === "live-blog"
+                        ? "Live Blog"
+                        : "SEO"}
+                  {key === "seo" && (
+                    <Badge variant={seoScore >= 80 ? "success" : seoScore >= 50 ? "default" : "danger"} className="ml-0.5">
+                      {seoScore}
+                    </Badge>
+                  )}
+                  {tab === key && <span className="absolute inset-x-0 -bottom-px h-0.5 bg-[var(--admin-primary)]" />}
+                </button>
+              ))}
           </div>
 
           {/* Both tabs stay mounted (hidden, not unmounted) — every field
@@ -273,6 +292,12 @@ export default function ArticleEditor({ article, categories: initialCategories, 
             </div>
           </div>
 
+          {isEdit && article && (
+            <div className={tab === "live-blog" ? "flex flex-col gap-5" : "hidden"}>
+              <LiveBlogPanel articleId={article.id} initialEntries={liveBlogEntries} />
+            </div>
+          )}
+
           <div className={tab === "seo" ? "contents" : "hidden"}>
             <SeoPanel
               headline={headline}
@@ -330,6 +355,19 @@ export default function ArticleEditor({ article, categories: initialCategories, 
                 </div>
                 <Switch checked={isExclusive} onCheckedChange={setIsExclusive} />
               </div>
+
+              <div className="flex items-center justify-between rounded-md border border-[var(--admin-border)] px-3 py-2.5">
+                <div className="flex items-center gap-2">
+                  <Radio className="h-4 w-4 text-[var(--admin-primary)]" />
+                  <span className="text-[13px] font-medium text-[var(--admin-fg)]">Live Blog</span>
+                </div>
+                <Switch checked={isLiveBlog} onCheckedChange={setIsLiveBlog} />
+              </div>
+              {isLiveBlog && !isEdit && (
+                <p className="-mt-2 text-[11.5px] text-[var(--admin-fg-muted)]">
+                  Save the article first, then post timestamped updates from the new Live Blog tab.
+                </p>
+              )}
 
               <div className="flex flex-col gap-1.5">
                 <Label htmlFor="publishedAt">Published date</Label>
