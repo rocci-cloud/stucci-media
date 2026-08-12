@@ -2863,3 +2863,49 @@ site's actual canonical domain all along, not apex.
   the other) before writing any code that assumes a direction — this
   phase inferred it after the fact, from a live outage, instead of
   checking it up front.
+
+## Phase 51 — done: the real, actual, final root cause — login had nowhere admin-specific to send him
+
+After Phase 50 shipped, a direct query against the live database during
+Rocci's next attempt settled it for good: two brand-new valid ADMIN
+sessions were created within 90 seconds of each other, tied to his real
+account — the backend has been working correctly since Phase 48. The
+entire remaining mystery was client-side UX, not auth.
+
+`SiteHeaderClient.tsx`'s and `MobileMenu.tsx`'s "Sign In" links are
+plain `<Link href="/login">`, with no `?from=` — reasonable, since the
+header can't know in advance whether a visitor wants the admin panel or
+is just a reader. `login/page.tsx` correctly falls back to `redirectTo
+= "/"` when there's no `from` param. So a successful sign-in from the
+header correctly, deliberately, by-design lands on the homepage — and
+the homepage's `SiteHeaderClient` has never been session-aware (no
+`useSession()` call anywhere in it), so it looks identical whether
+signed in or not. Every single "it goes back to the homepage/login
+screen and does nothing" report across this whole investigation was, in
+the end, exactly that: a correct, silent redirect to a page that gives
+zero indication anything happened.
+
+- **`AuthForm.tsx`'s success path now checks the signed-in user's
+  role**: if `mode === "login"` and `redirectTo` is still the bare
+  default (`"/"` — meaning nothing more specific was requested, e.g. a
+  bounce from a protected page) and the account that just signed in has
+  `role === "ADMIN"`, the destination becomes `/admin` instead. An
+  explicit `?from=` target (a reader bounced off a protected action, a
+  direct link to `/login?from=/admin`) is left untouched — this only
+  changes the ambiguous "just clicked Sign In from the header" case.
+  Regular reader sign-ins are completely unaffected, since their role
+  is never `ADMIN`.
+- **Verified against a real click on the actual header icon**, not just
+  reasoned about: Playwright clicked the same `a[href="/login"]` link
+  Rocci uses, signed in as a throwaway admin account, and landed
+  directly on the real Dashboard (confirmed by page heading) instead of
+  the homepage. Test account, its sessions, and its activity-log rows
+  removed afterward.
+- **What's still honestly a gap, noted rather than silently left**: the
+  public site's header still shows zero indication of being signed in
+  for a *reader* account (no avatar, no "My Account," nothing) — this
+  phase's fix specifically targets the admin case since that's what
+  broke, but a logged-in reader clicking "Sign In" again would see the
+  same login form with no obvious sign they're already authenticated.
+  Worth a follow-up if that becomes a real complaint, not addressed
+  here to keep this fix narrowly scoped under time pressure.
