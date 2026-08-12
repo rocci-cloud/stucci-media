@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { setCommentApproved, deleteCommentAdmin, getCommentPreview } from "../../lib/comments";
+import { setCommentApproved, setCommentPinned, deleteCommentAdmin, getCommentPreview } from "../../lib/comments";
 import { requireAdminSession } from "../../lib/require-admin";
 import { logActivity } from "../../lib/activity";
 
@@ -18,6 +18,25 @@ export async function setCommentApprovedAction(id: string, isApproved: boolean):
     await logActivity({
       actor: session.user,
       action: isApproved ? "comment.approved" : "comment.hidden",
+      targetType: "comment",
+      targetLabel: preview ?? id,
+    });
+    revalidatePath("/", "layout");
+    return { success: true };
+  } catch {
+    return { success: false, error: "Couldn't update that comment." };
+  }
+}
+
+export async function setCommentPinnedAction(id: string, isPinned: boolean): Promise<ActionResult> {
+  const session = await requireAdminSession();
+  if (!session) return UNAUTHORIZED;
+  try {
+    await setCommentPinned(id, isPinned);
+    const preview = await getCommentPreview(id);
+    await logActivity({
+      actor: session.user,
+      action: isPinned ? "comment.pinned" : "comment.unpinned",
       targetType: "comment",
       targetLabel: preview ?? id,
     });

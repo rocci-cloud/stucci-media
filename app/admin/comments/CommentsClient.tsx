@@ -3,7 +3,7 @@
 import { useMemo, useOptimistic, useState, useTransition } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
-import { Loader2, MessageSquare, Search, Trash2 } from "lucide-react";
+import { Loader2, MessageSquare, Pin, Search, Trash2 } from "lucide-react";
 import { Input } from "../components/ui/input";
 import { Badge } from "../components/ui/badge";
 import { Switch } from "../components/ui/switch";
@@ -19,18 +19,21 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "../components/ui/alert-dialog";
-import { deleteCommentAction, setCommentApprovedAction } from "./actions";
+import { deleteCommentAction, setCommentApprovedAction, setCommentPinnedAction } from "./actions";
 import type { AdminComment } from "../../lib/comments";
 
 type StatusFilter = "all" | "approved" | "hidden";
 type OptimisticAction =
   | { type: "approve"; id: string; isApproved: boolean }
+  | { type: "pin"; id: string; isPinned: boolean }
   | { type: "delete"; id: string };
 
 function reducer(state: AdminComment[], action: OptimisticAction): AdminComment[] {
   switch (action.type) {
     case "approve":
       return state.map((c) => (c.id === action.id ? { ...c, isApproved: action.isApproved } : c));
+    case "pin":
+      return state.map((c) => (c.id === action.id ? { ...c, isPinned: action.isPinned } : c));
     case "delete":
       return state.filter((c) => c.id !== action.id);
   }
@@ -70,6 +73,22 @@ export default function CommentsClient({ initialComments }: { initialComments: A
       setPendingId(null);
       if (result.success) {
         setComments((prev) => prev.map((c) => (c.id === comment.id ? { ...c, isApproved: next } : c)));
+      } else {
+        toast.error(result.error);
+      }
+    });
+  }
+
+  function handleTogglePinned(comment: AdminComment) {
+    const next = !comment.isPinned;
+    setPendingId(comment.id);
+    startTransition(async () => {
+      applyOptimistic({ type: "pin", id: comment.id, isPinned: next });
+      const result = await setCommentPinnedAction(comment.id, next);
+      setPendingId(null);
+      if (result.success) {
+        setComments((prev) => prev.map((c) => (c.id === comment.id ? { ...c, isPinned: next } : c)));
+        toast.success(next ? "Pinned as Editor's Pick." : "Unpinned.");
       } else {
         toast.error(result.error);
       }
@@ -160,11 +179,10 @@ export default function CommentsClient({ initialComments }: { initialComments: A
                 <TableRow key={comment.id} className={pendingId === comment.id ? "opacity-50" : ""}>
                   <TableCell className="max-w-[320px]">
                     <p className="line-clamp-2 text-[13.5px]">{comment.content}</p>
-                    {!comment.isApproved && (
-                      <Badge variant="outline" className="mt-1">
-                        Hidden
-                      </Badge>
-                    )}
+                    <div className="mt-1 flex gap-1.5">
+                      {comment.isPinned && <Badge>Editor&rsquo;s Pick</Badge>}
+                      {!comment.isApproved && <Badge variant="outline">Hidden</Badge>}
+                    </div>
                   </TableCell>
                   <TableCell className="hidden sm:table-cell">
                     <div className="text-[13px] font-medium">{comment.authorName}</div>
@@ -198,15 +216,27 @@ export default function CommentsClient({ initialComments }: { initialComments: A
                     )}
                   </TableCell>
                   <TableCell>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      aria-label="Delete comment"
-                      onClick={() => setDeleteTarget(comment)}
-                      className="text-[var(--admin-danger)] hover:bg-[var(--admin-danger-bg)]"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    <div className="flex items-center gap-0.5">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        aria-label={comment.isPinned ? "Unpin as Editor's Pick" : "Pin as Editor's Pick"}
+                        aria-pressed={comment.isPinned}
+                        onClick={() => handleTogglePinned(comment)}
+                        className={comment.isPinned ? "text-[var(--admin-primary)]" : ""}
+                      >
+                        <Pin className="h-4 w-4" fill={comment.isPinned ? "currentColor" : "none"} />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        aria-label="Delete comment"
+                        onClick={() => setDeleteTarget(comment)}
+                        className="text-[var(--admin-danger)] hover:bg-[var(--admin-danger-bg)]"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}

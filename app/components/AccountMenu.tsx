@@ -94,6 +94,14 @@ export default function AccountMenu() {
             <div className="text-[13px] font-bold text-white truncate">{user.name}</div>
             <div className="text-[11.5px] text-white/50 truncate">{user.email}</div>
           </div>
+          <Link
+            href="/saved"
+            role="menuitem"
+            onClick={() => setOpen(false)}
+            className="min-h-11 flex items-center px-4 text-[12.5px] font-bold uppercase tracking-[0.03em] text-white hover:bg-white/5 transition-colors"
+          >
+            Saved Articles
+          </Link>
           {user.role === "ADMIN" && (
             <Link
               href="/admin"

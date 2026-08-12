@@ -18,8 +18,14 @@ export type Article = {
   coverImageUrl: string | null;
   status: "draft" | "published";
   isFeatured: boolean;
+  isExclusive: boolean;
   viewCount: number;
   tags: string[];
+  bulletPoints: string[];
+  comparisonTitle: string | null;
+  comparisonBody: string | null;
+  comparisonSourceLabel: string | null;
+  comparisonSourceUrl: string | null;
   seoTitle: string | null;
   seoDescription: string | null;
   seoKeywords: string | null;
@@ -44,7 +50,13 @@ export type ArticleInput = {
   coverImageUrl: string | null;
   status: "draft" | "published";
   isFeatured: boolean;
+  isExclusive: boolean;
   tags: string[];
+  bulletPoints: string[];
+  comparisonTitle: string | null;
+  comparisonBody: string | null;
+  comparisonSourceLabel: string | null;
+  comparisonSourceUrl: string | null;
   seoTitle: string | null;
   seoDescription: string | null;
   seoKeywords: string | null;
@@ -108,8 +120,14 @@ function mapRow(row: PrismaArticle | ArticleWithCategories, labelBySlug: Map<str
     coverImageUrl: row.coverImageUrl,
     status: toStatus(row.status),
     isFeatured: row.isFeatured,
+    isExclusive: row.isExclusive,
     viewCount: row.viewCount,
     tags: row.tags,
+    bulletPoints: row.bulletPoints,
+    comparisonTitle: row.comparisonTitle,
+    comparisonBody: row.comparisonBody,
+    comparisonSourceLabel: row.comparisonSourceLabel,
+    comparisonSourceUrl: row.comparisonSourceUrl,
     seoTitle: row.seoTitle,
     seoDescription: row.seoDescription,
     seoKeywords: row.seoKeywords,
@@ -186,6 +204,22 @@ export async function getRelatedArticles(article: Article, limit = 6): Promise<A
   return related;
 }
 
+// A reader's private "read later" list, newest-saved first. Doesn't
+// filter by publish status — an article saved while live still shows up
+// here even if it's since been unpublished (a real but rare edge case,
+// not worth a broken/missing-link surprise in someone's saved list).
+export async function getSavedArticlesForUser(userId: string): Promise<Article[]> {
+  const [saves, labelBySlug] = await Promise.all([
+    prisma.savedArticle.findMany({
+      where: { userId },
+      orderBy: { createdAt: "desc" },
+      include: { article: true },
+    }),
+    categorySlugToLabel(),
+  ]);
+  return saves.map((s) => mapRow(s.article, labelBySlug));
+}
+
 export async function getArticlesByCategory(categorySlug: string): Promise<Article[]> {
   const [rows, labelBySlug] = await Promise.all([
     prisma.article.findMany({
@@ -253,7 +287,13 @@ export async function createArticle(input: ArticleInput): Promise<Article> {
           coverImageUrl: input.coverImageUrl,
           status,
           isFeatured: input.isFeatured,
+          isExclusive: input.isExclusive,
           tags: input.tags,
+          bulletPoints: input.bulletPoints,
+          comparisonTitle: input.comparisonTitle,
+          comparisonBody: input.comparisonBody,
+          comparisonSourceLabel: input.comparisonSourceLabel,
+          comparisonSourceUrl: input.comparisonSourceUrl,
           seoTitle: input.seoTitle,
           seoDescription: input.seoDescription,
           seoKeywords: input.seoKeywords,
@@ -294,7 +334,13 @@ export async function updateArticle(id: number, input: ArticleInput): Promise<Ar
           coverImageUrl: input.coverImageUrl,
           status,
           isFeatured: input.isFeatured,
+          isExclusive: input.isExclusive,
           tags: input.tags,
+          bulletPoints: input.bulletPoints,
+          comparisonTitle: input.comparisonTitle,
+          comparisonBody: input.comparisonBody,
+          comparisonSourceLabel: input.comparisonSourceLabel,
+          comparisonSourceUrl: input.comparisonSourceUrl,
           seoTitle: input.seoTitle,
           seoDescription: input.seoDescription,
           seoKeywords: input.seoKeywords,

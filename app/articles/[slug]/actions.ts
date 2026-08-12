@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 import { auth } from "../../lib/auth";
 import { prisma } from "../../lib/prisma";
 import { toggleLike } from "../../lib/likes";
+import { toggleSaved } from "../../lib/saved-articles";
 import { createComment, type CommentNode } from "../../lib/comments";
 
 async function requireSession() {
@@ -35,6 +36,24 @@ export async function toggleLikeAction(articleId: number): Promise<LikeActionRes
 
   try {
     const result = await toggleLike(articleId, session.user.id);
+    return { success: true, ...result };
+  } catch {
+    return { success: false, error: "Something went wrong. Please try again." };
+  }
+}
+
+export type SaveActionResult = { success: true; saved: boolean } | { success: false; error: string };
+
+export async function toggleSaveAction(articleId: number): Promise<SaveActionResult> {
+  const session = await requireSession();
+  if (!session) return { success: false, error: "Sign in to save articles." };
+
+  if (!(await requirePublishedArticle(articleId))) {
+    return { success: false, error: "This article is no longer available." };
+  }
+
+  try {
+    const result = await toggleSaved(articleId, session.user.id);
     return { success: true, ...result };
   } catch {
     return { success: false, error: "Something went wrong. Please try again." };

@@ -2,7 +2,7 @@
 
 import { useOptimistic, useState, useTransition } from "react";
 import Link from "next/link";
-import { MessageCircle, Loader2 } from "lucide-react";
+import { MessageCircle, Loader2, Pin } from "lucide-react";
 import { createCommentAction } from "./actions";
 import type { CommentNode } from "../../lib/comments";
 
@@ -143,9 +143,15 @@ function CommentItem({
           </span>
         )}
         <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-baseline gap-x-2 font-sans">
+          <div className="flex flex-wrap items-center gap-x-2 font-sans">
             <span className="text-[13.5px] font-bold text-[var(--color-text)]">{comment.authorName}</span>
             <span className="text-[12px] text-[var(--color-gray-light)]">{formatDate(comment.createdAt)}</span>
+            {comment.isPinned && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-[var(--color-navy)] px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.04em] text-white">
+                <Pin className="h-2.5 w-2.5" fill="currentColor" />
+                Editor&rsquo;s Pick
+              </span>
+            )}
           </div>
           <p className="mt-1 font-sans text-[14.5px] leading-[1.55] text-[var(--color-text)] whitespace-pre-wrap">
             {comment.content}
@@ -245,6 +251,7 @@ function CommentForm({
       authorImage: currentUser.image,
       parentId,
       isApproved: true,
+      isPinned: false,
       replies: [],
     };
 

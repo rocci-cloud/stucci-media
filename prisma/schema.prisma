@@ -28,11 +28,12 @@ model User {
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
 
-  sessions Session[]
-  accounts Account[]
-  articles Article[]
-  likes    Like[]
-  comments Comment[]
+  sessions      Session[]
+  accounts      Account[]
+  articles      Article[]
+  likes         Like[]
+  comments      Comment[]
+  savedArticles SavedArticle[]
 
   @@map("users")
 }
@@ -151,6 +152,26 @@ model Article {
 
   coverImageUrl String? @map("cover_image_url")
 
+  // "Bottom Line Up Front" — a short, punchy 2-4 bullet "why it matters"
+  // list an editor can set per article, shown above the body on the
+  // public article page. Empty means no box renders; not auto-generated
+  // from body content.
+  bulletPoints String[] @default([]) @map("bullet_points")
+
+  // "What They're Not Telling You" — an optional callout contrasting how
+  // mainstream coverage is framing a story against this article's angle,
+  // with a link to the coverage being referenced. All four fields are
+  // independent; the box only renders when title+body are both set.
+  comparisonTitle       String? @map("comparison_title")
+  comparisonBody        String? @map("comparison_body")
+  comparisonSourceLabel String? @map("comparison_source_label")
+  comparisonSourceUrl   String? @map("comparison_source_url")
+
+  // Editorial "this is original reporting" flag — distinct from isFeatured
+  // (a curation choice for the homepage), this marks the story itself as
+  // an exclusive/scoop regardless of whether it's currently featured.
+  isExclusive Boolean @default(false) @map("is_exclusive")
+
   status      ArticleStatus @default(DRAFT)
   isFeatured  Boolean       @default(false) @map("is_featured")
   viewCount   Int           @default(0) @map("view_count")
@@ -168,9 +189,10 @@ model Article {
   createdAt   DateTime  @default(now()) @map("created_at")
   updatedAt   DateTime  @updatedAt @map("updated_at")
 
-  categories ArticleCategory[]
-  likes      Like[]
-  comments   Comment[]
+  categories    ArticleCategory[]
+  likes         Like[]
+  comments      Comment[]
+  savedBy       SavedArticle[]
 
   @@index([categorySlug], map: "articles_category_slug_idx")
   @@index([status, publishedAt(sort: Desc)], map: "articles_status_published_at_idx")
@@ -211,6 +233,10 @@ model Comment {
   userId     String   @map("user_id")
   parentId   String?  @map("parent_id")
   isApproved Boolean  @default(false) @map("is_approved")
+  // Admin-curated "Editor's Pick" — pinned top-level comments sort first
+  // on the article page (see getApprovedCommentsForArticle). Independent
+  // of isApproved; a pin doesn't bypass moderation.
+  isPinned   Boolean  @default(false) @map("is_pinned")
   createdAt  DateTime @default(now()) @map("created_at")
 
   article Article   @relation(fields: [articleId], references: [id], onDelete: Cascade)
@@ -221,6 +247,24 @@ model Comment {
   @@index([articleId, isApproved])
   @@index([parentId])
   @@map("comments")
+}
+
+// A reader's private "read later" list — same shape as Like, kept as its
+// own model rather than reusing Like with a type flag, since the two
+// mean different things and a UI change to one shouldn't risk the other.
+model SavedArticle {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  articleId Int      @map("article_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  article Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, articleId])
+  @@index([articleId])
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("saved_articles")
 }
 
 model Subscriber {
