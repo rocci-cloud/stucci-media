@@ -19,6 +19,7 @@ const COMPANY_LINKS = [
   { label: "Contact", href: "/contact" },
   { label: "Privacy Policy", href: "/privacy" },
   { label: "Search", href: "/search" },
+  { label: "Daily Brief", href: "/daily-brief" },
 ];
 
 // Sister sites under the same ownership — not ad placements, so this

@@ -3023,3 +3023,74 @@ infrastructure.
   narration) and Tier 3 (push alerts, live blog format, personalized
   weekly digest) items are unstarted — this phase scoped to exactly the
   five Tier 1 items from the report, nothing more.
+
+## Phase 54 — done: Tier 2 reader-engagement features
+
+The second tier from the Retention Playbook report — four features,
+same "build on what already exists, no new infrastructure" discipline
+as Phase 53.
+
+- **Reading streaks**: `User.currentStreak`/`lastActiveDate` — updated
+  fire-and-forget on every signed-in article view (`lib/streaks.ts`),
+  compared by calendar day (UTC), not exact elapsed time: a same-day
+  revisit is a no-op, a visit exactly one day after the last one
+  extends the streak, any bigger gap resets it to 1 (the visit that
+  breaks a streak is day one of a new one, not zero). Shown as a small
+  flame + day-count in `AccountMenu`'s dropdown and `MobileMenu`'s
+  signed-in row once it reaches 2 days — fetched via a dedicated
+  `getMyStreakAction()` server action rather than extending Better
+  Auth's session shape, to avoid touching anything auth-related.
+- **Personalized "Recommended For You" rail**: new `CategoryInterest`
+  model (`userId`+`categorySlug`, incremented fire-and-forget on every
+  signed-in article view, same fire-and-forget pattern as the streak
+  update) backs `getPersonalizedArticles()` in `lib/articles.ts` —
+  most-recent published articles across whichever categories a reader
+  has actually read the most. No explicit "pick your topics" onboarding
+  step; personalization is inferred purely from real reading history,
+  simpler than a preference picker and matches how the report described
+  Washington Post's version ("gets smarter about you the more you use
+  it"). Renders via new `PersonalizedRail.tsx` (same lead+briefs visual
+  language as `TopicRail`) between `LatestModule` and the category-rail
+  stack, only for a signed-in reader with at least one category of real
+  history — a brand-new reader or signed-out visitor never sees a
+  generic module pretending to be personalized. The homepage now checks
+  session state (`auth.api.getSession()`), which opts it out of the
+  static/ISR path the same way the article page already was in Phase
+  12 — an accepted, already-precedented tradeoff, not a new one.
+- **"Listen To This Article"**: `ListenButton.tsx` uses the browser's
+  native `SpeechSynthesis` API — zero backend, zero cost, gets most of
+  the value of NYT/WaPo's studio-narrated audio for none of the
+  production cost. Renders `null` on browsers without support instead
+  of a broken button. Placed above the "Bottom Line" box at the top of
+  every article.
+- **The Daily Brief** (`/daily-brief`): a 5-question daily quiz —
+  "which of these is a real Stucci Media headline" — where every
+  option, correct and decoy alike, is a real headline this site
+  actually published. Deliberately not LLM-generated or fabricated:
+  inventing fake headlines for a news site's own game was ruled out
+  outright, so `lib/daily-quiz.ts` instead uses a small seeded PRNG
+  (Lehmer/Park-Miller, hashed from today's UTC date string) to
+  deterministically pick 5 "correct" articles and 3 real decoy
+  headlines per question from the rest of the catalog — every reader
+  gets the identical quiz on a given day, which is what makes a shared
+  "I got 4/5 today" score mean anything. Fully client-scored, no DB
+  writes — a `DailyBriefQuiz.tsx` client component with a final score
+  screen and a "Copy Your Score" share button. Linked from
+  `SiteFooter`'s Company column. Shows an honest "not enough stories
+  yet" state below a minimum article-count threshold rather than a
+  thin/repetitive quiz.
+- **Migration applied by hand**
+  (`20260812220000_streaks_and_interests`): 2 new `users` columns, 1
+  new `category_interests` table.
+- **Verified end-to-end against the live Neon database with a real
+  browser**: a throwaway reader account read two `opinion-analysis`
+  articles, then the homepage showed a real "Recommended For You" rail
+  built from that exact history; the streak was verified by directly
+  setting `last_active_date` to yesterday, visiting an article today,
+  and confirming the dropdown showed "2-day streak"; the Daily Brief
+  quiz was played through all 5 questions in a real browser to a final
+  score screen. Test account and its sessions/category-interest rows
+  were removed afterward — confirmed via a direct query that nothing
+  orphaned was left behind.
+- **Deliberately left for Tier 3**: push alerts, the live blog format,
+  and a personalized weekly digest email are unstarted.

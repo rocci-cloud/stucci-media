@@ -220,6 +220,25 @@ export async function getSavedArticlesForUser(userId: string): Promise<Article[]
   return saves.map((s) => mapRow(s.article, labelBySlug));
 }
 
+// Homepage's personalized "Recommended For You" rail — most recent
+// published articles across whichever categories a reader has actually
+// read the most (see getTopCategorySlugs in lib/interests.ts). Returns []
+// for a reader with no reading history yet rather than falling back to
+// generic "latest" picks, so the rail simply doesn't render for a brand
+// new reader instead of pretending to be personalized when it isn't.
+export async function getPersonalizedArticles(categorySlugs: string[], limit = 4): Promise<Article[]> {
+  if (categorySlugs.length === 0) return [];
+  const [rows, labelBySlug] = await Promise.all([
+    prisma.article.findMany({
+      where: { ...publishedWhere(), categorySlug: { in: categorySlugs } },
+      orderBy: { publishedAt: "desc" },
+      take: limit,
+    }),
+    categorySlugToLabel(),
+  ]);
+  return rows.map((row) => mapRow(row, labelBySlug));
+}
+
 export async function getArticlesByCategory(categorySlug: string): Promise<Article[]> {
   const [rows, labelBySlug] = await Promise.all([
     prisma.article.findMany({

@@ -13,6 +13,7 @@ import Badge from "../../components/ui/Badge";
 import BannerSlot from "../../components/BannerSlot";
 import LikeButton from "./LikeButton";
 import SaveButton from "./SaveButton";
+import ListenButton from "./ListenButton";
 import CommentSection from "./CommentSection";
 import {
   getArticleBySlug,
@@ -23,6 +24,8 @@ import {
 import { getLikeCount, hasUserLiked } from "../../lib/likes";
 import { hasUserSaved } from "../../lib/saved-articles";
 import { getApprovedCommentsForArticle } from "../../lib/comments";
+import { recordVisit } from "../../lib/streaks";
+import { recordCategoryInterest } from "../../lib/interests";
 import { auth } from "../../lib/auth";
 import { splitHtmlAtMidpoint } from "../../lib/split-html-midpoint";
 
@@ -113,6 +116,10 @@ export default async function ArticlePage({ params }: Props) {
 
   // Fire-and-forget — never block rendering on a write.
   incrementArticleViewCount(article.id).catch(() => {});
+  if (session) {
+    recordVisit(session.user.id).catch(() => {});
+    recordCategoryInterest(session.user.id, article.categorySlug).catch(() => {});
+  }
 
   const [likeCount, liked, saved, comments, relatedArticles] = await Promise.all([
     getLikeCount(article.id),
@@ -134,6 +141,14 @@ export default async function ArticlePage({ params }: Props) {
   // rendering the whole body with no split — no banner in the body in
   // that case, since there's no real "middle" to put one at.
   const [articleBodyFirstHalf, articleBodySecondHalf] = splitHtmlAtMidpoint(article.bodyHtml);
+
+  // Plain-text version of the article for ListenButton's browser-native
+  // text-to-speech — a blunt tag-strip, same technique lib/articles.ts's
+  // estimateReadTime already uses, not a real HTML parser.
+  const plainText = `${article.headline}. ${article.dek}. ${article.bodyHtml
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()}`;
 
   // www, not the apex domain — see the PRODUCTION_URL comment in
   // app/lib/auth.ts.
@@ -257,6 +272,10 @@ export default async function ArticlePage({ params }: Props) {
 
         <div className="mx-auto max-w-[1280px] px-5 pt-8 sm:pt-10 pb-18 grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-x-10">
           <article className="max-w-[720px]">
+            <div className="mb-6">
+              <ListenButton text={plainText} />
+            </div>
+
             {article.bulletPoints.length > 0 && (
               <div className="mb-7 rounded-card border-l-4 border-[var(--color-red)] bg-[var(--color-bg-off)] px-5 py-4">
                 <span className="mb-2 block font-sans text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--color-red)]">

@@ -3,8 +3,9 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LogOut, Search, X } from "lucide-react";
+import { Flame, LogOut, Search, X } from "lucide-react";
 import { authClient, useSession } from "../lib/auth-client";
+import { getMyStreakAction } from "../lib/streak-actions";
 
 type NavCategory = { slug: string; label: string };
 
@@ -33,6 +34,7 @@ export default function MobileMenu({
   const router = useRouter();
   const [query, setQuery] = useState("");
   const { data: session } = useSession();
+  const [streak, setStreak] = useState<number | null>(null);
 
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
@@ -40,6 +42,11 @@ export default function MobileMenu({
       document.body.style.overflow = "";
     };
   }, [open]);
+
+  useEffect(() => {
+    if (!session) return;
+    getMyStreakAction().then(setStreak);
+  }, [session]);
 
   function handleSearchSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -138,7 +145,15 @@ export default function MobileMenu({
                 {initials(session.user.name)}
               </span>
               <div className="min-w-0">
-                <div className="text-[13px] font-bold text-white truncate">{session.user.name}</div>
+                <div className="flex items-center gap-1.5">
+                  <div className="text-[13px] font-bold text-white truncate">{session.user.name}</div>
+                  {streak !== null && streak >= 2 && (
+                    <span className="inline-flex items-center gap-0.5 text-[11px] font-bold text-[var(--color-red)]">
+                      <Flame className="h-3 w-3" fill="currentColor" />
+                      {streak}
+                    </span>
+                  )}
+                </div>
                 <div className="flex items-center gap-2 text-[11.5px] font-sans font-bold uppercase tracking-wide">
                   <Link
                     href="/saved"

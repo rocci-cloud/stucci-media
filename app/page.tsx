@@ -1,6 +1,8 @@
+import { headers } from "next/headers";
 import BreakingBar from "./components/BreakingBar";
 import SiteHeader from "./components/SiteHeader";
 import FeaturedSection from "./components/FeaturedSection";
+import PersonalizedRail from "./components/PersonalizedRail";
 import LatestModule from "./components/LatestModule";
 import TopicRail from "./components/TopicRail";
 import OpinionModule from "./components/OpinionModule";
@@ -10,16 +12,27 @@ import SubscribeStrip from "./components/SubscribeStrip";
 import SiteFooter from "./components/SiteFooter";
 import Reveal from "./components/Reveal";
 import BannerSlot from "./components/BannerSlot";
-import { getPublishedArticles, getFeaturedArticles } from "./lib/articles";
+import { getPublishedArticles, getFeaturedArticles, getPersonalizedArticles } from "./lib/articles";
 import { getCategories } from "./lib/categories";
+import { getTopCategorySlugs } from "./lib/interests";
+import { auth } from "./lib/auth";
 
+// A signed-in reader's session gates the personalized rail below, which
+// opts this page out of the static/ISR path (same tradeoff the article
+// page already made in Phase 12) — `revalidate` still applies to the
+// underlying data fetches, just not the page shell itself.
 export const revalidate = 60;
 
 export default async function HomePage() {
-  const [articles, featuredArticles, categories] = await Promise.all([
+  const session = await auth.api.getSession({ headers: await headers() });
+
+  const [articles, featuredArticles, categories, personalizedArticles] = await Promise.all([
     getPublishedArticles(),
     getFeaturedArticles(),
     getCategories(),
+    session
+      ? getTopCategorySlugs(session.user.id).then((slugs) => getPersonalizedArticles(slugs, 4))
+      : Promise.resolve([]),
   ]);
 
   if (articles.length === 0) {
@@ -46,6 +59,13 @@ export default async function HomePage() {
   // modules — same exclusion pattern as Featured, so nothing shows twice.
   const latestItems = afterFeatured.slice(0, 6);
   latestItems.forEach((a) => shownSlugs.add(a.slug));
+
+  // Personalized picks are already excluded from being re-shown further
+  // down — same exclusion pattern, applied before the category rails are
+  // built so a recommended story never doubles up in its own TopicRail.
+  const personalizedForRail = personalizedArticles.filter((a) => !shownSlugs.has(a.slug)).slice(0, 4);
+  personalizedForRail.forEach((a) => shownSlugs.add(a.slug));
+
   const railItems = afterFeatured.filter((a) => !shownSlugs.has(a.slug));
 
   // Opinion & Analysis and Podcasts get their own distinct module layouts
@@ -68,6 +88,14 @@ export default async function HomePage() {
             <LatestModule articles={latestItems} />
           </Reveal>
         </div>
+
+        {personalizedForRail.length > 0 && (
+          <div className="mx-auto max-w-[1280px] px-5 pt-3 sm:pt-5">
+            <Reveal>
+              <PersonalizedRail articles={personalizedForRail} />
+            </Reveal>
+          </div>
+        )}
 
         {/* Homepage's one fixed banner slot — mid-content, between the
             top wire desk and the category rail stack. BannerSlot returns
