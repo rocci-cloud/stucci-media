@@ -18,8 +18,10 @@ export default function AuthForm({ mode, redirectTo }: { mode: Mode; redirectTo:
     setError(null);
     setPending(true);
 
+    let target = redirectTo;
+
     try {
-      const { error: authError } =
+      const { data, error: authError } =
         mode === "login"
           ? await authClient.signIn.email({ email, password })
           : await authClient.signUp.email({ name, email, password });
@@ -28,6 +30,18 @@ export default function AuthForm({ mode, redirectTo }: { mode: Mode; redirectTo:
         setError(authError.message ?? "Something went wrong. Please try again.");
         setPending(false);
         return;
+      }
+
+      // The header's Sign In link (SiteHeader/MobileMenu) is a plain
+      // /login link with no ?from= — a signed-in admin with nowhere
+      // specific to go otherwise lands on the homepage, which gives no
+      // visual sign the sign-in worked (the public header doesn't show
+      // session state) and reads as "did nothing." Send an admin who
+      // wasn't headed anywhere in particular straight to the dashboard
+      // instead — an explicit ?from= target (e.g. bounced here from a
+      // protected page) still wins.
+      if (mode === "login" && redirectTo === "/" && data?.user?.role === "ADMIN") {
+        target = "/admin";
       }
     } catch {
       // A thrown (rather than returned) error means the request itself
@@ -45,7 +59,7 @@ export default function AuthForm({ mode, redirectTo }: { mode: Mode; redirectTo:
     // — a known way for "sign in, land back on /login" to happen even
     // though the sign-in itself succeeded. A hard navigation guarantees
     // a fresh request with the new cookie attached.
-    window.location.href = redirectTo;
+    window.location.href = target;
   }
 
   return (
