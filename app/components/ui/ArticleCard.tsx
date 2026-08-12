@@ -83,6 +83,15 @@ export default function ArticleCard({ article, variant = "grid", rank }: Article
             Exclusive
           </Badge>
         )}
+        {article.isLiveBlog && (
+          <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-[var(--color-red)] px-2 py-[3px] font-sans text-[10px] font-bold uppercase tracking-[0.05em] text-white">
+            <span className="relative flex h-1.5 w-1.5">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-75" />
+              <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-white" />
+            </span>
+            Live
+          </span>
+        )}
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-black/18 to-transparent" />
       </div>
       <div className="p-4 sm:p-5">

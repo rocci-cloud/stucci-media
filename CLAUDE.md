@@ -3094,3 +3094,101 @@ as Phase 53.
   orphaned was left behind.
 - **Deliberately left for Tier 3**: push alerts, the live blog format,
   and a personalized weekly digest email are unstarted.
+
+## Phase 55 — done: Tier 3 reader-engagement features
+
+The third and final tier from the Retention Playbook report. Unlike Tier
+1/2, two of these three features needed real infrastructure this codebase
+didn't have — a browser push subscription system and an email-sending
+provider — so scope was confirmed with Rocci first: build push alerts for
+real (verified structurally; true end-to-end delivery to a device isn't
+testable in this sandbox), build the live blog format in full (no new
+infra needed), and build the weekly digest's content/personalization logic
+plus an admin preview, but leave actual sending disconnected until an
+email provider is chosen.
+
+- **Live blog format**: `Article.isLiveBlog` (toggled in the Publish
+  sidebar, next to Featured/Exclusive) plus a new `LiveBlogEntry` model —
+  timestamped, editor-authored updates, deliberately its own append-only
+  table rather than reusing `Comment` or stuffing entries into `body`.
+  `LiveBlogPanel.tsx` is a new tab in the article editor (`ArticleEditor.tsx`,
+  only shown once the article has been saved — an entry needs a real
+  article id to attach to) for posting/deleting updates, with its own
+  optimistic-add/revert-on-fail pattern. The public article page
+  (`articles/[slug]/page.tsx`) renders a pulsing "LIVE" badge in the hero
+  next to the category badge, plus a new `LiveBlogTimeline.tsx` panel
+  (newest update first, navy header, red pulsing dot) above the normal
+  prose body — the article's `body` field still renders underneath as
+  intro/context, so this is additive, not a replacement content model.
+  `ArticleCard`'s `grid` variant also gained a small "LIVE" badge (top-
+  right of the image) so a live-blog story stands out in homepage/category
+  listings, not just on its own page. Since the article page already opts
+  out of the static/ISR path (session-aware, Phase 12), every visit reads
+  live-blog entries fresh — no separate real-time/websocket layer needed
+  for "live."
+- **Push alerts**: new `PushSubscription` model (endpoint/p256dh/auth —
+  exactly the Push API's subscription shape, stored verbatim) plus
+  `lib/push.ts` (`web-push` package) for sending. `public/sw.js` is a
+  minimal service worker whose only job is showing a notification on a
+  push event and focusing/opening the article on click — no offline
+  caching strategy, since the site doesn't need one. A new header bell
+  (`PushOptIn.tsx`, desktop) and drawer row (`PushOptInRow.tsx`, mobile)
+  share one state machine (`usePushSubscription.ts`) for subscribe/
+  unsubscribe, both rendering nothing at all on unsupported browsers or
+  when VAPID isn't configured — no dead UI promising a feature the
+  environment can't deliver. Subscribing works signed-out (a browser-level
+  opt-in, not an account feature, same as most news sites' push prompts)
+  and is tied to the session when one exists. **Trigger**: publishing an
+  article (a genuine draft → published transition, not every re-save of
+  an already-published article, and never for a still-scheduled article)
+  fires a fire-and-forget `sendPushToAllSubscribers()` from
+  `admin/articles/actions.ts` — a stale subscription that a push service
+  reports as gone (404/410) is deleted so it stops being retried forever.
+  Every function in `lib/push.ts` degrades to a safe no-op when
+  `VAPID_PRIVATE_KEY`/`NEXT_PUBLIC_VAPID_PUBLIC_KEY`/`VAPID_SUBJECT` aren't
+  set, so a missing env var can never break publishing an article — these
+  three need to be added to Vercel before push actually delivers in
+  production (a keypair was generated for this phase via `web-push`'s
+  `generateVAPIDKeys()`; see the deploy notes below).
+- **Weekly digest — content and admin preview, sending intentionally not
+  wired up**: `lib/digest.ts`'s `getWeeklyDigestForUser()` reuses Phase
+  54's `CategoryInterest` data (same "infer from real reading history, no
+  onboarding picker" approach the personalized rail already established)
+  to pick this week's published articles in a reader's top categories,
+  topped up with this week's sitewide top-viewed picks if their own
+  categories don't have enough — same never-sparse pattern
+  `getRelatedArticles` already uses. New `/admin/digest` (added to the
+  admin nav as "Weekly Digest") renders an email-shaped preview
+  (`DigestPreview.tsx`) with a picker for "General" vs. any real reader
+  who has reading history, and a clearly-labeled amber notice that email
+  sending isn't connected yet — no email provider is configured in this
+  project. This exists so the digest's actual content/personalization
+  logic can be reviewed now, with the send mechanism (Resend, SendGrid, a
+  cron trigger) left as a deliberate follow-up decision rather than
+  guessed at.
+- **Verified end-to-end against the live Neon database with a real
+  browser**: a throwaway admin account drove the real `/admin/articles/new`
+  editor — toggled Live Blog on, published, posted two timestamped
+  updates from the new Live Blog tab — then confirmed the public article
+  page rendered the pulsing LIVE badge and both updates newest-first in
+  the Live Updates panel. The header's push bell was confirmed visible
+  and clickable; full subscribe-to-delivery couldn't be verified in this
+  sandbox specifically because headless Chromium refuses the Push API in
+  its default (incognito-like) context ("Chrome currently does not
+  support the Push API in incognito mode") — a known Chromium limitation,
+  not application code, confirmed via the browser's own console error.
+  The service worker itself was confirmed reachable (`/sw.js` → real
+  `200`). `/admin/digest` was confirmed rendering real personalized
+  content for the test reader (who had read the test article) and falling
+  back to the general "most-read this week" view. Test article (with its
+  2 live blog entries), test admin account, its sessions, and its
+  category-interest row were all removed afterward — confirmed via a
+  direct query that nothing orphaned was left behind (0 leftover users,
+  0 leftover articles, push_subscriptions/live_blog_entries both back to
+  their pre-test counts).
+- **To actually go live on Vercel**: add `NEXT_PUBLIC_VAPID_PUBLIC_KEY`,
+  `VAPID_PRIVATE_KEY`, and `VAPID_SUBJECT` (a `mailto:` address) as
+  production env vars — the keypair used for local verification in this
+  phase should be rotated for production rather than reused. Push
+  delivery to a real device can only be confirmed once deployed; this
+  sandbox has no path to a real push endpoint to test against.

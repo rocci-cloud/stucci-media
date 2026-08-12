@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { Flame, LogOut, Search, X } from "lucide-react";
 import { authClient, useSession } from "../lib/auth-client";
 import { getMyStreakAction } from "../lib/streak-actions";
+import PushOptInRow from "./PushOptInRow";
 
 type NavCategory = { slug: string; label: string };
 
@@ -131,6 +132,7 @@ export default function MobileMenu({
       </nav>
 
       <div className="px-5 py-4 border-t border-white/10 shrink-0 flex flex-col gap-3">
+        <PushOptInRow />
         <Link
           href="/subscribe"
           onClick={onClose}

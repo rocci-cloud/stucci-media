@@ -7,6 +7,7 @@ import { ChevronDown, Menu, Search } from "lucide-react";
 import AccountMenu from "./AccountMenu";
 import MobileMenu from "./MobileMenu";
 import SearchOverlay from "./SearchOverlay";
+import PushOptIn from "./PushOptIn";
 
 type NavCategory = { slug: string; label: string };
 
@@ -111,6 +112,9 @@ export default function SiteHeaderClient({
           >
             <Search className="h-[18px] w-[18px]" />
           </button>
+          <div className="hidden sm:block">
+            <PushOptIn />
+          </div>
           <AccountMenu />
           <Link
             href="/subscribe"

@@ -3,6 +3,7 @@ import ArticleEditor from "../../ArticleEditor";
 import { updateArticleAction, deleteArticleAction } from "../../actions";
 import { getArticleByIdAdmin } from "../../../../lib/articles";
 import { getCategories } from "../../../../lib/categories";
+import { getLiveBlogEntries } from "../../../../lib/live-blog";
 import { Button } from "../../../components/ui/button";
 import { Trash2 } from "lucide-react";
 
@@ -19,6 +20,8 @@ export default async function EditArticlePage({ params }: Props) {
     getCategories(),
   ]);
   if (!article) notFound();
+
+  const liveBlogEntries = await getLiveBlogEntries(article.id);
 
   const boundUpdate = updateArticleAction.bind(null, article.id);
   const boundDelete = deleteArticleAction.bind(null, article.id);
@@ -37,7 +40,13 @@ export default async function EditArticlePage({ params }: Props) {
           </Button>
         </form>
       </div>
-      <ArticleEditor article={article} categories={categories} action={boundUpdate} siteUrl={siteUrl} />
+      <ArticleEditor
+        article={article}
+        categories={categories}
+        action={boundUpdate}
+        siteUrl={siteUrl}
+        liveBlogEntries={liveBlogEntries}
+      />
     </div>
   );
 }

@@ -15,6 +15,7 @@ import LikeButton from "./LikeButton";
 import SaveButton from "./SaveButton";
 import ListenButton from "./ListenButton";
 import CommentSection from "./CommentSection";
+import LiveBlogTimeline from "./LiveBlogTimeline";
 import {
   getArticleBySlug,
   getPublishedArticles,
@@ -24,6 +25,7 @@ import {
 import { getLikeCount, hasUserLiked } from "../../lib/likes";
 import { hasUserSaved } from "../../lib/saved-articles";
 import { getApprovedCommentsForArticle } from "../../lib/comments";
+import { getLiveBlogEntries } from "../../lib/live-blog";
 import { recordVisit } from "../../lib/streaks";
 import { recordCategoryInterest } from "../../lib/interests";
 import { auth } from "../../lib/auth";
@@ -121,12 +123,13 @@ export default async function ArticlePage({ params }: Props) {
     recordCategoryInterest(session.user.id, article.categorySlug).catch(() => {});
   }
 
-  const [likeCount, liked, saved, comments, relatedArticles] = await Promise.all([
+  const [likeCount, liked, saved, comments, relatedArticles, liveBlogEntries] = await Promise.all([
     getLikeCount(article.id),
     session ? hasUserLiked(article.id, session.user.id) : Promise.resolve(false),
     session ? hasUserSaved(article.id, session.user.id) : Promise.resolve(false),
     getApprovedCommentsForArticle(article.id),
     getRelatedArticles(article, 6),
+    article.isLiveBlog ? getLiveBlogEntries(article.id) : Promise.resolve([]),
   ]);
 
   const currentUser = session
@@ -246,6 +249,15 @@ export default async function ArticlePage({ params }: Props) {
                 <div className="flex flex-wrap items-center gap-2 mb-3">
                   <Badge variant="red">{article.category}</Badge>
                   {article.isExclusive && <Badge variant="navy">Exclusive</Badge>}
+                  {article.isLiveBlog && (
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--color-red)] px-2.5 py-1 font-sans text-[10.5px] font-bold uppercase tracking-[0.05em] text-white">
+                      <span className="relative flex h-2 w-2">
+                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-75" />
+                        <span className="relative inline-flex h-2 w-2 rounded-full bg-white" />
+                      </span>
+                      Live
+                    </span>
+                  )}
                 </div>
                 <h1 className="font-headline text-white text-[30px] sm:text-[42px] lg:text-[48px] font-bold uppercase leading-[0.98] tracking-[-0.015em] mb-3">
                   {article.headline}
@@ -313,6 +325,8 @@ export default async function ArticlePage({ params }: Props) {
                 )}
               </div>
             )}
+
+            {article.isLiveBlog && <LiveBlogTimeline entries={liveBlogEntries} />}
 
             <div
               className="prose prose-neutral max-w-none text-[17px] sm:text-[19px] leading-[1.75]
