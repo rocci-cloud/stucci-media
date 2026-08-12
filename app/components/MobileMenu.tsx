@@ -3,9 +3,20 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Search, X } from "lucide-react";
+import { LogOut, Search, X } from "lucide-react";
+import { authClient, useSession } from "../lib/auth-client";
 
 type NavCategory = { slug: string; label: string };
+
+function initials(name: string) {
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((p) => p[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+}
 
 export default function MobileMenu({
   open,
@@ -21,6 +32,7 @@ export default function MobileMenu({
   const pathname = usePathname();
   const router = useRouter();
   const [query, setQuery] = useState("");
+  const { data: session } = useSession();
 
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
@@ -119,25 +131,60 @@ export default function MobileMenu({
         >
           Subscribe
         </Link>
-        <div className="flex items-center justify-center gap-1 text-[12.5px] font-sans font-bold uppercase tracking-wide">
-          <Link
-            href="/login"
-            onClick={onClose}
-            className="min-h-11 inline-flex items-center text-white/70 hover:text-white transition-colors"
-          >
-            Sign In
-          </Link>
-          <span className="text-white/30" aria-hidden>
-            /
-          </span>
-          <Link
-            href="/register"
-            onClick={onClose}
-            className="min-h-11 inline-flex items-center text-white/70 hover:text-white transition-colors"
-          >
-            Register
-          </Link>
-        </div>
+        {session ? (
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--color-red)] text-[11.5px] font-bold text-white">
+                {initials(session.user.name)}
+              </span>
+              <div className="min-w-0">
+                <div className="text-[13px] font-bold text-white truncate">{session.user.name}</div>
+                {session.user.role === "ADMIN" && (
+                  <Link
+                    href="/admin"
+                    onClick={onClose}
+                    className="text-[11.5px] font-sans font-bold uppercase tracking-wide text-white/60 hover:text-white transition-colors"
+                  >
+                    Dashboard →
+                  </Link>
+                )}
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                authClient.signOut().then(() => {
+                  window.location.href = "/";
+                });
+              }}
+              className="min-h-11 shrink-0 inline-flex items-center gap-1.5 text-[12.5px] font-sans font-bold uppercase tracking-wide text-white/70 hover:text-white transition-colors"
+            >
+              <LogOut className="h-3.5 w-3.5" />
+              Sign Out
+            </button>
+          </div>
+        ) : (
+          <div className="flex items-center justify-center gap-1 text-[12.5px] font-sans font-bold uppercase tracking-wide">
+            <Link
+              href="/login"
+              onClick={onClose}
+              className="min-h-11 inline-flex items-center text-white/70 hover:text-white transition-colors"
+            >
+              Sign In
+            </Link>
+            <span className="text-white/30" aria-hidden>
+              /
+            </span>
+            <Link
+              href="/register"
+              onClick={onClose}
+              className="min-h-11 inline-flex items-center text-white/70 hover:text-white transition-colors"
+            >
+              Register
+            </Link>
+          </div>
+        )}
       </div>
     </div>
   );
