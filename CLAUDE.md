@@ -2776,3 +2776,48 @@ actual deployed Vercel URL.
   what lets Better Auth generate correct absolute URLs elsewhere (email
   verification links, OAuth callback URLs if those are ever added), the
   code fallback only covers what login itself needs.
+
+## Phase 49 — done: canonical-domain redirect (the real, actual root cause)
+
+Phase 48 fixed a real bug and Rocci confirmed his logins now succeed —
+Neon showed fresh ADMIN-role sessions being created on every attempt —
+but `/admin` still bounced him out. Walked him through checking his
+browser's address bar before and after logging in: `stuccimedia.com/
+login` going in, `www.stuccimedia.com/` coming back out. `www.
+stuccimedia.com` and `stuccimedia.com` are both independently live on
+Vercel with no redirect tying them together, and a session cookie is
+only ever visible to the exact host it was set on — so a login that
+happens on the apex domain and somehow lands back on `www` afterward
+finds no cookie at all, indistinguishable from never having logged in.
+This is the actual root cause the last two phases' real, verified fixes
+were downstream of — the app already assumed one canonical domain
+(`metadataBase` in `app/layout.tsx`, `PRODUCTION_URL` in
+`app/lib/auth.ts`) but nothing enforced it.
+
+- **`proxy.ts` now canonicalizes every request to the apex domain**:
+  any request arriving on `www.stuccimedia.com` gets a `308` to the
+  same path on `stuccimedia.com`, before anything else runs — including
+  `/api/auth/*`, so the sign-in/sign-up endpoints themselves can never
+  be reached on the wrong host either. This required broadening
+  `proxy.ts`'s matcher from `/admin/:path*` to effectively every route
+  (excluding `_next/static`, `_next/image`, `favicon.ico`) — the
+  existing admin session-cookie check still only applies when
+  `pathname.startsWith("/admin")`, unchanged in behavior, just now
+  living alongside the host check in one middleware pass instead of
+  being the only thing it does.
+- **Also closes a duplicate-content SEO gap**, not just the auth bug —
+  before this, both domains served the same live content with no
+  canonical relationship between them, contradicting the canonical
+  URLs Phase 31 already assumed sitewide.
+- **Verified directly**, not just reasoned about: a request with `Host:
+  www.stuccimedia.com` to `/login`, `/`, and `/admin` all now come back
+  as a real `308` to the exact same path on the apex host; normal apex
+  requests (home, a category page, `/admin` signed-out, `robots.txt`,
+  `sitemap.xml`) are all unaffected; and a full sign-up → promote →
+  sign-in → `/admin` round trip against the live Neon database still
+  returns the real Dashboard afterward. Also confirmed the specific
+  failure mode directly: a valid session cookie presented with `Host:
+  www.stuccimedia.com` now gets redirected to the apex `/admin` (where
+  Vercel/the browser would actually have the matching cookie) instead
+  of ever rendering a www version that couldn't see it. Test account,
+  its sessions, and its activity-log rows were removed afterward.
