@@ -331,6 +331,18 @@ export async function getArticleByIdAdmin(id: number): Promise<Article | undefin
   return row ? mapRow(row, labelBySlug) : undefined;
 }
 
+/**
+ * Backs bulk actions' ownership check — id → authorId for a batch of
+ * articles, without pulling each full row. A requested id with no
+ * matching row is simply absent from the result, which the caller
+ * treats the same as "not owned" (an author can't touch what doesn't
+ * exist any more than what belongs to someone else).
+ */
+export async function getArticleAuthorIds(ids: number[]): Promise<Map<number, string | null>> {
+  const rows = await prisma.article.findMany({ where: { id: { in: ids } }, select: { id: true, authorId: true } });
+  return new Map(rows.map((r) => [r.id, r.authorId]));
+}
+
 /** The trash: soft-deleted articles, most recently deleted first. */
 export async function getTrashedArticles(): Promise<Article[]> {
   const [rows, labelBySlug] = await Promise.all([

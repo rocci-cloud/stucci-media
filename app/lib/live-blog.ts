@@ -31,8 +31,18 @@ export async function addLiveBlogEntry(
   return mapEntry(row);
 }
 
-export async function deleteLiveBlogEntry(id: string): Promise<void> {
-  await prisma.liveBlogEntry.delete({ where: { id } });
+/**
+ * Deletes an entry, but only if it actually belongs to `articleId`. The
+ * caller (deleteLiveBlogEntryAction) authorizes against that articleId —
+ * without this check here, an id mismatch (accidental or deliberate)
+ * would let that authorization apply to one article while the delete
+ * silently landed on a different one's entry.
+ */
+export async function deleteLiveBlogEntry(id: string, articleId: number): Promise<void> {
+  const { count } = await prisma.liveBlogEntry.deleteMany({ where: { id, articleId } });
+  if (count === 0) {
+    throw new Error("That update doesn't belong to this article.");
+  }
 }
 
 export async function getLiveBlogEntryPreview(id: string): Promise<string | null> {

@@ -16,6 +16,7 @@ import {
   updateArticle,
   deleteArticle,
   getArticleByIdAdmin,
+  getArticleAuthorIds,
   toggleArticleFeatured,
   updateArticleCategories,
   bulkSetArticleStatus,
@@ -27,7 +28,7 @@ import {
 import { getCategories } from "../../lib/categories";
 import { bodyInputToHtml } from "../../lib/sanitize";
 import { requireStaffSession, requirePublisherSession } from "../../lib/require-admin";
-import { canEditArticle, canPublish } from "../../lib/permissions";
+import { canEditArticle, canManageAllContent, canPublish } from "../../lib/permissions";
 import { recordRevision, getRevision, diffLines, type DiffLine } from "../../lib/revisions";
 import { logActivity } from "../../lib/activity";
 import { addLiveBlogEntry, deleteLiveBlogEntry, getLiveBlogEntryPreview } from "../../lib/live-blog";
@@ -245,10 +246,20 @@ export async function createArticleAction(
   if (!canPublish(session.user.role) && (input.status === "published" || input.status === "archived")) {
     return { error: "Authors can't publish directly — save it as In Review and an editor will take it from there." };
   }
+  // Featured/Breaking are homepage-curation calls, not writing decisions —
+  // the UI disables both switches for a non-publisher, but a hidden form
+  // field is trivially editable, so the server drops them back to false
+  // for anyone who isn't allowed to set them, same as the status gate above.
+  const canCurate = canPublish(session.user.role);
 
   let created;
   try {
-    created = await createArticle({ ...input, authorId: session.user.id });
+    created = await createArticle({
+      ...input,
+      isFeatured: canCurate ? input.isFeatured : false,
+      isBreaking: canCurate ? input.isBreaking : false,
+      authorId: session.user.id,
+    });
   } catch (error) {
     if (isUniqueConstraintError(error)) {
       return { error: `Slug "${input.slug}" is already in use.` };
@@ -290,10 +301,19 @@ export async function updateArticleAction(
   if (!canPublish(session.user.role) && (input.status === "published" || input.status === "archived")) {
     return { error: "Authors can't publish directly — save it as In Review and an editor will take it from there." };
   }
+  // Same reasoning as createArticleAction, but on update the safe fallback
+  // is the article's EXISTING value, not false — forcing false would
+  // silently un-feature an already-featured article the moment its
+  // author saves an unrelated typo fix.
+  const canCurate = canPublish(session.user.role);
 
   let updated;
   try {
-    updated = await updateArticle(id, input);
+    updated = await updateArticle(id, {
+      ...input,
+      isFeatured: canCurate ? input.isFeatured : before.isFeatured,
+      isBreaking: canCurate ? input.isBreaking : before.isBreaking,
+    });
   } catch (error) {
     if (isUniqueConstraintError(error)) {
       return { error: `Slug "${input.slug}" is already in use.` };
@@ -322,12 +342,19 @@ export async function deleteArticleAction(id: number) {
   const session = await requireStaffSession();
   if (!session) redirect("/login?from=/admin/articles");
   const article = await getArticleByIdAdmin(id);
+  // Redirect-style action, no return channel for an error — an author
+  // hitting this on someone else's article (the action id is reachable
+  // directly once deployed, regardless of what the UI offers them) just
+  // bounces back to the list with nothing deleted.
+  if (!article || !canEditArticle(session.user.role, session.user.id, article.authorId)) {
+    redirect("/admin/articles");
+  }
   await deleteArticle(id);
   await logActivity({
     actor: session.user,
     action: "article.deleted",
     targetType: "article",
-    targetLabel: article?.headline ?? `#${id}`,
+    targetLabel: article.headline,
   });
   revalidatePath("/", "layout");
   redirect("/admin/articles");
@@ -341,17 +368,39 @@ export type ActionResult = { success: true } | { success: false; error: string }
 const UNAUTHORIZED: ActionResult = { success: false, error: "You must be signed in as staff to do that." };
 const FORBIDDEN: ActionResult = { success: false, error: "You do not have permission to change this article." };
 
+/**
+ * Ownership gate for bulk actions. Publishers (ADMIN/EDITOR) pass every id
+ * through unchanged. An AUTHOR is rejected outright if the selection
+ * includes anything they don't own — never silently narrowed to the
+ * subset they do own, since a bulk action that visibly "worked" while
+ * quietly skipping rows would be worse than a clear error naming why.
+ */
+async function assertOwnsAll(
+  ids: number[],
+  session: { user: { id: string; role?: string | null } }
+): Promise<ActionResult> {
+  if (canManageAllContent(session.user.role)) return { success: true };
+  const authorIds = await getArticleAuthorIds(ids);
+  const notOwned = ids.some((id) => authorIds.get(id) !== session.user.id);
+  if (notOwned) {
+    return { success: false, error: "One or more of those articles aren't yours — you can only bulk-edit your own." };
+  }
+  return { success: true };
+}
+
 export async function deleteArticleFromListAction(id: number): Promise<ActionResult> {
   const session = await requireStaffSession();
   if (!session) return UNAUTHORIZED;
   try {
     const article = await getArticleByIdAdmin(id);
+    if (!article) return { success: false, error: "That article no longer exists." };
+    if (!canEditArticle(session.user.role, session.user.id, article.authorId)) return FORBIDDEN;
     await deleteArticle(id);
     await logActivity({
       actor: session.user,
       action: "article.deleted",
       targetType: "article",
-      targetLabel: article?.headline ?? `#${id}`,
+      targetLabel: article.headline,
     });
     revalidatePath("/", "layout");
     return { success: true };
@@ -361,8 +410,12 @@ export async function deleteArticleFromListAction(id: number): Promise<ActionRes
 }
 
 export async function toggleFeaturedAction(id: number, isFeatured: boolean): Promise<ActionResult> {
-  const session = await requireStaffSession();
-  if (!session) return UNAUTHORIZED;
+  // Featured is homepage curation — the same class of editorial call as
+  // Breaking (see toggleBreakingAction), not an ownership question. An
+  // author who can't publish shouldn't be deciding what leads the
+  // homepage, on their own work or anyone else's.
+  const session = await requirePublisherSession();
+  if (!session) return FORBIDDEN;
   try {
     await toggleArticleFeatured(id, isFeatured);
     const article = await getArticleByIdAdmin(id);
@@ -388,14 +441,16 @@ export async function updateArticleCategoriesAction(
   if (categorySlugs.length === 0) {
     return { success: false, error: "An article needs at least one category." };
   }
+  const target = await getArticleByIdAdmin(id);
+  if (!target) return { success: false, error: "That article no longer exists." };
+  if (!canEditArticle(session.user.role, session.user.id, target.authorId)) return FORBIDDEN;
   try {
     await updateArticleCategories(id, categorySlugs);
-    const article = await getArticleByIdAdmin(id);
     await logActivity({
       actor: session.user,
       action: "article.recategorized",
       targetType: "article",
-      targetLabel: article?.headline ?? `#${id}`,
+      targetLabel: target.headline,
     });
     revalidatePath("/", "layout");
     return { success: true };
@@ -416,6 +471,13 @@ export async function bulkSetStatusAction(
       ? await requirePublisherSession()
       : await requireStaffSession();
   if (!session) return status === "published" || status === "archived" ? FORBIDDEN : UNAUTHORIZED;
+  // The publish/archive branch above already required a publisher, so this
+  // is a no-op for them — it only bites for an AUTHOR moving articles to
+  // draft/in_review, who must still own every one of them. Without this,
+  // an author could unpublish someone else's live article by routing it
+  // through the "safe" status branch.
+  const ownership = await assertOwnsAll(ids, session);
+  if (!ownership.success) return ownership;
   try {
     await bulkSetArticleStatus(ids, status);
     await logActivity({
@@ -434,6 +496,8 @@ export async function bulkSetStatusAction(
 export async function bulkDeleteAction(ids: number[]): Promise<ActionResult> {
   const session = await requireStaffSession();
   if (!session) return UNAUTHORIZED;
+  const ownership = await assertOwnsAll(ids, session);
+  if (!ownership.success) return ownership;
   try {
     await bulkDeleteArticles(ids);
     await logActivity({
@@ -450,8 +514,9 @@ export async function bulkDeleteAction(ids: number[]): Promise<ActionResult> {
 }
 
 export async function bulkSetFeaturedAction(ids: number[], isFeatured: boolean): Promise<ActionResult> {
-  const session = await requireStaffSession();
-  if (!session) return UNAUTHORIZED;
+  // Same reasoning as toggleFeaturedAction: homepage curation, publisher-only.
+  const session = await requirePublisherSession();
+  if (!session) return FORBIDDEN;
   try {
     await bulkSetArticleFeatured(ids, isFeatured);
     await logActivity({
@@ -481,6 +546,9 @@ export async function addLiveBlogEntryAction(
 ): Promise<ActionResult> {
   const session = await requireStaffSession();
   if (!session) return UNAUTHORIZED;
+  const article = await getArticleByIdAdmin(articleId);
+  if (!article) return { success: false, error: "That article no longer exists." };
+  if (!canEditArticle(session.user.role, session.user.id, article.authorId)) return FORBIDDEN;
   const trimmedBody = body.trim();
   if (!trimmedBody) return { success: false, error: "Entry text is required." };
   if (trimmedBody.length > MAX_LIVE_BLOG_BODY) {
@@ -489,12 +557,11 @@ export async function addLiveBlogEntryAction(
   const trimmedHeadline = headline.trim().slice(0, MAX_LIVE_BLOG_HEADLINE) || null;
   try {
     await addLiveBlogEntry(articleId, { headline: trimmedHeadline, bodyHtml: bodyInputToHtml(trimmedBody) });
-    const article = await getArticleByIdAdmin(articleId);
     await logActivity({
       actor: session.user,
       action: "live_blog.entry_added",
       targetType: "article",
-      targetLabel: article?.headline ?? `#${articleId}`,
+      targetLabel: article.headline,
     });
     revalidatePath("/", "layout");
     revalidatePath(`/admin/articles/${articleId}/edit`);
@@ -507,15 +574,19 @@ export async function addLiveBlogEntryAction(
 export async function deleteLiveBlogEntryAction(entryId: string, articleId: number): Promise<ActionResult> {
   const session = await requireStaffSession();
   if (!session) return UNAUTHORIZED;
+  const article = await getArticleByIdAdmin(articleId);
+  if (!article) return { success: false, error: "That article no longer exists." };
+  if (!canEditArticle(session.user.role, session.user.id, article.authorId)) return FORBIDDEN;
   try {
     const preview = await getLiveBlogEntryPreview(entryId);
-    await deleteLiveBlogEntry(entryId);
-    const article = await getArticleByIdAdmin(articleId);
+    // Verifies the entry actually belongs to articleId — the article we
+    // just checked ownership against — not just deletes by entryId alone.
+    await deleteLiveBlogEntry(entryId, articleId);
     await logActivity({
       actor: session.user,
       action: "live_blog.entry_deleted",
       targetType: "article",
-      targetLabel: `${article?.headline ?? `#${articleId}`} — ${preview ?? entryId}`,
+      targetLabel: `${article.headline} — ${preview ?? entryId}`,
     });
     revalidatePath("/", "layout");
     revalidatePath(`/admin/articles/${articleId}/edit`);
@@ -531,6 +602,8 @@ export async function bulkSetCategoriesAction(ids: number[], categorySlugs: stri
   if (categorySlugs.length === 0) {
     return { success: false, error: "Choose at least one category." };
   }
+  const ownership = await assertOwnsAll(ids, session);
+  if (!ownership.success) return ownership;
   try {
     await bulkUpdateArticleCategories(ids, categorySlugs);
     await logActivity({
@@ -649,6 +722,15 @@ export type DuplicateResult = { success: true; id: number } | { success: false; 
 export async function duplicateArticleAction(id: number): Promise<DuplicateResult> {
   const session = await requireStaffSession();
   if (!session) return { success: false, error: "You must be signed in as staff to do that." };
+  // Duplicating copies the source's full content into a new draft the
+  // caller now owns — without this, an author could pull a colleague's
+  // unpublished draft (an id they can't otherwise see or open) into their
+  // own list just by guessing a numeric id.
+  const source = await getArticleByIdAdmin(id);
+  if (!source) return { success: false, error: "That article no longer exists." };
+  if (!canEditArticle(session.user.role, session.user.id, source.authorId)) {
+    return { success: false, error: "You do not have permission to duplicate this article." };
+  }
   try {
     const copy = await duplicateArticle(id, session.user.id);
     await logActivity({
