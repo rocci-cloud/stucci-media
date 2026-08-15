@@ -12,8 +12,9 @@ import RichTextEditor from "../articles/RichTextEditor";
 import ImageField from "../articles/ImageField";
 import AudioField from "./AudioField";
 import { slugify } from "../../lib/slugify";
-import { ARTICLE_STATUS_LABELS, type ArticleStatusValue } from "../../lib/articles";
-import { formatDuration, type PodcastEpisode } from "../../lib/podcast";
+import { ARTICLE_STATUS_LABELS, type ArticleStatusValue } from "../../lib/article-status";
+import type { PodcastEpisode } from "../../lib/podcast";
+import { formatDuration } from "../../lib/podcast-duration";
 import type { EpisodeFormState } from "./actions";
 
 const AUTHOR_STATUSES: ArticleStatusValue[] = ["draft", "in_review"];

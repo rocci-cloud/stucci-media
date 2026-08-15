@@ -17,7 +17,8 @@ import {
   AlertDialogTitle,
 } from "../components/ui/alert-dialog";
 import { emptyTrashAction, purgeArticleAction, restoreArticleAction } from "../articles/actions";
-import { ARTICLE_STATUS_LABELS, type Article } from "../../lib/articles";
+import type { Article } from "../../lib/articles";
+import { ARTICLE_STATUS_LABELS } from "../../lib/article-status";
 
 type Action = { type: "remove"; ids: number[] };
 

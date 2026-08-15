@@ -19,8 +19,9 @@ import {
   AlertDialogTitle,
 } from "../components/ui/alert-dialog";
 import { deleteEpisodeAction } from "./actions";
-import { formatDuration, type PodcastEpisode } from "../../lib/podcast";
-import { ARTICLE_STATUS_LABELS } from "../../lib/articles";
+import type { PodcastEpisode } from "../../lib/podcast";
+import { formatDuration } from "../../lib/podcast-duration";
+import { ARTICLE_STATUS_LABELS } from "../../lib/article-status";
 
 function reducer(state: PodcastEpisode[], id: string): PodcastEpisode[] {
   return state.filter((e) => e.id !== id);

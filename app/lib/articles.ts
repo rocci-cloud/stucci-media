@@ -1,20 +1,14 @@
 import { prisma } from "./prisma";
 import { getCategories } from "./categories";
 import type { Article as PrismaArticle, ArticleStatus, Prisma } from "@prisma/client";
+// Re-exported below for existing server-side importers — the type and its
+// label map live in a Prisma-free module (lib/article-status.ts) so client
+// components can import them without dragging this file's `prisma` import
+// (and its DATABASE_URL check) into the browser bundle.
+import { ARTICLE_STATUS_LABELS, type ArticleStatusValue } from "./article-status";
 
-// The editorial pipeline as the admin UI speaks it. Lowercase strings
-// rather than the Prisma enum so every component (client ones included)
-// can import this type without pulling in @prisma/client. "scheduled" is
-// NOT here on purpose — it's derived from published + a future
-// publishedAt (see Article.isScheduled), not a stored state.
-export type ArticleStatusValue = "draft" | "in_review" | "published" | "archived";
-
-export const ARTICLE_STATUS_LABELS: Record<ArticleStatusValue, string> = {
-  draft: "Draft",
-  in_review: "In Review",
-  published: "Published",
-  archived: "Archived",
-};
+export { ARTICLE_STATUS_LABELS };
+export type { ArticleStatusValue };
 
 export type Article = {
   id: number;

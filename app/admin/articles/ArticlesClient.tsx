@@ -40,7 +40,8 @@ import {
   updateArticleCategoriesAction,
 } from "./actions";
 import { computeSeoScore } from "../../lib/seo-score";
-import { ARTICLE_STATUS_LABELS, type Article, type ArticleStatusValue } from "../../lib/articles";
+import type { Article } from "../../lib/articles";
+import { ARTICLE_STATUS_LABELS, type ArticleStatusValue } from "../../lib/article-status";
 import type { Category } from "../../lib/categories";
 
 // "scheduled" isn't a stored status — it's published-with-a-future-date
