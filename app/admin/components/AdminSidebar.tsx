@@ -16,9 +16,12 @@ export default function AdminSidebar() {
         <SidebarNav />
       </div>
       <div className="border-t border-[var(--admin-sidebar-border)] px-5 py-4">
-        <Link href="/" className="text-[12px] font-medium text-white/45 hover:text-white/80 transition-colors">
+        {/* A plain <a>, not next/link: a client-side nav out of the
+            admin would keep the same document — and its `dark` class —
+            leaving public pages with dark-styled native controls. */}
+        <a href="/" className="text-[12px] font-medium text-white/45 hover:text-white/80 transition-colors">
           ← Back to site
-        </Link>
+        </a>
       </div>
     </aside>
   );

@@ -10,6 +10,7 @@ import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
 import { Separator } from "../components/ui/separator";
 import { authClient, useSession } from "../../lib/auth-client";
+import { ROLE_LABELS, type AppRole } from "../../lib/permissions";
 
 export default function SettingsClient() {
   const { data: session, isPending: sessionLoading } = useSession();
@@ -34,7 +35,7 @@ export default function SettingsClient() {
   }
 
   return (
-    <div className="flex max-w-xl flex-col gap-5">
+    <>
       <Card>
         <CardHeader>
           <CardTitle>Profile</CardTitle>
@@ -60,7 +61,7 @@ export default function SettingsClient() {
 
               <div className="flex items-center gap-2">
                 <Label className="mb-0">Role</Label>
-                <Badge variant="primary">{session?.user.role ?? "—"}</Badge>
+                <Badge variant="primary">{ROLE_LABELS[session?.user.role as AppRole] ?? session?.user.role ?? "—"}</Badge>
               </div>
 
               <Separator />
@@ -73,6 +74,6 @@ export default function SettingsClient() {
           )}
         </CardContent>
       </Card>
-    </div>
+    </>
   );
 }

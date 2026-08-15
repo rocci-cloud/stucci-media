@@ -3,10 +3,20 @@
 import { useState } from "react";
 import Link from "next/link";
 import { authClient } from "../lib/auth-client";
+import { acceptInviteAction } from "../register/invite-actions";
 
 type Mode = "login" | "register";
 
-export default function AuthForm({ mode, redirectTo }: { mode: Mode; redirectTo: string }) {
+export default function AuthForm({
+  mode,
+  redirectTo,
+  inviteToken,
+}: {
+  mode: Mode;
+  redirectTo: string;
+  /** Present when arriving from a staff invite link (/register?invite=…). */
+  inviteToken?: string;
+}) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -42,6 +52,14 @@ export default function AuthForm({ mode, redirectTo }: { mode: Mode; redirectTo:
       // protected page) still wins.
       if (mode === "login" && redirectTo === "/" && data?.user?.role === "ADMIN") {
         target = "/admin";
+      }
+
+      // A staff invite applies its role right after the account exists.
+      // If it applies, send them to the dashboard rather than the
+      // homepage — they were invited to work here, not to read.
+      if (mode === "register" && inviteToken) {
+        const invite = await acceptInviteAction(inviteToken);
+        if (invite.applied) target = "/admin";
       }
     } catch {
       // A thrown (rather than returned) error means the request itself

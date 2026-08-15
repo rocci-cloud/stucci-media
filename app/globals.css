@@ -70,6 +70,58 @@
   --admin-sidebar-border: rgba(255, 255, 255, 0.08);
 }
 
+/* Admin dark mode.
+
+   The tokens go on a bare `.dark` (next-themes puts that class on <html>)
+   rather than on `.dark .admin-root`, because Radix portals — every
+   Dialog, AlertDialog, DropdownMenu, Popover, Select, Sheet, and the
+   sonner Toaster — render at document.body, OUTSIDE the admin shell's
+   own element. Scoping the tokens to .admin-root would leave every one of
+   those rendering with the light palette in dark mode.
+
+   This can't leak into the public site: ThemeProvider is mounted only by
+   AdminShell, so the `dark` class only ever exists on an /admin page, and
+   the public --color-* tokens below are untouched by it either way.
+
+   Only the --admin-* tokens are redefined; every admin component already
+   reads through them, so this is the entire dark theme. */
+.dark {
+  --admin-bg: #0d1117;
+  --admin-surface: #161b22;
+  --admin-bg-subtle: #1c2129;
+  --admin-border: #2a313c;
+  --admin-fg: #e6edf3;
+  --admin-fg-muted: #8b949e;
+  --admin-primary: #f0475f;
+  --admin-primary-hover: #ff6478;
+  --admin-ring: rgba(240, 71, 95, 0.45);
+  --admin-danger: #f85149;
+  --admin-danger-bg: #2d1618;
+  --admin-success: #3fb950;
+  --admin-success-bg: #12261a;
+  --admin-sidebar-bg: #070b12;
+  --admin-sidebar-border: rgba(255, 255, 255, 0.06);
+}
+
+/* color-scheme drives native scrollbars, form controls, and the date
+   picker, so it belongs on the same element as the tokens — including for
+   portalled dialogs and dropdowns.
+
+   The one way a public page could end up in a document still carrying
+   this class is a client-side navigation out of /admin, so the admin's
+   two "Back to site" links are deliberately plain <a> tags (full
+   navigations) rather than next/link — see AdminSidebar/MobileSidebar. */
+.dark {
+  color-scheme: dark;
+}
+
+/* The rich text editor and the live preview render on an explicit white
+   sheet in both themes — an article is written to be read on white, and
+   showing it dark while writing hides real contrast problems. */
+.dark .admin-root .prose {
+  color: #14181f;
+}
+
 html,
 body {
   background: var(--color-bg) !important;
@@ -198,5 +250,174 @@ body {
   * {
     animation: none !important;
     transition: none !important;
+  }
+}
+
+/* --- Rich article content ---------------------------------------------
+   Styling for the block types the admin's TipTap editor can produce
+   (callouts, figures with captions, tables, embeds). These live here
+   rather than as `prose-*` variants on the article page because the same
+   markup is rendered in three places — the public article page, the admin
+   preview route, and the editor's live preview pane — and a treatment
+   defined in one component would silently not apply in the other two.
+
+   Everything below is inside @layer components so Tailwind utilities on
+   the same elements still win, per the cascade-layering note in
+   CLAUDE.md. */
+@layer components {
+  .prose .callout {
+    margin: 1.75rem 0;
+    padding: 1rem 1.15rem;
+    border-left: 4px solid var(--color-blue);
+    border-radius: 0 var(--radius-control, 4px) var(--radius-control, 4px) 0;
+    background: var(--color-bg-off);
+  }
+  .prose .callout > :first-child {
+    margin-top: 0;
+  }
+  .prose .callout > :last-child {
+    margin-bottom: 0;
+  }
+  .prose .callout-warning {
+    border-left-color: #b45309;
+    background: #fffbeb;
+  }
+  .prose .callout-danger {
+    border-left-color: var(--color-red);
+    background: #fef2f2;
+  }
+  .prose .callout-success {
+    border-left-color: #15803d;
+    background: #f0fdf4;
+  }
+
+  .prose figure.article-figure {
+    margin: 2rem 0;
+  }
+  .prose figure.article-figure img {
+    display: block;
+    margin: 0;
+    border-radius: var(--radius-control, 4px);
+    border: 1px solid var(--color-hairline);
+  }
+  .prose figure.article-figure figcaption {
+    margin-top: 0.5rem;
+    font-family: var(--font-sans, system-ui), sans-serif;
+    font-size: 13px;
+    line-height: 1.45;
+    color: var(--color-gray);
+    text-align: center;
+  }
+  /* align-* mirrors the editor's own alignment control. `full` is the
+     default reading-column width; left/right float so body copy wraps. */
+  .prose figure.align-center {
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .prose figure.align-left {
+    float: left;
+    margin: 0.5rem 1.5rem 1rem 0;
+    max-width: 50%;
+  }
+  .prose figure.align-right {
+    float: right;
+    margin: 0.5rem 0 1rem 1.5rem;
+    max-width: 50%;
+  }
+
+  /* Wide tables scroll inside their own container instead of forcing the
+     whole article to scroll horizontally on a phone. */
+  .prose table.article-table {
+    display: block;
+    overflow-x: auto;
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 15px;
+  }
+  .prose table.article-table th,
+  .prose table.article-table td {
+    border: 1px solid var(--color-hairline);
+    padding: 0.5rem 0.75rem;
+    text-align: left;
+    vertical-align: top;
+  }
+  .prose table.article-table th {
+    background: var(--color-bg-off);
+    font-family: var(--font-sans, system-ui), sans-serif;
+    font-size: 12.5px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+
+  /* Responsive 16:9 embed frame — the iframe itself carries fixed
+     width/height attributes for non-CSS contexts (RSS readers, email),
+     which these override on the site itself. */
+  .prose .embed-wrapper {
+    position: relative;
+    margin: 2rem 0;
+    padding-top: 56.25%;
+    overflow: hidden;
+    border-radius: var(--radius-control, 4px);
+    background: #000;
+  }
+  .prose .embed-wrapper iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+
+  .prose pre {
+    overflow-x: auto;
+    border-radius: var(--radius-control, 4px);
+  }
+}
+
+/* Editor-only affordances: TipTap's placeholder plugin and the table
+   column-resize handle have no styling of their own. */
+@layer components {
+  .ProseMirror p.is-editor-empty:first-child::before,
+  .ProseMirror p.is-empty::before {
+    content: attr(data-placeholder);
+    float: left;
+    height: 0;
+    pointer-events: none;
+    color: var(--admin-fg-muted);
+  }
+  .ProseMirror .tableWrapper {
+    overflow-x: auto;
+  }
+  .ProseMirror table {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+  }
+  .ProseMirror th,
+  .ProseMirror td {
+    position: relative;
+    border: 1px solid var(--admin-border);
+    padding: 0.4rem 0.6rem;
+  }
+  .ProseMirror th {
+    background: var(--admin-bg-subtle);
+    font-weight: 700;
+  }
+  .ProseMirror .column-resize-handle {
+    position: absolute;
+    top: 0;
+    right: -2px;
+    bottom: 0;
+    width: 4px;
+    background: var(--admin-primary);
+    pointer-events: none;
+  }
+  .ProseMirror .selectedCell::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(200, 16, 46, 0.08);
+    pointer-events: none;
   }
 }

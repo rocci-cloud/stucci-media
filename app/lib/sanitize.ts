@@ -1,17 +1,85 @@
 import sanitizeHtml from "sanitize-html";
 
+// The allowlist and the editor's toolbar are two halves of one contract:
+// every tag the editor can produce must be listed here, and nothing here
+// should be un-producible from the editor. When adding a node to
+// RichTextEditor, add its tag here in the same change — otherwise the
+// feature silently works in the editor and vanishes on save.
 const ALLOWED_TAGS = [
-  "p", "h2", "h3", "h4", "b", "strong", "i", "em", "a", "img",
-  "ul", "ol", "li", "blockquote", "br", "hr",
+  // Text + structure
+  "p", "h2", "h3", "h4", "b", "strong", "i", "em", "u", "s", "br", "hr",
+  "ul", "ol", "li", "blockquote",
+  // Code
+  "pre", "code",
+  // Tables
+  "table", "thead", "tbody", "tr", "th", "td",
+  // Media
+  "a", "img", "figure", "figcaption", "iframe",
+  // Callouts / alert boxes (a div carrying a callout-* class)
+  "div", "span",
 ];
+
+// Only hosts we deliberately support embedding from. sanitize-html
+// enforces this against the iframe's src, so a pasted iframe pointing
+// anywhere else is dropped entirely rather than rendered.
+const ALLOWED_IFRAME_HOSTNAMES = [
+  "www.youtube.com",
+  "youtube.com",
+  "www.youtube-nocookie.com",
+  "youtube-nocookie.com",
+  "player.vimeo.com",
+  "platform.twitter.com",
+  "open.spotify.com",
+  "w.soundcloud.com",
+  "player.rumble.com",
+  "rumble.com",
+  "iframe.iframely.es",
+];
+
+// Classes the editor's own nodes rely on. Anything else is stripped, so a
+// pasted document can't smuggle in arbitrary styling hooks.
+const ALLOWED_CLASSES = {
+  div: ["callout", "callout-info", "callout-warning", "callout-danger", "callout-success", "embed-wrapper"],
+  figure: ["article-figure", "align-left", "align-center", "align-right", "align-full"],
+  img: ["align-left", "align-center", "align-right", "align-full"],
+  pre: ["code-block"],
+  span: ["callout-title"],
+  table: ["article-table"],
+};
 
 export function sanitizeArticleHtml(html: string): string {
   return sanitizeHtml(html, {
     allowedTags: ALLOWED_TAGS,
     allowedAttributes: {
       a: ["href", "target", "rel"],
-      img: ["src", "alt", "width", "height"],
+      img: ["src", "alt", "width", "height", "class", "style"],
+      figure: ["class"],
+      div: ["class"],
+      span: ["class"],
+      pre: ["class"],
+      code: ["class"],
+      table: ["class"],
+      th: ["colspan", "rowspan", "style"],
+      td: ["colspan", "rowspan", "style"],
+      iframe: ["src", "width", "height", "allow", "allowfullscreen", "frameborder", "title"],
+      p: ["style"],
+      h2: ["style"],
+      h3: ["style"],
+      h4: ["style"],
     },
+    allowedClasses: ALLOWED_CLASSES,
+    // TipTap's TextAlign extension emits inline text-align, and the image
+    // node emits an explicit width for resizing. Both are bounded by the
+    // regex allowlist below — no arbitrary CSS gets through.
+    allowedStyles: {
+      "*": {
+        "text-align": [/^left$|^right$|^center$|^justify$/],
+      },
+      img: {
+        width: [/^\d{1,3}%$/, /^\d{1,4}px$/],
+      },
+    },
+    allowedIframeHostnames: ALLOWED_IFRAME_HOSTNAMES,
     allowedSchemes: ["http", "https"],
     transformTags: {
       a: sanitizeHtml.simpleTransform("a", { rel: "noopener noreferrer nofollow", target: "_blank" }),

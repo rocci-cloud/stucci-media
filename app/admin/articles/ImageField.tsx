@@ -1,14 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { upload } from "@vercel/blob/client";
-import { ImageOff, Loader2, Upload, X } from "lucide-react";
+import { ImageOff, Images, Loader2, Upload, X } from "lucide-react";
 import { Button } from "../components/ui/button";
-import { compressImageIfNeeded } from "./image-compression";
-import { recordMediaAssetAction } from "../media/actions";
-
-const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
-const MAX_UPLOAD_BYTES = 10 * 1024 * 1024; // matches the server's onBeforeGenerateToken limit
+import { uploadImage } from "./upload-image";
+import MediaPickerDialog from "./MediaPickerDialog";
 
 export default function ImageField({
   label,
@@ -20,32 +16,22 @@ export default function ImageField({
   onChange: (url: string | null) => void;
 }) {
   const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
     setError(null);
-
-    if (!ALLOWED_TYPES.has(file.type)) {
-      setError("Please choose a JPEG, PNG, WebP, or GIF image.");
-      e.target.value = "";
-      return;
-    }
-
     setUploading(true);
+    setProgress(0);
     try {
-      const optimized = await compressImageIfNeeded(file);
-      if (optimized.size > MAX_UPLOAD_BYTES) {
-        setError("That image is too large even after compression — try a smaller file (max 10MB).");
-        return;
-      }
-      const blob = await upload(optimized.name, optimized, { access: "public", handleUploadUrl: "/api/admin/upload" });
-      onChange(blob.url);
-      // Fire-and-forget — every upload through this field should show up
-      // in the Media Library, but indexing must never block or fail the
-      // actual image field UX.
-      recordMediaAssetAction(blob.url, optimized.name).catch(() => {});
+      // Validation, compression, the Blob client upload, and media-library
+      // indexing all live in the shared helper — this field and the
+      // editor's inline insert must not drift apart on any of them.
+      const uploaded = await uploadImage(file, { onProgress: setProgress });
+      onChange(uploaded.url);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Upload failed.");
     } finally {
@@ -56,7 +42,17 @@ export default function ImageField({
 
   return (
     <div className="flex flex-col gap-2">
-      <span className="text-[13px] font-medium text-[var(--admin-fg)]">{label}</span>
+      <div className="flex items-center justify-between">
+        <span className="text-[13px] font-medium text-[var(--admin-fg)]">{label}</span>
+        <button
+          type="button"
+          onClick={() => setPickerOpen(true)}
+          className="flex items-center gap-1 text-[12px] font-medium text-[var(--admin-primary)] hover:underline"
+        >
+          <Images className="h-3.5 w-3.5" />
+          Media library
+        </button>
+      </div>
 
       {value ? (
         <div className="group relative overflow-hidden rounded-md border border-[var(--admin-border)]">
@@ -67,7 +63,13 @@ export default function ImageField({
               <label className="cursor-pointer">
                 {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
                 Replace
-                <input type="file" accept="image/*" className="hidden" onChange={handleFile} disabled={uploading} />
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/avif,image/gif"
+                  className="hidden"
+                  onChange={handleFile}
+                  disabled={uploading}
+                />
               </label>
             </Button>
             <Button type="button" size="sm" variant="destructive" onClick={() => onChange(null)}>
@@ -79,12 +81,22 @@ export default function ImageField({
       ) : (
         <label className="flex aspect-video w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-md border border-dashed border-[var(--admin-border)] bg-[var(--admin-bg-subtle)]/50 text-[var(--admin-fg-muted)] transition-colors hover:border-[var(--admin-primary)] hover:text-[var(--admin-primary)]">
           {uploading ? <Loader2 className="h-5 w-5 animate-spin" /> : <ImageOff className="h-5 w-5" />}
-          <span className="text-[13px] font-medium">{uploading ? "Uploading…" : "Upload image"}</span>
-          <input type="file" accept="image/*" className="hidden" onChange={handleFile} disabled={uploading} />
+          <span className="text-[13px] font-medium">
+            {uploading ? `Uploading ${progress}%` : "Upload image"}
+          </span>
+          <input
+            type="file"
+            accept="image/jpeg,image/png,image/webp,image/avif,image/gif"
+            className="hidden"
+            onChange={handleFile}
+            disabled={uploading}
+          />
         </label>
       )}
 
       {error && <p className="text-[12px] text-[var(--admin-danger)]">{error}</p>}
+
+      <MediaPickerDialog open={pickerOpen} onOpenChange={setPickerOpen} onSelect={(image) => onChange(image.url)} />
     </div>
   );
 }

@@ -1,3 +1,5 @@
+import { redirect } from "next/navigation";
+import { requireAdminSession } from "../../lib/require-admin";
 import Link from "next/link";
 import { Download, Mail } from "lucide-react";
 import { getAllSubscribers } from "../../lib/subscribers";
@@ -7,6 +9,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from ".
 export const dynamic = "force-dynamic";
 
 export default async function SubscribersPage() {
+  // Admin-only. The /admin layout now admits editors and authors
+  // too, so this section re-checks rather than relying on it.
+  if (!(await requireAdminSession())) redirect("/admin");
+
   const subscribers = await getAllSubscribers();
 
   return (

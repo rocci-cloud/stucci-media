@@ -1,30 +1,49 @@
 import type { LucideIcon } from "lucide-react";
 import {
-  LayoutDashboard,
-  Newspaper,
   FolderTree,
   Image,
   Images,
+  LayoutDashboard,
   Link2,
-  MessageSquare,
   Mail,
+  MessageSquare,
+  Mic,
+  Newspaper,
   Settings,
+  Trash2,
+  Users,
 } from "lucide-react";
+import { canManageSettings, canManageUsers, canModerateComments } from "../../lib/permissions";
 
 export type AdminNavItem = {
   label: string;
   href: string;
   icon: LucideIcon;
+  /** Undefined means every staff role sees it. */
+  visible?: (role: string | null | undefined) => boolean;
+  group: "Content" | "Library" | "Site";
 };
 
 export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
-  { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
-  { label: "Articles", href: "/admin/articles", icon: Newspaper },
-  { label: "Categories", href: "/admin/categories", icon: FolderTree },
-  { label: "Banners", href: "/admin/banners", icon: Image },
-  { label: "Media", href: "/admin/media", icon: Images },
-  { label: "Redirects", href: "/admin/redirects", icon: Link2 },
-  { label: "Comments", href: "/admin/comments", icon: MessageSquare },
-  { label: "Weekly Digest", href: "/admin/digest", icon: Mail },
-  { label: "Settings", href: "/admin/settings", icon: Settings },
+  { label: "Dashboard", href: "/admin", icon: LayoutDashboard, group: "Content" },
+  { label: "Articles", href: "/admin/articles", icon: Newspaper, group: "Content" },
+  { label: "Podcast", href: "/admin/podcast", icon: Mic, group: "Content" },
+  { label: "Comments", href: "/admin/comments", icon: MessageSquare, visible: canModerateComments, group: "Content" },
+
+  { label: "Media", href: "/admin/media", icon: Images, group: "Library" },
+  { label: "Categories", href: "/admin/categories", icon: FolderTree, visible: canManageSettings, group: "Library" },
+  { label: "Trash", href: "/admin/trash", icon: Trash2, group: "Library" },
+
+  { label: "Banners", href: "/admin/banners", icon: Image, visible: canManageSettings, group: "Site" },
+  { label: "Subscribers", href: "/admin/subscribers", icon: Mail, visible: canManageSettings, group: "Site" },
+  { label: "Weekly Digest", href: "/admin/digest", icon: Mail, visible: canManageSettings, group: "Site" },
+  { label: "Redirects", href: "/admin/redirects", icon: Link2, visible: canManageSettings, group: "Site" },
+  { label: "Users", href: "/admin/users", icon: Users, visible: canManageUsers, group: "Site" },
+  { label: "Settings", href: "/admin/settings", icon: Settings, group: "Site" },
 ];
+
+export function navItemsForRole(role: string | null | undefined): AdminNavItem[] {
+  return ADMIN_NAV_ITEMS.filter((item) => !item.visible || item.visible(role));
+}
+
+export const NAV_GROUP_ORDER: AdminNavItem["group"][] = ["Content", "Library", "Site"];

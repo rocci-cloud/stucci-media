@@ -35,13 +35,10 @@ export default function MobileSidebar() {
           <SidebarNav onNavigate={() => setOpen(false)} />
         </div>
         <div className="border-t border-[var(--admin-sidebar-border)] px-5 py-4">
-          <Link
-            href="/"
-            onClick={() => setOpen(false)}
-            className="text-[12px] font-medium text-white/45 hover:text-white/80 transition-colors"
-          >
+          {/* Plain <a> for the same reason as AdminSidebar's. */}
+          <a href="/" className="text-[12px] font-medium text-white/45 hover:text-white/80 transition-colors">
             ← Back to site
-          </Link>
+          </a>
         </div>
       </SheetContent>
     </Sheet>
