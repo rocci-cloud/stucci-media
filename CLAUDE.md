@@ -3192,3 +3192,155 @@ email provider is chosen.
   phase should be rotated for production rather than reused. Push
   delivery to a real device can only be confirmed once deployed; this
   sandbox has no path to a real push endpoint to test against.
+
+## Phase 56 — done: production newsroom CMS (roles, editor, media library, podcast)
+
+The largest single pass since Phase 7. `/admin` went from "a good
+single-operator dashboard" to a real multi-author newsroom tool: a proper
+editorial pipeline with roles, a TipTap editor with slash commands and
+native image handling, a media library with folders and usage tracking, a
+podcast manager, and the WordPress-parity extras (trash, duplicate,
+revisions, export, command palette, dark mode).
+
+- **Roles are real now** (`app/lib/permissions.ts` is the single source of
+  truth): `Role` gained `EDITOR` and `AUTHOR` alongside `ADMIN`/`USER`.
+  Admin does everything; Editor writes/publishes anyone's work and
+  moderates comments but can't touch settings or users; Author writes and
+  edits **only their own** articles and submits them for review rather
+  than publishing. `requireStaffSession`/`requirePublisherSession`/
+  `requireModeratorSession` join the existing `requireAdminSession` in
+  `lib/require-admin.ts`. **Real gap closed while building this**: opening
+  `/admin` to non-admins meant every admin-only *page* (categories,
+  banners, redirects, subscribers, digest) was suddenly reachable by URL
+  for an editor or author — the old `admin/layout.tsx` ADMIN check had
+  been doing that gating implicitly. Each of those pages now re-checks for
+  itself, matching what Phase 14 already established for server actions.
+- **Editorial pipeline**: `ArticleStatus` gained `IN_REVIEW` and
+  `ARCHIVED`. `SCHEDULED` is deliberately still *derived* (PUBLISHED with
+  a future `publishedAt`) rather than stored — nothing runs on a timer, so
+  a story going live can't fail. `updateArticle`'s date handling was fixed
+  as part of this: previously any non-published status nulled
+  `publishedAt`, so pulling a live story back to review or archiving it
+  silently destroyed its original publication date.
+- **Soft delete everywhere**: `Article.deletedAt` plus a `/admin/trash`
+  screen with restore and a genuinely irreversible purge. Every public and
+  admin read filters `deletedAt: null`; only the trash screen sees past it.
+  Nothing in the CMS hard-deletes an article on a first click any more.
+- **The editor was rebuilt** (`RichTextEditor.tsx` plus
+  `articles/editor/`): slash commands (a `@tiptap/suggestion` extension
+  bridged to a portalled React menu), a bubble menu over selections,
+  tables, code blocks, four callout tones, and embeds for YouTube/X/Vimeo/
+  Spotify/SoundCloud/Rumble. Images now upload natively — drag-drop onto
+  the canvas, paste from the clipboard, or pick from the media library —
+  with drag-to-resize, alignment, and captions via a custom `figureImage`
+  node.
+  - **The caption is a node *attribute*, not ProseMirror content.** As
+    editable content the node's schema competes with the `<img>` child
+    during HTML parsing, which breaks round-tripping the plain `<img>`
+    tags already sitting in the imported WordPress articles. As an
+    attribute, a bare `<img>` and a full `<figure>` both parse cleanly.
+  - **Image width is stored as a percentage, not pixels** — a pixel width
+    authored on a wide desktop would overflow on a phone.
+  - **`lib/sanitize.ts` and the toolbar are two halves of one contract.**
+    The allowlist was extended in the same change (tables, `figure`/
+    `figcaption`, `pre`/`code`, callout divs, `u`/`s`, iframes restricted
+    to an explicit host allowlist, and a bounded style allowlist for
+    `text-align`/`width`). Anything the editor can emit that isn't listed
+    there works in the editor and silently vanishes on save — verified
+    both directions with a real round-trip test, including that scripts,
+    `javascript:` hrefs, event handlers, off-allowlist iframe hosts, and
+    arbitrary classes/styles are still stripped.
+- **Autosave writes revision checkpoints only — never the article row.**
+  `ArticleRevision` snapshots headline/dek/body on every save and on a
+  debounced autosave; the History tab diffs any revision against the
+  current article (an exact LCS line diff computed server-side, ~50 lines,
+  no dependency) and can restore one — snapshotting the current state
+  first, so restore is itself undoable. A background write that could
+  publish half a sentence would be indefensible in a newsroom, hence the
+  split.
+- **Media library** gained folders, tags, alt text, dimensions/size,
+  bulk move and delete, multi-file drag-drop onto the page, and **real
+  usage counts** — which articles use each image, computed by scanning
+  cover images, OG images, inline `<img>` tags in bodies, category share
+  images, and banners. Deleting media is ADMIN-only and permanent (it
+  removes the Blob object, not just the index row); deleting a *folder*
+  never deletes its images, they become unfiled.
+- **One upload path for everything** (`articles/upload-image.ts`):
+  validate → compress → client-upload straight to Blob → index in the
+  library. `ImageField`, the editor's inline insert, and the media page
+  all go through it, so none of them can drift on validation or
+  compression. `api/admin/upload` now also accepts audio under a separate
+  300MB ceiling (images stay at 10MB), selected via `clientPayload` and
+  still validated server-side against the matching allowlist.
+- **Podcast manager**: `PodcastEpisode` with audio upload (duration
+  auto-detected in the browser before upload), show notes through the same
+  rich editor, transcript, guest details, and episode/season numbers.
+  Reuses `article_status` rather than inventing a near-identical enum.
+- **Users & invites**: `/admin/users` with role changes, suspend/reinstate,
+  and an invite flow. An invite is a pre-authorized role keyed by email —
+  it does **not** create the account; the invitee registers through the
+  normal public flow and the role is applied afterwards, so Better Auth
+  stays the only thing that ever hashes a password (same reasoning as
+  Phase 7's `admin:promote`). No email is sent (no mail provider is
+  connected) — the admin gets a link to pass along, and the UI says so
+  plainly rather than implying an email went out. Two guards prevent
+  lockout: an admin can't change their own role, and the last admin can't
+  be demoted or suspended.
+- **Settings** became real: a flat `SiteSetting` key/value table (adding a
+  setting needs no migration, and an unwritten key falls back to its
+  code-defined default, so an empty table is a valid working state)
+  backing SEO defaults, social accounts, newsletter placeholders, and five
+  feature flags that actually gate their features — the breaking bar,
+  comments, likes, push opt-in, and the Daily Brief all check them.
+- **`Article.isBreaking`** now drives `BreakingBar`, which previously just
+  showed the four most recent stories. When nothing is marked breaking it
+  falls back to the latest — and relabels itself "Latest", so the bar
+  never claims "Breaking" about something no editor flagged.
+- **Dashboard rebuilt**: pipeline stats, a 30-day publishing chart
+  (Recharts), a month-grid content calendar showing scheduled stories,
+  top-performing articles, pending approvals, and quick actions.
+  **"Views this week" is deliberately null, rendered as "All time"** —
+  `viewCount` is a lifetime counter with no daily time series behind it,
+  so a weekly figure would be fabricated. The chart shows publishing
+  volume, which the data genuinely knows.
+- **Command palette (`cmdk`)** on ⌘K with live server-side article search
+  (scoped to what the caller may actually open, so an author can't
+  enumerate the newsroom's drafts), plus `N` for a new article. **Dark
+  mode** for the admin only, via `next-themes`.
+  - **Real bug caught here**: the dark tokens were first scoped to
+    `.dark .admin-root`, which would have left every Radix portal — each
+    dialog, dropdown, popover, select, sheet, and the toaster, all
+    rendered at `document.body` — on the light palette in dark mode. The
+    tokens moved to a bare `.dark`. The public site can't be affected
+    because `ThemeProvider` is mounted only by `AdminShell`; the one
+    remaining path (a client-side nav out of the admin keeping the same
+    document) is closed by making the two "Back to site" links plain
+    `<a>` full navigations.
+- **WordPress-parity extras**: duplicate as draft (which deliberately
+  drops view counts, featured/breaking flags, the publish date, and the
+  canonical URL — inheriting a canonical would tell Google the copy *is*
+  the original), Markdown and standalone-HTML export, and the existing
+  audit log now covering every new mutation.
+- **Migration `20260815000000_newsroom_cms`** applied by hand per the
+  project's standing TCP-vs-HTTPS constraint. Note the runner splits SQL
+  on `;`, so `DO $$ … $$` guard blocks get torn in half — constraints are
+  declared inline instead. Verified the file splits into 28 well-formed
+  statements with no dollar-quoting.
+- **`scripts/seed-newsroom.mjs`** (`npm run db:seed-newsroom`) seeds
+  sample articles across every pipeline state including a genuinely
+  scheduled one, two podcast episodes, and media folders. Every slug is
+  prefixed `sample-` so it's trivial to find and remove.
+- **README rewritten** from the untouched `create-next-app` boilerplate
+  into a real setup guide: env vars, migration order, first-admin
+  bootstrap, the role table, Blob setup, and AI assist configuration.
+- **Verification, and its honest limits**: this session had **no
+  `.env.local` and no database access**, unlike every prior phase. So:
+  TypeScript and the production compile pass clean, the migration's
+  statement splitting was verified mechanically, and the pure logic was
+  covered by real round-trip tests (39 assertions: the sanitizer contract
+  in both directions, embed URL normalization, the revision diff, duration
+  parse/format, and Markdown/HTML export). **What was NOT done — and was
+  done in every prior phase — is a browser click-through against the live
+  Neon database.** The migration has not been applied anywhere, and no
+  admin screen in this phase has been loaded in a real browser. That pass
+  is still owed before this is trusted in production.

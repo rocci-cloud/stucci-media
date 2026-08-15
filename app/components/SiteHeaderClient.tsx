@@ -14,9 +14,12 @@ type NavCategory = { slug: string; label: string };
 export default function SiteHeaderClient({
   mainCategories,
   moreCategories,
+  showPushOptIn,
 }: {
   mainCategories: NavCategory[];
   moreCategories: NavCategory[];
+  /** Settings → Feature flags → Push alerts. */
+  showPushOptIn: boolean;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -113,7 +116,7 @@ export default function SiteHeaderClient({
             <Search className="h-[18px] w-[18px]" />
           </button>
           <div className="hidden sm:block">
-            <PushOptIn />
+            {showPushOptIn && <PushOptIn />}
           </div>
           <AccountMenu />
           <Link

@@ -29,6 +29,7 @@ import { getLiveBlogEntries } from "../../lib/live-blog";
 import { recordVisit } from "../../lib/streaks";
 import { recordCategoryInterest } from "../../lib/interests";
 import { auth } from "../../lib/auth";
+import { getSiteSettings } from "../../lib/settings";
 import { splitHtmlAtMidpoint } from "../../lib/split-html-midpoint";
 
 function getInitials(name: string) {
@@ -109,10 +110,11 @@ export async function generateStaticParams() {
 
 export default async function ArticlePage({ params }: Props) {
   const { slug } = await params;
-  const [article, allArticles, session] = await Promise.all([
+  const [article, allArticles, session, settings] = await Promise.all([
     getArticleBySlug(slug),
     getPublishedArticles(),
     auth.api.getSession({ headers: await headers() }),
+    getSiteSettings(),
   ]);
   if (!article) notFound();
 
@@ -127,7 +129,7 @@ export default async function ArticlePage({ params }: Props) {
     getLikeCount(article.id),
     session ? hasUserLiked(article.id, session.user.id) : Promise.resolve(false),
     session ? hasUserSaved(article.id, session.user.id) : Promise.resolve(false),
-    getApprovedCommentsForArticle(article.id),
+    settings.featureComments ? getApprovedCommentsForArticle(article.id) : Promise.resolve([]),
     getRelatedArticles(article, 6),
     article.isLiveBlog ? getLiveBlogEntries(article.id) : Promise.resolve([]),
   ]);
@@ -376,13 +378,15 @@ export default async function ArticlePage({ params }: Props) {
                 Enjoyed this story?
               </span>
               <div className="flex items-center gap-2">
-                <LikeButton
-                  articleId={article.id}
-                  initialCount={likeCount}
-                  initialLiked={liked}
-                  isSignedIn={Boolean(currentUser)}
-                  signInRedirect={pagePath}
-                />
+                {settings.featureLikes && (
+                  <LikeButton
+                    articleId={article.id}
+                    initialCount={likeCount}
+                    initialLiked={liked}
+                    isSignedIn={Boolean(currentUser)}
+                    signInRedirect={pagePath}
+                  />
+                )}
                 <SaveButton
                   articleId={article.id}
                   initialSaved={saved}
@@ -396,14 +400,16 @@ export default async function ArticlePage({ params }: Props) {
               <RelatedArticles articles={relatedArticles} />
             </Reveal>
 
-            <Reveal>
-              <CommentSection
-                articleId={article.id}
-                initialComments={comments}
-                currentUser={currentUser}
-                signInRedirect={pagePath}
-              />
-            </Reveal>
+            {settings.featureComments && (
+              <Reveal>
+                <CommentSection
+                  articleId={article.id}
+                  initialComments={comments}
+                  currentUser={currentUser}
+                  signInRedirect={pagePath}
+                />
+              </Reveal>
+            )}
           </article>
           <div className="mt-10 lg:mt-0">
             <Sidebar articles={allArticles} excludeSlug={article.slug} />

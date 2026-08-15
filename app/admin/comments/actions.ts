@@ -2,15 +2,15 @@
 
 import { revalidatePath } from "next/cache";
 import { setCommentApproved, setCommentPinned, deleteCommentAdmin, getCommentPreview } from "../../lib/comments";
-import { requireAdminSession } from "../../lib/require-admin";
+import { requireModeratorSession } from "../../lib/require-admin";
 import { logActivity } from "../../lib/activity";
 
 export type ActionResult = { success: true } | { success: false; error: string };
 
-const UNAUTHORIZED: ActionResult = { success: false, error: "You must be signed in as an admin to do that." };
+const UNAUTHORIZED: ActionResult = { success: false, error: "You need editor or admin access to moderate comments." };
 
 export async function setCommentApprovedAction(id: string, isApproved: boolean): Promise<ActionResult> {
-  const session = await requireAdminSession();
+  const session = await requireModeratorSession();
   if (!session) return UNAUTHORIZED;
   try {
     await setCommentApproved(id, isApproved);
@@ -29,7 +29,7 @@ export async function setCommentApprovedAction(id: string, isApproved: boolean):
 }
 
 export async function setCommentPinnedAction(id: string, isPinned: boolean): Promise<ActionResult> {
-  const session = await requireAdminSession();
+  const session = await requireModeratorSession();
   if (!session) return UNAUTHORIZED;
   try {
     await setCommentPinned(id, isPinned);
@@ -48,7 +48,7 @@ export async function setCommentPinnedAction(id: string, isPinned: boolean): Pro
 }
 
 export async function deleteCommentAction(id: string): Promise<ActionResult> {
-  const session = await requireAdminSession();
+  const session = await requireModeratorSession();
   if (!session) return UNAUTHORIZED;
   try {
     const preview = await getCommentPreview(id);

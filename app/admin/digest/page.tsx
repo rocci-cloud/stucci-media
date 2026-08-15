@@ -1,3 +1,5 @@
+import { redirect } from "next/navigation";
+import { requireAdminSession } from "../../lib/require-admin";
 import Link from "next/link";
 import { AlertTriangle } from "lucide-react";
 import { getTopArticlesThisWeek, getWeeklyDigestForUser, getReadersWithInterests } from "../../lib/digest";
@@ -14,6 +16,10 @@ export const dynamic = "force-dynamic";
 // digest's real content/personalization logic (lib/digest.ts) can be
 // reviewed and iterated on before that provider decision is made.
 export default async function DigestPreviewPage({ searchParams }: Props) {
+  // Admin-only. The /admin layout now admits editors and authors
+  // too, so this section re-checks rather than relying on it.
+  if (!(await requireAdminSession())) redirect("/admin");
+
   const { user: userId } = await searchParams;
   const [readers, articles] = await Promise.all([
     getReadersWithInterests(),

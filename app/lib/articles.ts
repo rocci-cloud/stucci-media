@@ -2,6 +2,20 @@ import { prisma } from "./prisma";
 import { getCategories } from "./categories";
 import type { Article as PrismaArticle, ArticleStatus, Prisma } from "@prisma/client";
 
+// The editorial pipeline as the admin UI speaks it. Lowercase strings
+// rather than the Prisma enum so every component (client ones included)
+// can import this type without pulling in @prisma/client. "scheduled" is
+// NOT here on purpose — it's derived from published + a future
+// publishedAt (see Article.isScheduled), not a stored state.
+export type ArticleStatusValue = "draft" | "in_review" | "published" | "archived";
+
+export const ARTICLE_STATUS_LABELS: Record<ArticleStatusValue, string> = {
+  draft: "Draft",
+  in_review: "In Review",
+  published: "Published",
+  archived: "Archived",
+};
+
 export type Article = {
   id: number;
   slug: string;
@@ -16,11 +30,15 @@ export type Article = {
   readTime: string;
   bodyHtml: string;
   coverImageUrl: string | null;
-  status: "draft" | "published";
+  status: ArticleStatusValue;
   isFeatured: boolean;
   isExclusive: boolean;
+  isBreaking: boolean;
   isLiveBlog: boolean;
   viewCount: number;
+  socialNotes: string | null;
+  authorId: string | null;
+  deletedAt: string | null;
   tags: string[];
   bulletPoints: string[];
   comparisonTitle: string | null;
@@ -49,10 +67,15 @@ export type ArticleInput = {
   author: string;
   bodyHtml: string; // sanitized HTML — rendered as-is via dangerouslySetInnerHTML
   coverImageUrl: string | null;
-  status: "draft" | "published";
+  status: ArticleStatusValue;
   isFeatured: boolean;
   isExclusive: boolean;
+  isBreaking: boolean;
   isLiveBlog: boolean;
+  socialNotes: string | null;
+  // Set on create from the signed-in staff member; omitted on update so
+  // editing someone else's article never reassigns its byline owner.
+  authorId?: string | null;
   tags: string[];
   bulletPoints: string[];
   comparisonTitle: string | null;
@@ -87,12 +110,30 @@ function estimateReadTime(bodyHtml: string) {
   return `${minutes} min read`;
 }
 
-function toStatus(status: ArticleStatus): "draft" | "published" {
-  return status === "PUBLISHED" ? "published" : "draft";
+function toStatus(status: ArticleStatus): ArticleStatusValue {
+  switch (status) {
+    case "PUBLISHED":
+      return "published";
+    case "IN_REVIEW":
+      return "in_review";
+    case "ARCHIVED":
+      return "archived";
+    default:
+      return "draft";
+  }
 }
 
-function toPrismaStatus(status: "draft" | "published"): ArticleStatus {
-  return status === "published" ? "PUBLISHED" : "DRAFT";
+function toPrismaStatus(status: ArticleStatusValue): ArticleStatus {
+  switch (status) {
+    case "published":
+      return "PUBLISHED";
+    case "in_review":
+      return "IN_REVIEW";
+    case "archived":
+      return "ARCHIVED";
+    default:
+      return "DRAFT";
+  }
 }
 
 async function categorySlugToLabel(): Promise<Map<string, string>> {
@@ -123,8 +164,12 @@ function mapRow(row: PrismaArticle | ArticleWithCategories, labelBySlug: Map<str
     status: toStatus(row.status),
     isFeatured: row.isFeatured,
     isExclusive: row.isExclusive,
+    isBreaking: row.isBreaking,
     isLiveBlog: row.isLiveBlog,
     viewCount: row.viewCount,
+    socialNotes: row.socialNotes,
+    authorId: row.authorId,
+    deletedAt: row.deletedAt ? row.deletedAt.toISOString() : null,
     tags: row.tags,
     bulletPoints: row.bulletPoints,
     comparisonTitle: row.comparisonTitle,
@@ -146,8 +191,11 @@ function mapRow(row: PrismaArticle | ArticleWithCategories, labelBySlug: Map<str
 // enough, a future publishedAt means the admin has scheduled it and it
 // isn't live yet. A fresh `new Date()` per call, not a module-level
 // constant, since these queries run across a long-lived server process.
+// A soft-deleted article (deletedAt set) is in the trash and must never
+// surface publicly OR in the normal admin lists — only /admin/trash reads
+// past this filter.
 function publishedWhere() {
-  return { status: "PUBLISHED" as const, publishedAt: { lte: new Date() } };
+  return { status: "PUBLISHED" as const, publishedAt: { lte: new Date() }, deletedAt: null };
 }
 
 // --- Public reads (published only) ---
@@ -214,7 +262,10 @@ export async function getRelatedArticles(article: Article, limit = 6): Promise<A
 export async function getSavedArticlesForUser(userId: string): Promise<Article[]> {
   const [saves, labelBySlug] = await Promise.all([
     prisma.savedArticle.findMany({
-      where: { userId },
+      // Trashed articles are excluded even though unpublished ones aren't
+      // — an unpublished story still exists and may come back, a deleted
+      // one would just be a dead link in someone's list.
+      where: { userId, article: { deletedAt: null } },
       orderBy: { createdAt: "desc" },
       include: { article: true },
     }),
@@ -255,9 +306,18 @@ export async function getArticlesByCategory(categorySlug: string): Promise<Artic
 
 // --- Admin reads (all statuses, with the full category multi-select) ---
 
-export async function getAllArticlesAdmin(): Promise<Article[]> {
+/**
+ * Every non-trashed article. Pass `authorId` to scope the list to one
+ * person's work — that's how an AUTHOR-role account sees only their own
+ * articles without the list route needing its own filtering logic.
+ */
+export async function getAllArticlesAdmin(options: { authorId?: string } = {}): Promise<Article[]> {
   const [rows, labelBySlug] = await Promise.all([
-    prisma.article.findMany({ orderBy: { updatedAt: "desc" }, ...ARTICLE_WITH_CATEGORIES }),
+    prisma.article.findMany({
+      where: { deletedAt: null, ...(options.authorId ? { authorId: options.authorId } : {}) },
+      orderBy: { updatedAt: "desc" },
+      ...ARTICLE_WITH_CATEGORIES,
+    }),
     categorySlugToLabel(),
   ]);
   return rows.map((row) => mapRow(row, labelBySlug));
@@ -269,6 +329,44 @@ export async function getArticleByIdAdmin(id: number): Promise<Article | undefin
     categorySlugToLabel(),
   ]);
   return row ? mapRow(row, labelBySlug) : undefined;
+}
+
+/**
+ * Backs bulk actions' ownership check — id → authorId for a batch of
+ * articles, without pulling each full row. A requested id with no
+ * matching row is simply absent from the result, which the caller
+ * treats the same as "not owned" (an author can't touch what doesn't
+ * exist any more than what belongs to someone else).
+ */
+export async function getArticleAuthorIds(ids: number[]): Promise<Map<number, string | null>> {
+  const rows = await prisma.article.findMany({ where: { id: { in: ids } }, select: { id: true, authorId: true } });
+  return new Map(rows.map((r) => [r.id, r.authorId]));
+}
+
+/** The trash: soft-deleted articles, most recently deleted first. */
+export async function getTrashedArticles(): Promise<Article[]> {
+  const [rows, labelBySlug] = await Promise.all([
+    prisma.article.findMany({
+      where: { deletedAt: { not: null } },
+      orderBy: { deletedAt: "desc" },
+      ...ARTICLE_WITH_CATEGORIES,
+    }),
+    categorySlugToLabel(),
+  ]);
+  return rows.map((row) => mapRow(row, labelBySlug));
+}
+
+/** Articles waiting on an editor — the dashboard's "pending approvals". */
+export async function getArticlesAwaitingReview(): Promise<Article[]> {
+  const [rows, labelBySlug] = await Promise.all([
+    prisma.article.findMany({
+      where: { status: "IN_REVIEW", deletedAt: null },
+      orderBy: { updatedAt: "desc" },
+      ...ARTICLE_WITH_CATEGORIES,
+    }),
+    categorySlugToLabel(),
+  ]);
+  return rows.map((row) => mapRow(row, labelBySlug));
 }
 
 // --- Admin writes ---
@@ -310,7 +408,10 @@ export async function createArticle(input: ArticleInput): Promise<Article> {
           status,
           isFeatured: input.isFeatured,
           isExclusive: input.isExclusive,
+          isBreaking: input.isBreaking,
           isLiveBlog: input.isLiveBlog,
+          socialNotes: input.socialNotes,
+          authorId: input.authorId ?? null,
           tags: input.tags,
           bulletPoints: input.bulletPoints,
           comparisonTitle: input.comparisonTitle,
@@ -337,11 +438,17 @@ export async function updateArticle(id: number, input: ArticleInput): Promise<Ar
   const status = toPrismaStatus(input.status);
   const primarySlug = input.categorySlugs[0];
   const existing = await prisma.article.findUnique({ where: { id }, select: { publishedAt: true } });
+  // An explicit date always wins. Otherwise: publishing with no date set
+  // stamps "now" (unless it already has one), and every other status
+  // preserves whatever date is already there rather than clearing it —
+  // pulling a live story back to review or archiving it shouldn't destroy
+  // its original publication date, since restoring it should put the
+  // story back exactly as it was.
   const publishedAt = input.publishedAt
     ? new Date(input.publishedAt)
     : status === "PUBLISHED"
       ? existing?.publishedAt ?? new Date()
-      : null;
+      : existing?.publishedAt ?? null;
 
   const [row, labelBySlug] = await Promise.all([
     prisma.$transaction(async (tx) => {
@@ -358,7 +465,9 @@ export async function updateArticle(id: number, input: ArticleInput): Promise<Ar
           status,
           isFeatured: input.isFeatured,
           isExclusive: input.isExclusive,
+          isBreaking: input.isBreaking,
           isLiveBlog: input.isLiveBlog,
+          socialNotes: input.socialNotes,
           tags: input.tags,
           bulletPoints: input.bulletPoints,
           comparisonTitle: input.comparisonTitle,
@@ -381,8 +490,86 @@ export async function updateArticle(id: number, input: ArticleInput): Promise<Ar
   return mapRow(row, labelBySlug);
 }
 
+/**
+ * Soft delete — moves the article to the trash. Nothing in the CMS hard
+ * deletes on a first click; purgeArticle() below is the irreversible one
+ * and is only reachable from /admin/trash.
+ */
 export async function deleteArticle(id: number): Promise<void> {
+  await prisma.article.update({ where: { id }, data: { deletedAt: new Date() } });
+}
+
+export async function restoreArticle(id: number): Promise<void> {
+  await prisma.article.update({ where: { id }, data: { deletedAt: null } });
+}
+
+/** Irreversible. Cascades comments, likes, saves, revisions, live entries. */
+export async function purgeArticle(id: number): Promise<void> {
   await prisma.article.delete({ where: { id } });
+}
+
+export async function emptyArticleTrash(): Promise<number> {
+  const { count } = await prisma.article.deleteMany({ where: { deletedAt: { not: null } } });
+  return count;
+}
+
+/**
+ * "Duplicate as draft" — copies everything editable into a new DRAFT with
+ * a fresh, non-colliding slug. Deliberately does NOT copy engagement or
+ * lifecycle state (views, likes, comments, featured/breaking flags,
+ * publish date): those belong to the original story, and a copy that
+ * arrived pre-featured with someone else's view count would be wrong.
+ */
+export async function duplicateArticle(id: number, authorId: string | null): Promise<Article> {
+  const source = await prisma.article.findUniqueOrThrow({ where: { id }, ...ARTICLE_WITH_CATEGORIES });
+
+  // Probe for a free slug rather than trusting one attempt — "-copy" may
+  // well already be taken if this is the second duplicate.
+  const baseSlug = `${source.slug}-copy`.slice(0, 90);
+  let slug = baseSlug;
+  for (let n = 2; await prisma.article.findUnique({ where: { slug }, select: { id: true } }); n += 1) {
+    slug = `${baseSlug}-${n}`;
+  }
+
+  const [row, labelBySlug] = await Promise.all([
+    prisma.$transaction(async (tx) => {
+      const created = await tx.article.create({
+        data: {
+          slug,
+          categorySlug: source.categorySlug,
+          headline: `${source.headline} (copy)`.slice(0, 200),
+          dek: source.dek,
+          author: source.author,
+          body: source.body,
+          coverImageUrl: source.coverImageUrl,
+          status: "DRAFT",
+          authorId,
+          socialNotes: source.socialNotes,
+          tags: source.tags,
+          bulletPoints: source.bulletPoints,
+          comparisonTitle: source.comparisonTitle,
+          comparisonBody: source.comparisonBody,
+          comparisonSourceLabel: source.comparisonSourceLabel,
+          comparisonSourceUrl: source.comparisonSourceUrl,
+          seoTitle: source.seoTitle,
+          seoDescription: source.seoDescription,
+          seoKeywords: source.seoKeywords,
+          ogImage: source.ogImage,
+          // canonicalUrl is intentionally dropped: inheriting the
+          // original's canonical would tell Google the copy IS the
+          // original, which is exactly wrong for a new draft.
+        },
+      });
+      await syncArticleCategories(
+        tx,
+        created.id,
+        source.categories.map((ac) => ac.category.slug)
+      );
+      return tx.article.findUniqueOrThrow({ where: { id: created.id }, ...ARTICLE_WITH_CATEGORIES });
+    }),
+    categorySlugToLabel(),
+  ]);
+  return mapRow(row, labelBySlug);
 }
 
 // Fire-and-forget from the article page (see articles/[slug]/page.tsx) —
@@ -398,6 +585,23 @@ export async function incrementArticleViewCount(id: number): Promise<void> {
 
 export async function toggleArticleFeatured(id: number, isFeatured: boolean): Promise<void> {
   await prisma.article.update({ where: { id }, data: { isFeatured } });
+}
+
+export async function toggleArticleBreaking(id: number, isBreaking: boolean): Promise<void> {
+  await prisma.article.update({ where: { id }, data: { isBreaking } });
+}
+
+/** Breaking-news ticker source for the public BreakingBar. */
+export async function getBreakingArticles(limit = 5): Promise<Article[]> {
+  const [rows, labelBySlug] = await Promise.all([
+    prisma.article.findMany({
+      where: { ...publishedWhere(), isBreaking: true },
+      orderBy: { publishedAt: "desc" },
+      take: limit,
+    }),
+    categorySlugToLabel(),
+  ]);
+  return rows.map((row) => mapRow(row, labelBySlug));
 }
 
 export async function updateArticleCategories(id: number, categorySlugs: string[]): Promise<void> {
@@ -422,7 +626,11 @@ export async function bulkUpdateArticleCategories(ids: number[], categorySlugs: 
   });
 }
 
-export async function bulkSetArticleStatus(ids: number[], status: "draft" | "published"): Promise<void> {
+export async function bulkSetArticleBreaking(ids: number[], isBreaking: boolean): Promise<void> {
+  await prisma.article.updateMany({ where: { id: { in: ids } }, data: { isBreaking } });
+}
+
+export async function bulkSetArticleStatus(ids: number[], status: ArticleStatusValue): Promise<void> {
   const prismaStatus = toPrismaStatus(status);
   if (prismaStatus === "PUBLISHED") {
     // Only stamp publishedAt for rows that don't already have one — a
@@ -440,6 +648,11 @@ export async function bulkSetArticleStatus(ids: number[], status: "draft" | "pub
   }
 }
 
+/** Soft delete — see deleteArticle(). Rows land in /admin/trash. */
 export async function bulkDeleteArticles(ids: number[]): Promise<void> {
-  await prisma.article.deleteMany({ where: { id: { in: ids } } });
+  await prisma.article.updateMany({ where: { id: { in: ids } }, data: { deletedAt: new Date() } });
+}
+
+export async function bulkRestoreArticles(ids: number[]): Promise<void> {
+  await prisma.article.updateMany({ where: { id: { in: ids } }, data: { deletedAt: null } });
 }

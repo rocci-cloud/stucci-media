@@ -3,6 +3,7 @@ import BreakingBar from "../components/BreakingBar";
 import SiteHeader from "../components/SiteHeader";
 import SiteFooter from "../components/SiteFooter";
 import { getDailyQuiz } from "../lib/daily-quiz";
+import { getSiteSettings } from "../lib/settings";
 import DailyBriefQuiz from "./DailyBriefQuiz";
 
 export const metadata: Metadata = {
@@ -18,7 +19,11 @@ export const metadata: Metadata = {
 export const revalidate = 0;
 
 export default async function DailyBriefPage() {
-  const questions = await getDailyQuiz();
+  const [settings, quiz] = await Promise.all([getSiteSettings(), getDailyQuiz()]);
+  // Switched off in Settings → Feature flags renders the same
+  // not-available state as having too few stories, rather than a 404 —
+  // the route still exists, there just isn't a brief today.
+  const questions = settings.featureDailyBrief ? quiz : [];
 
   return (
     <>

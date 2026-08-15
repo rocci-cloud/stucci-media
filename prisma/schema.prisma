@@ -10,8 +10,17 @@ datasource db {
 
 // --- Auth (Better Auth) ---
 
+// Newsroom roles. ADMIN has full access; EDITOR can write and publish
+// anyone's work but can't touch site-level settings/users; AUTHOR can only
+// create and edit their OWN articles and can't publish (they submit for
+// review instead). USER is a plain reader with no admin access at all —
+// it stays the default so public registration can't mint staff.
+// See app/lib/permissions.ts for the single source of truth on what each
+// role may actually do.
 enum Role {
   ADMIN
+  EDITOR
+  AUTHOR
   USER
 }
 
@@ -97,9 +106,16 @@ model Verification {
 
 // --- Content ---
 
+// The editorial pipeline. SCHEDULED is deliberately NOT a stored status —
+// it's derived (PUBLISHED + a future publishedAt), so an article going
+// live is a clock tick rather than a job that has to run and can fail.
+// IN_REVIEW is what an AUTHOR submits to; ARCHIVED retires a story from
+// the public site without deleting it.
 enum ArticleStatus {
   DRAFT
+  IN_REVIEW
   PUBLISHED
+  ARCHIVED
 
   @@map("article_status")
 }
@@ -194,6 +210,21 @@ model Article {
   isFeatured  Boolean       @default(false) @map("is_featured")
   viewCount   Int           @default(0) @map("view_count")
 
+  // Breaking-news flag — drives the site's BreakingBar ticker. Distinct
+  // from isFeatured (homepage curation) and isExclusive (original
+  // reporting): a story can be breaking without being either.
+  isBreaking Boolean @default(false) @map("is_breaking")
+
+  // Soft delete. Every admin and public read filters on `deletedAt: null`;
+  // a "deleted" article moves to /admin/trash where it can be restored or
+  // purged for real. Nothing in the CMS hard-deletes an article on the
+  // first click any more.
+  deletedAt DateTime? @map("deleted_at")
+
+  // Free-form notes for whoever posts this to social — not rendered
+  // anywhere public, just a scratchpad that travels with the article.
+  socialNotes String? @map("social_notes")
+
   seoTitle       String? @map("seo_title")
   seoDescription String? @map("seo_description")
   seoKeywords    String? @map("seo_keywords")
@@ -212,11 +243,43 @@ model Article {
   comments        Comment[]
   savedBy         SavedArticle[]
   liveBlogEntries LiveBlogEntry[]
+  revisions       ArticleRevision[]
 
   @@index([categorySlug], map: "articles_category_slug_idx")
   @@index([status, publishedAt(sort: Desc)], map: "articles_status_published_at_idx")
   @@index([isFeatured])
+  @@index([deletedAt])
   @@map("articles")
+}
+
+// A point-in-time snapshot of an article's editable content, written on
+// every save (see lib/revisions.ts). Deliberately a full snapshot rather
+// than a stored diff — diffs are computed on read for the history viewer,
+// which keeps writes trivial and means a corrupted/missing intermediate
+// revision can never make later ones unreadable. Author identity is
+// snapshotted by name/email for the same reason ActivityLog does it: the
+// history still reads correctly after an account is renamed or removed.
+model ArticleRevision {
+  id        String   @id @default(cuid())
+  articleId Int      @map("article_id")
+
+  headline String
+  dek      String
+  body     String
+
+  authorName  String  @map("author_name")
+  authorEmail String  @map("author_email")
+  // "Autosave" vs. an explicit save — the history viewer collapses runs of
+  // autosaves so a day of writing doesn't bury the meaningful checkpoints.
+  isAutosave  Boolean @default(false) @map("is_autosave")
+  note        String?
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  article Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@index([articleId, createdAt(sort: Desc)])
+  @@map("article_revisions")
 }
 
 model ArticleCategory {
@@ -430,8 +493,111 @@ model MediaAsset {
   uploadedByEmail String   @map("uploaded_by_email")
   createdAt       DateTime @default(now()) @map("created_at")
 
+  // Default alt text, reused whenever this asset is inserted into an
+  // article body so accessibility isn't re-litigated at every insertion.
+  alt String?
+
+  // Intrinsic dimensions + weight, captured client-side at upload time
+  // (the browser already decoded the image to compress it, so this is
+  // free) — powers the library's "next/image ready" sizing hints.
+  width     Int?
+  height    Int?
+  sizeBytes Int?    @map("size_bytes")
+  mimeType  String? @map("mime_type")
+
+  // Lightweight organization. A null folder means "unfiled" rather than a
+  // magic root row, so deleting a folder can simply null this out instead
+  // of cascading away the actual files.
+  folderId String?      @map("folder_id")
+  folder   MediaFolder? @relation(fields: [folderId], references: [id], onDelete: SetNull)
+
+  tags String[] @default([])
+
   @@index([createdAt(sort: Desc)])
+  @@index([folderId])
   @@map("media_assets")
+}
+
+model MediaFolder {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  createdAt DateTime @default(now()) @map("created_at")
+
+  assets MediaAsset[]
+
+  @@map("media_folders")
+}
+
+// --- Podcast ---
+
+model PodcastEpisode {
+  id       String @id @default(cuid())
+  slug     String @unique
+  title    String
+  subtitle String?
+
+  // Optional so a season-less show works: episodes are ordered by
+  // publishedAt, and the number is display metadata, not a sort key.
+  episodeNumber Int? @map("episode_number")
+  seasonNumber  Int? @map("season_number")
+
+  // Either an uploaded Blob object or an external host's URL — the field
+  // is just a URL, so migrating a back catalogue off another host later
+  // needs no schema change.
+  audioUrl        String? @map("audio_url")
+  durationSeconds Int?    @map("duration_seconds")
+
+  coverImageUrl String? @map("cover_image_url")
+  showNotes     String  @default("")
+  transcript    String  @default("")
+
+  guestName String? @map("guest_name")
+  guestBio  String? @map("guest_bio")
+
+  status      ArticleStatus @default(DRAFT)
+  publishedAt DateTime?     @map("published_at")
+  deletedAt   DateTime?     @map("deleted_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([status, publishedAt(sort: Desc)])
+  @@map("podcast_episodes")
+}
+
+// --- Settings ---
+
+// A flat key/value store rather than a one-row settings table: adding a
+// setting needs no migration, and a key that hasn't been set yet simply
+// falls back to its code-defined default (see lib/settings.ts), so the
+// app never depends on a row existing.
+model SiteSetting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("site_settings")
+}
+
+// --- Staff invites ---
+
+// An invite is a pre-authorized role assignment keyed by email. It does
+// NOT create the account — the invitee registers normally through the
+// public flow and the role is applied on first sign-up (see
+// lib/invites.ts), so Better Auth stays the only thing that ever hashes a
+// password.
+model Invite {
+  id        String    @id @default(cuid())
+  email     String    @unique
+  role      Role
+  token     String    @unique
+  invitedBy String    @map("invited_by")
+  expiresAt DateTime  @map("expires_at")
+  acceptedAt DateTime? @map("accepted_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  @@map("invites")
 }
 
 // --- Redirects ---

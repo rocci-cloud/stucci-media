@@ -3,7 +3,7 @@
 import { useMemo, useOptimistic, useState, useTransition } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
-import { Loader2, MoreHorizontal, Newspaper, Pencil, Plus, Search, Sparkles, Trash2, X } from "lucide-react";
+import { Copy, Loader2, MoreHorizontal, Newspaper, Pencil, Plus, Search, Sparkles, Trash2, X, Zap } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Badge } from "../components/ui/badge";
@@ -29,6 +29,9 @@ import CategoryQuickEdit from "./CategoryQuickEdit";
 import BulkCategoryPicker from "./BulkCategoryPicker";
 import {
   bulkDeleteAction,
+  bulkSetBreakingAction,
+  duplicateArticleAction,
+  toggleBreakingAction,
   bulkSetStatusAction,
   bulkSetFeaturedAction,
   bulkSetCategoriesAction,
@@ -37,11 +40,14 @@ import {
   updateArticleCategoriesAction,
 } from "./actions";
 import { computeSeoScore } from "../../lib/seo-score";
-import type { Article } from "../../lib/articles";
+import { ARTICLE_STATUS_LABELS, type Article, type ArticleStatusValue } from "../../lib/articles";
 import type { Category } from "../../lib/categories";
 
-type StatusFilter = "all" | "published" | "draft";
-type FeaturedFilter = "all" | "featured" | "not-featured";
+// "scheduled" isn't a stored status — it's published-with-a-future-date
+// (Article.isScheduled), and it's the one thing an editor most wants to
+// filter for, so the filter treats it as a first-class option.
+type StatusFilter = "all" | ArticleStatusValue | "scheduled";
+type FeaturedFilter = "all" | "featured" | "not-featured" | "breaking";
 
 type OptimisticAction =
   | { type: "delete"; id: number }
@@ -50,7 +56,9 @@ type OptimisticAction =
   | { type: "categories"; id: number; slugs: string[]; categories: Category[] }
   | { type: "bulkCategories"; ids: number[]; slugs: string[]; categories: Category[] }
   | { type: "bulkFeatured"; ids: number[]; value: boolean }
-  | { type: "status"; ids: number[]; status: "draft" | "published" };
+  | { type: "breaking"; id: number; value: boolean }
+  | { type: "bulkBreaking"; ids: number[]; value: boolean }
+  | { type: "status"; ids: number[]; status: ArticleStatusValue };
 
 function reducer(state: Article[], action: OptimisticAction): Article[] {
   switch (action.type) {
@@ -90,6 +98,10 @@ function reducer(state: Article[], action: OptimisticAction): Article[] {
       );
     case "bulkFeatured":
       return state.map((a) => (action.ids.includes(a.id) ? { ...a, isFeatured: action.value } : a));
+    case "breaking":
+      return state.map((a) => (a.id === action.id ? { ...a, isBreaking: action.value } : a));
+    case "bulkBreaking":
+      return state.map((a) => (action.ids.includes(a.id) ? { ...a, isBreaking: action.value } : a));
     case "status":
       return state.map((a) => (action.ids.includes(a.id) ? { ...a, status: action.status } : a));
   }
@@ -128,6 +140,15 @@ export default function ArticlesClient({
   const [status, setStatus] = useState<StatusFilter>("all");
   const [featured, setFeatured] = useState<FeaturedFilter>("all");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [authorFilter, setAuthorFilter] = useState<string>("all");
+
+  // Built from the bylines actually present rather than the user table:
+  // the byline is free text (imported articles have no user account
+  // behind them), so this is what the list can genuinely filter on.
+  const authors = useMemo(
+    () => Array.from(new Set(initialArticles.map((a) => a.author))).sort(),
+    [initialArticles]
+  );
 
   const [deleteTarget, setDeleteTarget] = useState<Article | null>(null);
   const [rowPendingId, setRowPendingId] = useState<number | null>(null);
@@ -139,14 +160,24 @@ export default function ArticlesClient({
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return optimisticArticles.filter((a) => {
-      if (status !== "all" && a.status !== status) return false;
+      if (status === "scheduled" && !a.isScheduled) return false;
+      // A scheduled article is still status "published"; excluding it from
+      // the Published filter would be wrong (it IS published, just not
+      // live yet), so only the explicit Scheduled filter narrows further.
+      if (status !== "all" && status !== "scheduled" && a.status !== status) return false;
       if (featured === "featured" && !a.isFeatured) return false;
       if (featured === "not-featured" && a.isFeatured) return false;
+      if (featured === "breaking" && !a.isBreaking) return false;
       if (categoryFilter !== "all" && !a.categorySlugs.includes(categoryFilter)) return false;
+      if (authorFilter !== "all" && a.author !== authorFilter) return false;
       if (!q) return true;
-      return a.headline.toLowerCase().includes(q) || a.categories.some((c) => c.toLowerCase().includes(q));
+      return (
+        a.headline.toLowerCase().includes(q) ||
+        a.author.toLowerCase().includes(q) ||
+        a.categories.some((c) => c.toLowerCase().includes(q))
+      );
     });
-  }, [optimisticArticles, query, status, featured, categoryFilter]);
+  }, [optimisticArticles, query, status, featured, categoryFilter, authorFilter]);
 
   const visibleIds = filtered.map((a) => a.id);
   const allVisibleSelected = visibleIds.length > 0 && visibleIds.every((id) => selected.has(id));
@@ -180,6 +211,48 @@ export default function ArticlesClient({
         toast.error(result.error);
       }
     });
+  }
+
+  function handleToggleBreaking(article: Article) {
+    const next = !article.isBreaking;
+    setRowPendingId(article.id);
+    startTransition(async () => {
+      applyOptimistic({ type: "breaking", id: article.id, value: next });
+      const result = await toggleBreakingAction(article.id, next);
+      setRowPendingId(null);
+      if (result.success) {
+        setArticles((prev) => prev.map((a) => (a.id === article.id ? { ...a, isBreaking: next } : a)));
+      } else {
+        toast.error(result.error);
+      }
+    });
+  }
+
+  function handleBulkBreaking(value: boolean) {
+    const ids = [...selected];
+    startTransition(async () => {
+      applyOptimistic({ type: "bulkBreaking", ids, value });
+      const result = await bulkSetBreakingAction(ids, value);
+      if (result.success) {
+        setArticles((prev) => prev.map((a) => (ids.includes(a.id) ? { ...a, isBreaking: value } : a)));
+        toast.success(`${ids.length} article${ids.length === 1 ? "" : "s"} ${value ? "marked" : "cleared"} breaking.`);
+        setSelected(new Set());
+      } else {
+        toast.error(result.error);
+      }
+    });
+  }
+
+  async function handleDuplicate(article: Article) {
+    setRowPendingId(article.id);
+    const result = await duplicateArticleAction(article.id);
+    setRowPendingId(null);
+    if (!result.success) {
+      toast.error(result.error);
+      return;
+    }
+    toast.success("Duplicated as a new draft.");
+    window.location.href = `/admin/articles/${result.id}/edit`;
   }
 
   function handleCategoriesChange(article: Article, slugs: string[]) {
@@ -221,21 +294,23 @@ export default function ArticlesClient({
       setRowPendingId(null);
       if (result.success) {
         setArticles((prev) => prev.filter((a) => a.id !== target.id));
-        toast.success(`"${target.headline}" deleted.`);
+        toast.success(`"${target.headline}" moved to trash.`);
       } else {
         toast.error(result.error);
       }
     });
   }
 
-  function handleBulkStatus(newStatus: "draft" | "published") {
+  function handleBulkStatus(newStatus: ArticleStatusValue) {
     const ids = [...selected];
     startTransition(async () => {
       applyOptimistic({ type: "status", ids, status: newStatus });
       const result = await bulkSetStatusAction(ids, newStatus);
       if (result.success) {
         setArticles((prev) => prev.map((a) => (ids.includes(a.id) ? { ...a, status: newStatus } : a)));
-        toast.success(`${ids.length} article${ids.length === 1 ? "" : "s"} marked ${newStatus}.`);
+        toast.success(
+          `${ids.length} article${ids.length === 1 ? "" : "s"} moved to ${ARTICLE_STATUS_LABELS[newStatus]}.`
+        );
         setSelected(new Set());
       } else {
         toast.error(result.error);
@@ -293,7 +368,7 @@ export default function ArticlesClient({
       const result = await bulkDeleteAction(ids);
       if (result.success) {
         setArticles((prev) => prev.filter((a) => !ids.includes(a.id)));
-        toast.success(`${ids.length} article${ids.length === 1 ? "" : "s"} deleted.`);
+        toast.success(`${ids.length} article${ids.length === 1 ? "" : "s"} moved to trash.`);
         setSelected(new Set());
       } else {
         toast.error(result.error);
@@ -325,7 +400,10 @@ export default function ArticlesClient({
             options={[
               { value: "all", label: "All" },
               { value: "published", label: "Published" },
+              { value: "scheduled", label: "Scheduled" },
+              { value: "in_review", label: "In Review" },
               { value: "draft", label: "Draft" },
+              { value: "archived", label: "Archived" },
             ]}
           />
           <FilterPills
@@ -334,6 +412,7 @@ export default function ArticlesClient({
             options={[
               { value: "all", label: "All" },
               { value: "featured", label: "Featured" },
+              { value: "breaking", label: "Breaking" },
               { value: "not-featured", label: "Not featured" },
             ]}
           />
@@ -350,6 +429,22 @@ export default function ArticlesClient({
               </option>
             ))}
           </select>
+
+          {authors.length > 1 && (
+            <select
+              value={authorFilter}
+              onChange={(e) => setAuthorFilter(e.target.value)}
+              className="h-8 rounded-md border border-[var(--admin-border)] bg-[var(--admin-surface)] px-2 text-[13px] text-[var(--admin-fg)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--admin-ring)]"
+              aria-label="Filter by author"
+            >
+              <option value="all">All authors</option>
+              {authors.map((name) => (
+                <option key={name} value={name}>
+                  {name}
+                </option>
+              ))}
+            </select>
+          )}
         </div>
 
         <Button asChild size="sm">
@@ -372,6 +467,12 @@ export default function ArticlesClient({
             <Button size="sm" variant="outline" onClick={() => handleBulkStatus("draft")} disabled={isPending}>
               Unpublish
             </Button>
+            <Button size="sm" variant="outline" onClick={() => handleBulkStatus("in_review")} disabled={isPending}>
+              In Review
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => handleBulkStatus("archived")} disabled={isPending}>
+              Archive
+            </Button>
             <BulkCategoryPicker categories={categories} disabled={isPending} onApply={handleBulkCategories} />
             <Button size="sm" variant="outline" onClick={() => handleBulkFeatured(true)} disabled={isPending}>
               <Sparkles className="h-4 w-4" />
@@ -379,6 +480,13 @@ export default function ArticlesClient({
             </Button>
             <Button size="sm" variant="outline" onClick={() => handleBulkFeatured(false)} disabled={isPending}>
               Unfeature
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => handleBulkBreaking(true)} disabled={isPending}>
+              <Zap className="h-4 w-4" />
+              Breaking
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => handleBulkBreaking(false)} disabled={isPending}>
+              Clear breaking
             </Button>
             <Button
               size="sm"
@@ -388,7 +496,7 @@ export default function ArticlesClient({
               className="text-[var(--admin-danger)] hover:bg-[var(--admin-danger-bg)]"
             >
               <Trash2 className="h-4 w-4" />
-              Delete
+              Trash
             </Button>
             <Button size="sm" variant="ghost" onClick={() => setSelected(new Set())} aria-label="Clear selection">
               <X className="h-4 w-4" />
@@ -418,6 +526,7 @@ export default function ArticlesClient({
               setStatus("all");
               setFeatured("all");
               setCategoryFilter("all");
+              setAuthorFilter("all");
             }}
           >
             Clear filters
@@ -438,6 +547,7 @@ export default function ArticlesClient({
                   />
                 </TableHead>
                 <TableHead className="w-14 text-center">Featured</TableHead>
+                <TableHead className="hidden w-14 text-center sm:table-cell">Breaking</TableHead>
                 <TableHead>Title</TableHead>
                 <TableHead className="hidden lg:table-cell">Categories</TableHead>
                 <TableHead>Status</TableHead>
@@ -474,6 +584,16 @@ export default function ArticlesClient({
                         )}
                       </div>
                     </TableCell>
+                    <TableCell className="hidden text-center sm:table-cell">
+                      <div className="flex items-center justify-center">
+                        <Switch
+                          checked={article.isBreaking}
+                          disabled={rowBusy}
+                          onCheckedChange={() => handleToggleBreaking(article)}
+                          aria-label={`Toggle breaking for ${article.headline}`}
+                        />
+                      </div>
+                    </TableCell>
                     <TableCell className="max-w-[140px] sm:max-w-[280px]">
                       <Link href={`/admin/articles/${article.id}/edit`} className="flex items-center gap-1.5 truncate font-medium hover:underline">
                         {article.isFeatured && <Sparkles className="h-3.5 w-3.5 shrink-0 text-[var(--admin-primary)]" />}
@@ -495,8 +615,16 @@ export default function ArticlesClient({
                       {article.isScheduled ? (
                         <Badge variant="default">Scheduled</Badge>
                       ) : (
-                        <Badge variant={article.status === "published" ? "success" : "outline"}>
-                          {article.status}
+                        <Badge
+                          variant={
+                            article.status === "published"
+                              ? "success"
+                              : article.status === "in_review"
+                                ? "default"
+                                : "outline"
+                          }
+                        >
+                          {ARTICLE_STATUS_LABELS[article.status]}
                         </Badge>
                       )}
                     </TableCell>
@@ -521,9 +649,13 @@ export default function ArticlesClient({
                               Edit
                             </Link>
                           </DropdownMenuItem>
+                          <DropdownMenuItem onSelect={() => handleDuplicate(article)}>
+                            <Copy className="h-4 w-4" />
+                            Duplicate as draft
+                          </DropdownMenuItem>
                           <DropdownMenuItem variant="destructive" onSelect={() => setDeleteTarget(article)}>
                             <Trash2 className="h-4 w-4" />
-                            Delete
+                            Move to trash
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -539,8 +671,10 @@ export default function ArticlesClient({
       <AlertDialog open={Boolean(deleteTarget)} onOpenChange={(open) => !open && setDeleteTarget(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete &ldquo;{deleteTarget?.headline}&rdquo;?</AlertDialogTitle>
-            <AlertDialogDescription>This can&apos;t be undone.</AlertDialogDescription>
+            <AlertDialogTitle>Move &ldquo;{deleteTarget?.headline}&rdquo; to trash?</AlertDialogTitle>
+            <AlertDialogDescription>
+              It comes off the site immediately and can be restored from Trash.
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
@@ -549,7 +683,7 @@ export default function ArticlesClient({
               disabled={isPending}
               className="bg-[var(--admin-danger)] text-white hover:bg-red-700"
             >
-              Delete
+              Move to trash
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -558,8 +692,12 @@ export default function ArticlesClient({
       <AlertDialog open={bulkDeleteOpen} onOpenChange={setBulkDeleteOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete {selectedCount} article{selectedCount === 1 ? "" : "s"}?</AlertDialogTitle>
-            <AlertDialogDescription>This can&apos;t be undone.</AlertDialogDescription>
+            <AlertDialogTitle>
+              Move {selectedCount} article{selectedCount === 1 ? "" : "s"} to trash?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              They come off the site immediately and can be restored from Trash.
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
@@ -568,7 +706,7 @@ export default function ArticlesClient({
               disabled={isPending}
               className="bg-[var(--admin-danger)] text-white hover:bg-red-700"
             >
-              Delete
+              Move to trash
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
