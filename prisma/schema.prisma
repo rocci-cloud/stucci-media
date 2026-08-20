@@ -705,6 +705,17 @@ model PodcastFeedEpisode {
   @@map("podcast_feed_episodes")
 }
 
+// RETIRED — no code reads or writes this any more.
+//
+// The hand-entry episode manager at /admin/podcast was removed once shows
+// started coming from their RSS feed; episodes here never had a public page,
+// so nothing on the site was lost. The model and its table are kept only so
+// that whatever rows exist aren't destroyed by a schema change nobody could
+// review — dropping a table is not reversible and the contents of the
+// production one can't be inspected from here.
+//
+// To see what's in it:   SELECT count(*) FROM podcast_episodes;
+// To retire it for good: DROP TABLE podcast_episodes;  (then delete this model)
 model PodcastEpisode {
   id       String @id @default(cuid())
   slug     String @unique

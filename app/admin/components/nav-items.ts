@@ -30,8 +30,7 @@ export type AdminNavItem = {
 export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
   { label: "Dashboard", href: "/admin", icon: LayoutDashboard, group: "Content" },
   { label: "Articles", href: "/admin/articles", icon: Newspaper, group: "Content" },
-  { label: "Podcast", href: "/admin/podcast", icon: Mic, group: "Content" },
-  { label: "Podcast Feeds", href: "/admin/podcast-feeds", icon: Rss, visible: canManageSettings, group: "Content" },
+  { label: "Podcasts", href: "/admin/podcast-feeds", icon: Rss, visible: canManageSettings, group: "Content" },
   { label: "Comments", href: "/admin/comments", icon: MessageSquare, visible: canModerateComments, group: "Content" },
 
   { label: "Media", href: "/admin/media", icon: Images, group: "Library" },

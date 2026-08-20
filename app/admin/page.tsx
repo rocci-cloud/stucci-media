@@ -32,7 +32,7 @@ export const dynamic = "force-dynamic";
 
 const QUICK_ACTIONS = [
   { label: "New article", href: "/admin/articles/new", icon: Plus },
-  { label: "New episode", href: "/admin/podcast/new", icon: Mic },
+  { label: "Add podcast", href: "/admin/podcast-feeds", icon: Mic },
   { label: "Upload media", href: "/admin/media", icon: Upload },
   { label: "Schedule a post", href: "/admin/articles/new", icon: Clock },
 ];
