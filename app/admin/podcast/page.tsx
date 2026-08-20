@@ -1,11 +1,9 @@
-import { getAllEpisodesAdmin } from "../../lib/podcast";
-import { requireStaffSession } from "../../lib/require-admin";
-import { canPublish } from "../../lib/permissions";
-import PodcastClient from "./PodcastClient";
+import { redirect } from "next/navigation";
 
-export const dynamic = "force-dynamic";
-
-export default async function PodcastPage() {
-  const [episodes, session] = await Promise.all([getAllEpisodesAdmin(), requireStaffSession()]);
-  return <PodcastClient episodes={episodes} canDelete={canPublish(session?.user.role)} />;
+// The hand-entry episode manager that used to live here is gone — episodes
+// now come from a show's RSS feed. Anything still pointing at the old URL
+// (a bookmark, a link in an old email) lands on the replacement rather than
+// a 404.
+export default function LegacyPodcastRedirect() {
+  redirect("/admin/podcast-feeds");
 }

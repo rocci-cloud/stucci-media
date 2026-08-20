@@ -7,10 +7,8 @@ import { requireStaffSession } from "../../../lib/require-admin";
 // much larger ceiling — an hour of spoken-word MP3 is comfortably over
 // any image limit and there's nothing to compress it down to.
 const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/avif", "image/gif"];
-const AUDIO_TYPES = ["audio/mpeg", "audio/mp4", "audio/m4a", "audio/x-m4a", "audio/wav", "audio/ogg", "audio/webm"];
 
 const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
-const MAX_AUDIO_BYTES = 300 * 1024 * 1024;
 
 export async function POST(request: Request): Promise<NextResponse> {
   const body = (await request.json()) as HandleUploadBody;
@@ -19,7 +17,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     const jsonResponse = await handleUpload({
       body,
       request,
-      onBeforeGenerateToken: async (pathname, clientPayload) => {
+      onBeforeGenerateToken: async () => {
         // Any staff role may upload — an author who can't add an image to
         // their own draft can't do their job. Deleting media is still
         // admin-only (see admin/media/actions.ts).
@@ -28,14 +26,12 @@ export async function POST(request: Request): Promise<NextResponse> {
           throw new Error("Unauthorized");
         }
 
-        // The client tells us which kind of upload this is; the content
-        // type is still validated against the matching allowlist below,
-        // so a lying payload only ever narrows what it can send, never
-        // widens it.
-        const isAudio = clientPayload === "audio";
+        // Images only. Audio uploads existed for the hand-entry episode
+        // editor, which is gone — a feed's episodes are hosted by whoever
+        // publishes the show, so nothing here uploads audio any more.
         return {
-          allowedContentTypes: isAudio ? AUDIO_TYPES : IMAGE_TYPES,
-          maximumSizeInBytes: isAudio ? MAX_AUDIO_BYTES : MAX_IMAGE_BYTES,
+          allowedContentTypes: IMAGE_TYPES,
+          maximumSizeInBytes: MAX_IMAGE_BYTES,
           addRandomSuffix: true,
         };
       },

@@ -115,37 +115,6 @@ const articles = [
   },
 ];
 
-const episodes = [
-  {
-    slug: "sample-episode-open-records-fight",
-    title: "The Open Records Fight Nobody Covered",
-    subtitle: "What it actually takes to pry a document loose from a county that doesn't want to hand it over.",
-    episodeNumber: 142,
-    seasonNumber: 4,
-    durationSeconds: 3130,
-    status: "PUBLISHED",
-    publishedAt: daysFromNow(-5),
-    guestName: "Dana Whitfield",
-    guestBio: "Open-government attorney who has litigated public records cases in three states.",
-    showNotes: `<p>A working walkthrough of the records process: what to ask for, which exemptions get cited most, and what to do when the denial arrives.</p>
-<ul><li>Writing a request that can't be narrowed away</li><li>The exemptions that get over-cited</li><li>When to appeal and when to refile</li></ul>`,
-    transcript: "<p>Full transcript pending.</p>",
-  },
-  {
-    slug: "sample-episode-veterans-roundtable",
-    title: "Veterans Roundtable: The Claims Process",
-    subtitle: "Three veterans on what the paperwork actually looks like from the inside.",
-    episodeNumber: 143,
-    seasonNumber: 4,
-    durationSeconds: null,
-    status: "DRAFT",
-    publishedAt: null,
-    guestName: null,
-    guestBio: null,
-    showNotes: "<p>Recorded. Needs an edit pass and a duration before this goes out.</p>",
-    transcript: "",
-  },
-];
 
 async function seedArticles() {
   let count = 0;
@@ -204,48 +173,6 @@ async function seedArticles() {
   return count;
 }
 
-async function seedEpisodes() {
-  let count = 0;
-  for (const episode of episodes) {
-    await sql.query(
-      `INSERT INTO podcast_episodes
-         (id, slug, title, subtitle, episode_number, season_number, duration_seconds,
-          show_notes, transcript, guest_name, guest_bio, status, published_at, updated_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12::article_status, $13, now())
-       ON CONFLICT (slug) DO UPDATE SET
-         title = EXCLUDED.title,
-         subtitle = EXCLUDED.subtitle,
-         episode_number = EXCLUDED.episode_number,
-         season_number = EXCLUDED.season_number,
-         duration_seconds = EXCLUDED.duration_seconds,
-         show_notes = EXCLUDED.show_notes,
-         transcript = EXCLUDED.transcript,
-         guest_name = EXCLUDED.guest_name,
-         guest_bio = EXCLUDED.guest_bio,
-         status = EXCLUDED.status,
-         published_at = EXCLUDED.published_at,
-         deleted_at = NULL,
-         updated_at = now()`,
-      [
-        randomUUID(),
-        episode.slug,
-        episode.title,
-        episode.subtitle,
-        episode.episodeNumber,
-        episode.seasonNumber,
-        episode.durationSeconds,
-        episode.showNotes,
-        episode.transcript,
-        episode.guestName,
-        episode.guestBio,
-        episode.status,
-        episode.publishedAt,
-      ]
-    );
-    count += 1;
-  }
-  return count;
-}
 
 async function seedMediaFolders() {
   const folders = [
@@ -263,7 +190,6 @@ async function seedMediaFolders() {
 }
 
 const articleCount = await seedArticles();
-const episodeCount = await seedEpisodes();
 const folderCount = await seedMediaFolders();
 
 console.log(`Seeded ${articleCount} article(s), ${episodeCount} podcast episode(s), ${folderCount} media folder(s).`);

@@ -152,9 +152,9 @@ export default function CommandPalette() {
                 N
               </kbd>
             </Command.Item>
-            <Command.Item value="new-episode" onSelect={() => go("/admin/podcast/new")} className={ITEM_CLASS}>
+            <Command.Item value="add-podcast" onSelect={() => go("/admin/podcast-feeds")} className={ITEM_CLASS}>
               <PlusCircle className="h-4 w-4 shrink-0 text-[var(--admin-fg-muted)]" />
-              New podcast episode
+              Add a podcast
             </Command.Item>
             <Command.Item value="upload-media" onSelect={() => go("/admin/media")} className={ITEM_CLASS}>
               <Upload className="h-4 w-4 shrink-0 text-[var(--admin-fg-muted)]" />
