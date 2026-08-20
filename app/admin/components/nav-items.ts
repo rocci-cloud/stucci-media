@@ -11,6 +11,7 @@ import {
   Newspaper,
   Settings,
   Trash2,
+  UserSquare2,
   Users,
 } from "lucide-react";
 import { canManageSettings, canManageUsers, canModerateComments } from "../../lib/permissions";
@@ -32,6 +33,7 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
 
   { label: "Media", href: "/admin/media", icon: Images, group: "Library" },
   { label: "Categories", href: "/admin/categories", icon: FolderTree, visible: canManageSettings, group: "Library" },
+  { label: "Authors", href: "/admin/authors", icon: UserSquare2, visible: canManageSettings, group: "Library" },
   { label: "Trash", href: "/admin/trash", icon: Trash2, group: "Library" },
 
   { label: "Banners", href: "/admin/banners", icon: Image, visible: canManageSettings, group: "Site" },

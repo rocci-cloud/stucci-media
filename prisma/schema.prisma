@@ -128,6 +128,33 @@ enum NavPlacement {
   @@map("nav_placement")
 }
 
+// An author profile. Deliberately keyed off the article's existing plain
+// `author` text column (matched on a slug of the name) rather than replacing
+// it with a foreign key: every one of the imported articles already carries a
+// byline string, and a hard relation would have meant a migration that either
+// dropped those bylines or invented author rows for them. This way an author
+// page exists for every byline immediately, and filling in a profile enriches
+// it rather than being a precondition for it.
+model Author {
+  id        String  @id @default(cuid())
+  // Slug of the byline as it appears on articles, e.g. "rocci-stucci".
+  slug      String  @unique
+  name      String
+  title     String?
+  bio       String?
+  avatarUrl String? @map("avatar_url")
+  // Only ever profiles that genuinely belong to this author — an empty
+  // field renders nothing rather than a dead link.
+  websiteUrl  String? @map("website_url")
+  twitterUrl  String? @map("twitter_url")
+  facebookUrl String? @map("facebook_url")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("authors")
+}
+
 model Category {
   id          String   @id @default(cuid())
   name        String
