@@ -29,7 +29,7 @@ export default async function DailyBriefPage() {
     <>
       <BreakingBar />
       <SiteHeader />
-      <main className="mx-auto max-w-[640px] px-5 pt-10 sm:pt-14 pb-20">
+      <main id="main-content" className="mx-auto max-w-[640px] px-5 pt-10 sm:pt-14 pb-20">
         <div className="mb-8 text-center">
           <span className="mb-2 inline-block font-sans text-[11px] font-bold uppercase tracking-[0.1em] text-[var(--color-red)]">
             New Every Day

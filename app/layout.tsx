@@ -1,9 +1,19 @@
 import type { Metadata } from "next";
-import "@fontsource/oswald/400.css";
-import "@fontsource/oswald/500.css";
-import "@fontsource/oswald/600.css";
-import "@fontsource/oswald/700.css";
+// Variable faces, not four fixed weights each. Oswald was previously
+// imported at 400/500/600/700 while essentially every headline on the site
+// asks for 700, so three of those files were dead payload — and dropping
+// them risked browser-synthesised weights wherever prose set its own. One
+// variable file per family covers the whole range instead, and Archivo now
+// gives the UI chrome a real typeface rather than the visitor's OS default.
+import "@fontsource-variable/oswald";
+import "@fontsource-variable/archivo";
 import "./globals.css";
+// Traffic, referrers and Core Web Vitals. Neither sets a cookie. Both are
+// mounted in production only: in development they fetch a debug script from
+// Vercel's CDN, which just adds two failed requests and console errors to
+// every local page load.
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 // www, not the apex domain — see the PRODUCTION_URL comment in
 // app/lib/auth.ts for why: Vercel's own domain config redirects the
@@ -23,6 +33,11 @@ export const metadata: Metadata = {
   description,
   alternates: {
     canonical: "/",
+    // Feed autodiscovery — this is what a reader, aggregator or browser
+    // extension looks for to offer "subscribe" on any page of the site.
+    types: {
+      "application/rss+xml": [{ url: "/feed.xml", title: "Stucci Media" }],
+    },
   },
   openGraph: {
     title,
@@ -74,11 +89,24 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}>
+        {/* First focusable element on every page. Without it a keyboard or
+            screen-reader user tabs through the breaking ticker, the wordmark,
+            every nav item, the More dropdown, search, sign-in, register and
+            subscribe before reaching the first headline — on every page. */}
+        <a href="#main-content" className="skip-link">
+          Skip to content
+        </a>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
         />
         {children}
+        {process.env.NODE_ENV === "production" && (
+          <>
+            <Analytics />
+            <SpeedInsights />
+          </>
+        )}
       </body>
     </html>
   );

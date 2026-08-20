@@ -40,7 +40,7 @@ export default async function ArticlePreviewPage({ params }: Props) {
       </div>
       <BreakingBar />
       <SiteHeader />
-      <main>
+      <main id="main-content">
         <section className="relative border-b-4 border-[var(--color-navy)]">
           <div className="relative w-full h-[52svh] min-h-[380px] max-h-[520px] sm:h-[56vh] sm:max-h-[560px] overflow-hidden">
             {article.coverImageUrl ? (

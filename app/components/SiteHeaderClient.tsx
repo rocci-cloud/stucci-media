@@ -45,7 +45,7 @@ export default function SiteHeaderClient({
         <div className="mx-auto max-w-[1280px] px-5 py-1.5 sm:py-2.5 flex items-center justify-between">
           <Link
             href="/"
-            className="font-headline text-[20px] sm:text-[30px] font-bold uppercase tracking-[-0.02em] text-[var(--color-navy)] leading-none"
+            className="inline-flex min-h-11 items-center font-headline text-[20px] sm:text-[30px] font-bold uppercase tracking-[-0.02em] text-[var(--color-navy)] leading-none"
           >
             Stucci<span className="text-[var(--color-red)]">Media</span>
           </Link>

@@ -77,7 +77,7 @@ export default function SubscribePage() {
     <>
       <BreakingBar />
       <SiteHeader />
-      <main>
+      <main id="main-content">
         {/* --- Cinematic, height-driven hero (same technique as the homepage/
             article hero: a tall band + layered vignette, not just padding) --- */}
         <section className="relative overflow-hidden border-b-4 border-[var(--color-red)] bg-gradient-to-b from-[var(--color-navy)] to-[var(--color-navy-dark)]">

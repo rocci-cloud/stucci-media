@@ -39,7 +39,7 @@ export default async function HomePage() {
     return (
       <>
         <SiteHeader />
-        <main className="mx-auto max-w-[1280px] px-5 py-20 text-center font-sans text-[var(--color-gray)]">
+        <main id="main-content" className="mx-auto max-w-[1280px] px-5 py-20 text-center font-sans text-[var(--color-gray)]">
           No published stories yet.
         </main>
         <SiteFooter />
@@ -80,7 +80,7 @@ export default async function HomePage() {
     <>
       <BreakingBar />
       <SiteHeader />
-      <main>
+      <main id="main-content">
         <FeaturedSection featured={featuredArticles.slice(0, 4)} fallback={articles.slice(0, 4)} />
 
         <div className="mx-auto max-w-[1280px] px-5">

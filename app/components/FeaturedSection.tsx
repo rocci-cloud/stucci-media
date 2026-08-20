@@ -71,7 +71,7 @@ export default function FeaturedSection({
           <div className="mx-auto max-w-[1280px] [animation:heroTextReveal_0.9s_cubic-bezier(0.16,1,0.3,1)_0.25s_both]">
             <div className="flex flex-wrap items-center gap-2 mb-3">
               <Badge variant="red">{lead.category}</Badge>
-              {!isFallback && <Badge variant="navy">Featured</Badge>}
+              {!isFallback && <Badge variant="onDark">Featured</Badge>}
             </div>
             <h1 className="font-headline text-white text-[36px] sm:text-[52px] lg:text-[66px] font-bold uppercase leading-[0.96] tracking-[-0.02em] mb-3 max-w-[16ch] sm:max-w-[20ch] group-hover:underline decoration-2 underline-offset-4">
               {lead.headline}

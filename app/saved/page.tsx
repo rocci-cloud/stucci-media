@@ -24,7 +24,7 @@ export default async function SavedArticlesPage() {
     <>
       <BreakingBar />
       <SiteHeader />
-      <main className="mx-auto max-w-[1280px] px-5 pt-8 sm:pt-10 pb-18">
+      <main id="main-content" className="mx-auto max-w-[1280px] px-5 pt-8 sm:pt-10 pb-18">
         <div className="mb-6 sm:mb-8 border-b-4 border-[var(--color-navy)] pb-4">
           <h1 className="font-headline text-[32px] sm:text-[42px] font-bold uppercase leading-[0.98] tracking-[-0.015em]">
             Saved Articles

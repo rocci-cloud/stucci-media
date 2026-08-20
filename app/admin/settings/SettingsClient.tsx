@@ -13,9 +13,17 @@ import { authClient, useSession } from "../../lib/auth-client";
 import { ROLE_LABELS, type AppRole } from "../../lib/permissions";
 
 export default function SettingsClient() {
-  const { data: session, isPending: sessionLoading } = useSession();
+  const { data: session, isPending } = useSession();
   const [name, setName] = useState("");
   const [pending, setPending] = useState(false);
+  // useSession() can resolve from its client-side cache on the very first
+  // client render, while the server always renders the pending state — which
+  // makes the two disagree and throws away the hydrated tree. Holding the
+  // pending state until after mount keeps the first client render identical
+  // to the server's.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  const sessionLoading = !mounted || isPending;
 
   useEffect(() => {
     if (session?.user.name) setName(session.user.name);
