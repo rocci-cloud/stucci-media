@@ -30,6 +30,7 @@ import { recordVisit } from "../../lib/streaks";
 import { recordCategoryInterest } from "../../lib/interests";
 import { auth } from "../../lib/auth";
 import { getSiteSettings } from "../../lib/settings";
+import { slugify } from "../../lib/slugify";
 import { splitHtmlAtMidpoint } from "../../lib/split-html-midpoint";
 
 function getInitials(name: string) {
@@ -176,7 +177,11 @@ export default async function ArticlePage({ params }: Props) {
     // date — dateModified still reflects the real last-edit timestamp,
     // which always exists.
     dateModified: article.updatedAt,
-    author: { "@type": "Person", name: article.author },
+    author: {
+      "@type": "Person",
+      name: article.author,
+      url: `${siteUrl}/author/${slugify(article.author)}`,
+    },
     publisher: {
       "@type": "Organization",
       name: "Stucci Media",
@@ -213,7 +218,7 @@ export default async function ArticlePage({ params }: Props) {
       />
       <BreakingBar />
       <SiteHeader />
-      <main>
+      <main id="main-content">
         {/* --- Cinematic article hero: same visual language as the
             homepage's FeaturedSection (vignette + scrim, badge/h1/dek/
             byline stack), sized down since this is one story, not the
@@ -250,7 +255,7 @@ export default async function ArticlePage({ params }: Props) {
               <div className="mx-auto max-w-[820px] [animation:heroTextReveal_0.9s_cubic-bezier(0.16,1,0.3,1)_0.15s_both]">
                 <div className="flex flex-wrap items-center gap-2 mb-3">
                   <Badge variant="red">{article.category}</Badge>
-                  {article.isExclusive && <Badge variant="navy">Exclusive</Badge>}
+                  {article.isExclusive && <Badge variant="onDark">Exclusive</Badge>}
                   {article.isLiveBlog && (
                     <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--color-red)] px-2.5 py-1 font-sans text-[10.5px] font-bold uppercase tracking-[0.05em] text-white">
                       <span className="relative flex h-2 w-2">
@@ -273,7 +278,12 @@ export default async function ArticlePage({ params }: Props) {
                   <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--color-red)] text-[11px] font-bold text-white">
                     {getInitials(article.author)}
                   </span>
-                  <span className="font-bold text-white">{article.author}</span>
+                  <Link
+                    href={`/author/${slugify(article.author)}`}
+                    className="inline-flex min-h-11 items-center font-bold text-white hover:underline"
+                  >
+                    {article.author}
+                  </Link>
                   <span className="opacity-50">·</span>
                   <span className="uppercase tracking-[0.04em]">{article.date}</span>
                   <span className="opacity-50">·</span>
@@ -364,8 +374,8 @@ export default async function ArticlePage({ params }: Props) {
                 {article.tags.map((tag) => (
                   <Link
                     key={tag}
-                    href={`/search?q=${encodeURIComponent(tag)}`}
-                    className="font-sans text-[12px] font-bold text-[var(--color-gray)] bg-[var(--color-bg-off)] hover:bg-[var(--color-hairline)] rounded-full px-3 py-1 transition-colors"
+                    href={`/tag/${encodeURIComponent(tag.toLowerCase())}`}
+                    className="inline-flex min-h-11 items-center font-sans text-[12px] font-bold text-[var(--color-gray)] bg-[var(--color-bg-off)] hover:bg-[var(--color-hairline)] rounded-full px-3.5 transition-colors"
                   >
                     #{tag}
                   </Link>

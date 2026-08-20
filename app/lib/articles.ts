@@ -1,4 +1,5 @@
 import { prisma } from "./prisma";
+import { slugify } from "./slugify";
 import { getCategories } from "./categories";
 import type { Article as PrismaArticle, ArticleStatus, Prisma } from "@prisma/client";
 // Re-exported below for existing server-side importers — the type and its
@@ -200,6 +201,151 @@ export async function getPublishedArticles(): Promise<Article[]> {
     categorySlugToLabel(),
   ]);
   return rows.map((row) => mapRow(row, labelBySlug));
+}
+
+/**
+ * Every tag in use on a published article, with how many articles carry it.
+ *
+ * Tags are a plain text[] column rather than a join table (they're
+ * editorial labels, not taxonomy — categories own that), so this unnests
+ * in SQL rather than pulling every article into memory to count.
+ */
+export async function getAllTagsWithCounts(): Promise<Array<{ tag: string; count: number }>> {
+  const rows = await prisma.$queryRaw<Array<{ tag: string; count: bigint }>>`
+    SELECT lower(tag) AS tag, count(*) AS count
+    FROM articles, unnest(tags) AS tag
+    WHERE status = 'PUBLISHED' AND published_at <= now() AND deleted_at IS NULL
+    GROUP BY lower(tag)
+    ORDER BY count(*) DESC, lower(tag) ASC
+  `;
+  return rows.map((r) => ({ tag: r.tag, count: Number(r.count) }));
+}
+
+/**
+ * Published articles carrying a tag, matched case-insensitively — an editor
+ * typing "Florida" and "florida" on two articles means one tag, not two.
+ */
+export async function getArticlesByTag(tag: string): Promise<Article[]> {
+  const normalized = tag.trim().toLowerCase();
+  if (!normalized) return [];
+
+  const matches = await prisma.$queryRaw<Array<{ id: number }>>`
+    SELECT id FROM articles
+    WHERE status = 'PUBLISHED' AND published_at <= now() AND deleted_at IS NULL
+      AND EXISTS (SELECT 1 FROM unnest(tags) AS t WHERE lower(t) = ${normalized})
+    ORDER BY published_at DESC
+  `;
+  if (matches.length === 0) return [];
+
+  const order = new Map(matches.map((r, i) => [r.id, i]));
+  const [rows, labelBySlug] = await Promise.all([
+    prisma.article.findMany({ where: { id: { in: matches.map((r) => r.id) } } }),
+    categorySlugToLabel(),
+  ]);
+  return rows
+    .sort((a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0))
+    .map((row) => mapRow(row, labelBySlug));
+}
+
+/**
+ * Published articles for a byline.
+ *
+ * The slug is matched by running the site's own slugify() over the distinct
+ * author strings, not by reimplementing it in SQL. An earlier version did the
+ * latter and the two drifted: JS collapses runs of hyphens and treats tabs as
+ * whitespace, the SQL expression did neither, so a byline like "Rocci -
+ * Stucci" produced a link to /author/rocci-stucci while the lookup computed
+ * "rocci---stucci" and the page 404'd. There are only ever a handful of
+ * distinct bylines, so filtering them in JS costs nothing and keeps one
+ * implementation of the rule.
+ */
+export async function getArticlesByAuthorSlug(slug: string): Promise<Article[]> {
+  const normalized = slug.trim().toLowerCase();
+  if (!normalized) return [];
+
+  const distinctAuthors = await prisma.article.findMany({
+    where: publishedWhere(),
+    select: { author: true },
+    distinct: ["author"],
+  });
+  const names = distinctAuthors
+    .map((a) => a.author)
+    .filter((name) => slugify(name) === normalized);
+  if (names.length === 0) return [];
+
+  const [rows, labelBySlug] = await Promise.all([
+    prisma.article.findMany({
+      where: { ...publishedWhere(), author: { in: names } },
+      orderBy: { publishedAt: "desc" },
+    }),
+    categorySlugToLabel(),
+  ]);
+  return rows.map((row) => mapRow(row, labelBySlug));
+}
+
+const SEARCH_LIMIT = 50;
+
+/**
+ * Full-text search across headline, excerpt and body.
+ *
+ * Runs in Postgres rather than in the browser. The search page used to load
+ * every published article — bodies included — and filter in memory, which
+ * meant the payload grew with the archive (roughly 365KB at 89 articles) and
+ * body text was never actually searchable, only headline/excerpt/category.
+ *
+ * `websearch_to_tsquery` is used rather than `plainto_tsquery` so readers get
+ * the search syntax they already expect from Google — quoted phrases, OR, and
+ * a leading `-` to exclude. It never throws on malformed input, which
+ * `to_tsquery` does. The ILIKE arm alongside it catches partial words and tag
+ * matches that stemming alone would miss ("budg" won't stem to "budget").
+ */
+export async function searchPublishedArticles(query: string): Promise<Article[]> {
+  const trimmed = query.trim();
+  if (!trimmed) return [];
+
+  const like = `%${trimmed.replace(/[%_\\]/g, (c) => `\\${c}`)}%`;
+
+  const ranked = await prisma.$queryRaw<Array<{ id: number }>>`
+    SELECT id
+    FROM articles
+    WHERE status = 'PUBLISHED'
+      AND published_at <= now()
+      AND deleted_at IS NULL
+      AND (
+        to_tsvector(
+          'english',
+          coalesce(headline, '') || ' ' || coalesce(dek, '') || ' ' ||
+          regexp_replace(coalesce(body, ''), '<[^>]*>', ' ', 'g')
+        ) @@ websearch_to_tsquery('english', ${trimmed})
+        OR headline ILIKE ${like}
+        OR dek ILIKE ${like}
+        OR category_slug ILIKE ${like}
+        OR EXISTS (SELECT 1 FROM unnest(tags) AS tag WHERE tag ILIKE ${like})
+      )
+    ORDER BY
+      ts_rank(
+        to_tsvector(
+          'english',
+          coalesce(headline, '') || ' ' || coalesce(dek, '') || ' ' ||
+          regexp_replace(coalesce(body, ''), '<[^>]*>', ' ', 'g')
+        ),
+        websearch_to_tsquery('english', ${trimmed})
+      ) DESC,
+      published_at DESC
+    LIMIT ${SEARCH_LIMIT}
+  `;
+
+  if (ranked.length === 0) return [];
+  const order = new Map(ranked.map((r, i) => [r.id, i]));
+
+  const [rows, labelBySlug] = await Promise.all([
+    prisma.article.findMany({ where: { id: { in: ranked.map((r) => r.id) } } }),
+    categorySlugToLabel(),
+  ]);
+  // findMany doesn't preserve the ranking from the query above.
+  return rows
+    .sort((a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0))
+    .map((row) => mapRow(row, labelBySlug));
 }
 
 export async function getFeaturedArticles(): Promise<Article[]> {
@@ -572,7 +718,21 @@ export async function duplicateArticle(id: number, authorId: string | null): Pro
 // views, no per-visitor dedup/analytics — that's out of scope for "simple
 // post performance view."
 export async function incrementArticleViewCount(id: number): Promise<void> {
-  await prisma.article.update({ where: { id }, data: { viewCount: { increment: 1 } } });
+  // Today in UTC, date only — matches the DATE column and the unique
+  // constraint, so a day's hits collapse into one row rather than one per
+  // view. Both writes go in a transaction so the lifetime counter and the
+  // daily series can't drift apart.
+  const day = new Date();
+  day.setUTCHours(0, 0, 0, 0);
+
+  await prisma.$transaction([
+    prisma.article.update({ where: { id }, data: { viewCount: { increment: 1 } } }),
+    prisma.articleView.upsert({
+      where: { articleId_day: { articleId: id, day } },
+      create: { articleId: id, day, count: 1 },
+      update: { count: { increment: 1 } },
+    }),
+  ]);
 }
 
 // --- Quick-edit actions (articles list) ---

@@ -82,7 +82,7 @@ export default async function DashboardPage() {
 
   const [stats, topArticles, activity, publishing, calendar, recentArticles, awaitingReview] = await Promise.all([
     getDashboardStats(),
-    getTopArticles(5),
+    getTopArticles(5, 7),
     getRecentActivity(8),
     getPublishingActivity(30),
     getCalendarEntries(),
@@ -137,12 +137,22 @@ export default async function DashboardPage() {
         />
         <StatCard label="Scheduled" value={stats.scheduled} href="/admin/articles" icon={Clock} />
         <StatCard
-          label="Total views"
-          value={stats.totalViews.toLocaleString()}
-          // viewsThisWeek is null by design — view counts are lifetime
-          // totals with no daily series behind them, so there is no honest
-          // weekly figure to show until analytics are wired up.
-          hint={stats.viewsThisWeek === null ? "All time" : undefined}
+          label="Views this week"
+          // Null means no view has been recorded yet — a real 0 and "we
+          // aren't measuring" are different answers, so the first shows as
+          // an em dash and falls back to the lifetime total.
+          value={
+            stats.viewsThisWeek === null
+              ? stats.totalViews.toLocaleString()
+              : stats.viewsThisWeek.toLocaleString()
+          }
+          hint={
+            stats.viewsThisWeek === null
+              ? "All time — no daily data yet"
+              : stats.viewsLastWeek !== null
+                ? `${stats.viewsLastWeek.toLocaleString()} last week`
+                : undefined
+          }
           href="/admin/articles"
           icon={Eye}
         />
@@ -205,7 +215,9 @@ export default async function DashboardPage() {
         <Card>
           <div className="flex items-center justify-between border-b border-[var(--admin-border)] px-5 py-4">
             <h2 className="text-sm font-semibold text-[var(--admin-fg)]">Top performing</h2>
-            <span className="text-[11.5px] text-[var(--admin-fg-muted)]">by views</span>
+            <span className="text-[11.5px] text-[var(--admin-fg-muted)]">
+              {stats.viewsThisWeek === null ? "by views, all time" : "by views, last 7 days"}
+            </span>
           </div>
           {topArticles.length === 0 ? (
             <div className="px-5 py-10 text-center text-[13px] text-[var(--admin-fg-muted)]">

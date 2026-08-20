@@ -16,7 +16,7 @@ export default function AboutPage() {
     <>
       <BreakingBar />
       <SiteHeader />
-      <main className="max-w-[720px] mx-auto px-5 pt-10 pb-20">
+      <main id="main-content" className="max-w-[720px] mx-auto px-5 pt-10 pb-20">
         <h1 className="font-headline text-[34px] sm:text-[46px] font-bold uppercase leading-[0.98] tracking-[-0.015em] mb-6">
           About Stucci Media
         </h1>

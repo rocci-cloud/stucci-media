@@ -22,13 +22,28 @@ export default function PodcastShelf({
   return (
     <section className="py-3 sm:py-5 px-4 sm:px-6 border-t border-[var(--color-hairline)] first:border-t-0">
       <SectionHeader title={category.label} href={`/category/${category.slug}`} compact />
-      <div className="flex gap-3 sm:gap-4 overflow-x-auto snap-x snap-mandatory pb-1 scrollbar-none">
-        {items.map((a) => (
-          <div key={a.slug} className="w-[200px] sm:w-[240px] shrink-0 snap-start">
-            <ArticleCard article={a} variant="grid" />
-          </div>
-        ))}
-      </div>
+      {/* A shelf only reads as a shelf when there is something to scroll to.
+          With one or two episodes the fixed-width tiles leave most of the row
+          empty, so those lay out as full-width cards instead. */}
+      {items.length < 3 ? (
+        <div
+          className={`grid gap-3 sm:gap-4 ${
+            items.length === 2 ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-1"
+          }`}
+        >
+          {items.map((a) => (
+            <ArticleCard key={a.slug} article={a} variant={items.length === 1 ? "wide" : "grid"} />
+          ))}
+        </div>
+      ) : (
+        <div className="flex gap-3 sm:gap-4 overflow-x-auto snap-x snap-mandatory pb-1 scrollbar-none">
+          {items.map((a) => (
+            <div key={a.slug} className="w-[200px] sm:w-[240px] shrink-0 snap-start">
+              <ArticleCard article={a} variant="grid" />
+            </div>
+          ))}
+        </div>
+      )}
     </section>
   );
 }

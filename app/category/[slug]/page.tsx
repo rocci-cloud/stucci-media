@@ -85,7 +85,7 @@ export default async function CategoryPage({ params }: Props) {
       />
       <BreakingBar />
       <SiteHeader />
-      <main>
+      <main id="main-content">
         <div className="border-b-4 border-[var(--color-navy)] bg-[var(--color-bg-off)]">
           <div className="mx-auto max-w-[1280px] px-5 pt-8 pb-6 sm:pt-10 sm:pb-7">
             <div className="flex items-center gap-2 mb-2">

@@ -9,6 +9,7 @@ export type DashboardStats = {
   totalArticles: number;
   totalViews: number;
   viewsThisWeek: number | null;
+  viewsLastWeek: number | null;
   subscribers: number;
   pendingComments: number;
   trashed: number;
@@ -55,6 +56,9 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     subscribers,
     pendingComments,
     trashed,
+    viewsThisWeekAgg,
+    viewsLastWeekAgg,
+    viewRowCount,
   ] = await Promise.all([
     prisma.article.count({
       where: { status: "PUBLISHED", deletedAt: null, publishedAt: { gte: weekAgo, lte: now } },
@@ -70,6 +74,12 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     prisma.subscriber.count(),
     prisma.comment.count({ where: { isApproved: false } }),
     prisma.article.count({ where: { deletedAt: { not: null } } }),
+    prisma.articleView.aggregate({ where: { day: { gte: weekAgo } }, _sum: { count: true } }),
+    prisma.articleView.aggregate({
+      where: { day: { gte: twoWeeksAgo, lt: weekAgo } },
+      _sum: { count: true },
+    }),
+    prisma.articleView.count(),
   ]);
 
   return {
@@ -80,38 +90,69 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     scheduled,
     totalArticles,
     totalViews: viewAgg._sum.viewCount ?? 0,
-    // Views are a lifetime counter per article (see
-    // incrementArticleViewCount) with no per-day time series behind them,
-    // so a real "views this week" number can't be derived. Returning null
-    // rather than a plausible-looking guess keeps the dashboard honest;
-    // the UI renders it as "—" with a note. Wiring Vercel Analytics or
-    // Plausible is what would fill this in.
-    viewsThisWeek: null,
+    // Real windowed figures now, from the per-day article_views series.
+    // Before any view has been recorded there is genuinely nothing to
+    // report, so those stay null and the UI renders "—" rather than a 0
+    // that would read as "nobody visited".
+    viewsThisWeek: viewRowCount === 0 ? null : viewsThisWeekAgg._sum.count ?? 0,
+    viewsLastWeek: viewRowCount === 0 ? null : viewsLastWeekAgg._sum.count ?? 0,
     subscribers,
     pendingComments,
     trashed,
   };
 }
 
-export async function getTopArticles(limit = 5): Promise<TopArticle[]> {
-  const rows = await prisma.article.findMany({
-    where: { status: "PUBLISHED", deletedAt: null, publishedAt: { lte: new Date() } },
-    orderBy: { viewCount: "desc" },
-    take: limit,
-    select: { id: true, headline: true, slug: true, viewCount: true, categorySlug: true, publishedAt: true },
-  });
+/**
+ * Best-performing published articles.
+ *
+ * With `windowDays` this ranks on views recorded in that window (the
+ * article_views day series); without it, on the lifetime counter. The
+ * windowed form falls back to lifetime when nothing has been recorded yet,
+ * so a freshly-deployed site shows real stories rather than an empty panel.
+ */
+export async function getTopArticles(limit = 5, windowDays?: number): Promise<TopArticle[]> {
+  let windowedIds: number[] = [];
+  let windowedCount = new Map<number, number>();
+
+  if (windowDays) {
+    const grouped = await prisma.articleView.groupBy({
+      by: ["articleId"],
+      where: { day: { gte: startOfDayUtc(windowDays - 1) } },
+      _sum: { count: true },
+      orderBy: { _sum: { count: "desc" } },
+      take: limit,
+    });
+    windowedIds = grouped.map((g) => g.articleId);
+    windowedCount = new Map(grouped.map((g) => [g.articleId, g._sum.count ?? 0]));
+  }
+
+  const rows = windowedIds.length
+    ? await prisma.article.findMany({
+        where: { id: { in: windowedIds }, status: "PUBLISHED", deletedAt: null },
+        select: { id: true, headline: true, slug: true, viewCount: true, categorySlug: true, publishedAt: true },
+      })
+    : await prisma.article.findMany({
+        where: { status: "PUBLISHED", deletedAt: null, publishedAt: { lte: new Date() } },
+        orderBy: { viewCount: "desc" },
+        take: limit,
+        select: { id: true, headline: true, slug: true, viewCount: true, categorySlug: true, publishedAt: true },
+      });
 
   const categories = await prisma.category.findMany({ select: { slug: true, name: true } });
   const labelBySlug = new Map(categories.map((c) => [c.slug, c.name]));
 
-  return rows.map((r) => ({
-    id: r.id,
-    headline: r.headline,
-    slug: r.slug,
-    viewCount: r.viewCount,
-    category: labelBySlug.get(r.categorySlug) ?? r.categorySlug,
-    publishedAt: r.publishedAt ? r.publishedAt.toISOString() : null,
-  }));
+  return rows
+    .map((r) => ({
+      id: r.id,
+      headline: r.headline,
+      slug: r.slug,
+      // In windowed mode the number shown is views in that window, not the
+      // lifetime figure — otherwise the ranking and the number disagree.
+      viewCount: windowedIds.length ? windowedCount.get(r.id) ?? 0 : r.viewCount,
+      category: labelBySlug.get(r.categorySlug) ?? r.categorySlug,
+      publishedAt: r.publishedAt ? r.publishedAt.toISOString() : null,
+    }))
+    .sort((a, b) => b.viewCount - a.viewCount);
 }
 
 /** Publishing volume per day for the last `days` days — the dashboard chart. */

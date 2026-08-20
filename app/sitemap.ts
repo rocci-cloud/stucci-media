@@ -1,13 +1,19 @@
 import type { MetadataRoute } from "next";
-import { getPublishedArticles } from "./lib/articles";
+import { getAllTagsWithCounts, getPublishedArticles } from "./lib/articles";
 import { getCategories } from "./lib/categories";
+import { getBylinesWithCounts } from "./lib/authors";
 
 // www, not the apex domain — see the PRODUCTION_URL comment in
 // app/lib/auth.ts.
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.stuccimedia.com";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [articles, categories] = await Promise.all([getPublishedArticles(), getCategories()]);
+  const [articles, categories, tags, bylines] = await Promise.all([
+    getPublishedArticles(),
+    getCategories(),
+    getAllTagsWithCounts(),
+    getBylinesWithCounts(),
+  ]);
 
   const staticPages: MetadataRoute.Sitemap = [
     { url: siteUrl, changeFrequency: "hourly", priority: 1 },
@@ -30,5 +36,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }));
 
-  return [...staticPages, ...categoryPages, ...articlePages];
+  // Tag archives are real indexable landing pages, so they belong here —
+  // article tag chips point at them rather than at the noindexed /search.
+  const tagPages: MetadataRoute.Sitemap = tags.map((t) => ({
+    url: `${siteUrl}/tag/${encodeURIComponent(t.tag)}`,
+    changeFrequency: "weekly",
+    priority: 0.5,
+  }));
+
+  const authorPages: MetadataRoute.Sitemap = bylines.map((b) => ({
+    url: `${siteUrl}/author/${b.slug}`,
+    changeFrequency: "weekly",
+    priority: 0.5,
+  }));
+
+  return [...staticPages, ...categoryPages, ...tagPages, ...authorPages, ...articlePages];
 }

@@ -20,6 +20,19 @@ The app needs a real database to boot: `app/lib/prisma.ts` throws on
 startup if `DATABASE_URL` is missing, and `next build` queries Postgres
 while collecting page data. There is no fixture/offline mode.
 
+## Tests
+
+```bash
+npm test        # once
+npm run test:watch
+```
+
+Vitest, covering the pure logic where a regression is silent and expensive:
+role permissions, the sanitizer contract in both directions, SEO scoring,
+mid-article HTML splitting, and the email templates. Anything that needs a
+browser or a database is verified by hand against a real environment — see the
+notes in `CLAUDE.md`.
+
 ## Environment variables
 
 | Variable | Required | What it's for |
@@ -33,6 +46,8 @@ while collecting page data. There is no fixture/offline mode.
 | `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | no | Web push. Push UI hides itself entirely when unset. |
 | `VAPID_PRIVATE_KEY` | no | Web push. |
 | `VAPID_SUBJECT` | no | Web push — a `mailto:` address. |
+| `RESEND_API_KEY` | no | Email delivery ([resend.com](https://resend.com)). Without it, the welcome email is skipped and the digest's send controls stay disabled. |
+| `EMAIL_FROM` | no | Verified sender, e.g. `Stucci Media <news@stuccimedia.com>`. Falls back to Resend's sandbox sender. |
 | `ANTHROPIC_API_KEY` | no | Editor AI assist. See "AI assist" below. |
 | `OPENAI_API_KEY` | no | Alternative AI provider. |
 | `XAI_API_KEY` | no | Alternative AI provider (Grok). |

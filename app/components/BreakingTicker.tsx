@@ -23,9 +23,9 @@ export default function BreakingTicker({ items }: { items: TickerItem[] }) {
     <Link
       key={current.slug}
       href={`/articles/${current.slug}`}
-      className="text-white hover:underline block truncate animate-[fadein_0.4s_ease]"
+      className="flex min-h-11 items-center text-white hover:underline animate-[fadein_0.4s_ease]"
     >
-      {current.headline} →
+      <span className="truncate">{current.headline} →</span>
     </Link>
   );
 }

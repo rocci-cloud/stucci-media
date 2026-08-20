@@ -76,7 +76,7 @@ export default function CommentSection({
         <div className="rounded-card border border-[var(--color-hairline)] bg-[var(--color-bg-off)] px-5 py-4 mb-8 font-sans text-[14px] text-[var(--color-gray)]">
           <Link
             href={`/login?from=${encodeURIComponent(signInRedirect)}`}
-            className="font-bold text-[var(--color-red)] hover:underline"
+            className="inline-flex min-h-11 items-center font-bold text-[var(--color-red)] hover:underline"
           >
             Sign in
           </Link>{" "}

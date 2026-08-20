@@ -21,7 +21,11 @@ export default function OpinionModule({
   return (
     <section className="py-3 sm:py-5 px-4 sm:px-6 border-t border-[var(--color-hairline)] first:border-t-0">
       <SectionHeader title={category.label} href={`/category/${category.slug}`} compact />
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-px bg-[var(--color-hairline)] rounded-card border border-[var(--color-hairline)] shadow-card overflow-hidden">
+      <div
+        className={`grid gap-px bg-[var(--color-hairline)] rounded-card border border-[var(--color-hairline)] shadow-card overflow-hidden ${
+          items.length > 1 ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-1"
+        }`}
+      >
         {items.map((a, i) => (
           <div key={a.slug} className="bg-white">
             <ArticleCard article={a} variant="ranked" rank={i + 1} />

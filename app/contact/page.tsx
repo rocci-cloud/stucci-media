@@ -23,7 +23,7 @@ export default function ContactPage() {
     <>
       <BreakingBar />
       <SiteHeader />
-      <main className="max-w-[640px] mx-auto px-5 pt-8 sm:pt-10 pb-16 sm:pb-20">
+      <main id="main-content" className="max-w-[640px] mx-auto px-5 pt-8 sm:pt-10 pb-16 sm:pb-20">
         <div className="flex items-center gap-2 mb-2.5">
           <span className="h-[9px] w-[9px] rounded-full bg-[var(--color-red)] shrink-0" />
           <span className="font-headline uppercase font-bold text-[13px] sm:text-[14px] tracking-[0.06em] text-[var(--color-gray)]">

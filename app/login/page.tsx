@@ -27,7 +27,7 @@ export default async function LoginPage({ searchParams }: Props) {
     <>
       <BreakingBar />
       <SiteHeader />
-      <main className="max-w-[420px] mx-auto px-5 pt-14 pb-24">
+      <main id="main-content" className="max-w-[420px] mx-auto px-5 pt-14 pb-24">
         <h1 className="font-headline text-[32px] sm:text-[36px] font-bold uppercase tracking-[-0.005em] mb-2">
           Sign In
         </h1>

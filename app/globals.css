@@ -3,7 +3,17 @@
 @plugin "@tailwindcss/typography";
 
 @theme {
-  --font-headline: "Oswald", "Arial Narrow", sans-serif;
+  --font-headline: "Oswald Variable", "Oswald", "Arial Narrow", sans-serif;
+
+  /* The site's UI voice: nav, kickers, bylines, metadata, buttons, forms.
+     This has to be declared — Tailwind's own `font-sans` default is the
+     visitor's operating-system UI stack, so leaving it unset meant the
+     majority of visible text on every page rendered as San Francisco on a
+     Mac, Segoe UI on Windows and Roboto on Android. Archivo is a grotesque
+     that stays legible at the 10-13px uppercase sizes this chrome uses,
+     without competing with Oswald's condensed display weight. */
+  --font-sans: "Archivo Variable", "Archivo", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
 
   /* radius/shadow vars in the Tailwind v4 @theme namespace become real
      utilities (rounded-card, shadow-card, ...) — this is the site's
@@ -33,11 +43,13 @@
   --color-navy-dark: #050b15;
   --color-text: #14181f;
   --color-gray: #55606c;
-  /* Darkened from the original #8a94a0 (~2.6:1 on white, fails WCAG AA)
-     to ~4.6:1 — this token backs every small metadata label sitewide
-     (dates, read-time, byline dot separators), so the original was a
-     real, widely-repeated contrast failure, not a one-off. */
-  --color-gray-light: #6b7684;
+  /* Backs every small metadata label sitewide (dates, read-time, byline
+     dot separators), so a contrast failure here repeats on every page.
+     Originally #8a94a0 (~2.6:1 on white); darkened once to #6b7684, which
+     cleared AA on white but was only ever checked against white — on
+     --color-bg-off it measured 4.08:1, still under the 4.5:1 floor. This
+     value clears AA on both grounds: 5.50:1 on white, 4.86:1 on bg-off. */
+  --color-gray-light: #5f6a78;
   --color-hairline: #dde1e9;
   --color-hairline-strong: #0a1628;
   --color-red: #c8102e;
@@ -169,6 +181,31 @@ body {
 /* Used by the homepage hero's mobile secondary-story rail (horizontal
    snap-scroll) — hides the scrollbar without disabling scroll/snap. */
 @layer utilities {
+  /* Off-screen until focused, then pinned top-left over the sticky header.
+     Not `display: none` / `visibility: hidden` — either would make the link
+     unfocusable, which defeats the point of having it. */
+  .skip-link {
+    position: absolute;
+    left: 8px;
+    top: -100px;
+    z-index: 100;
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 18px;
+    border-radius: var(--radius-control, 8px);
+    background: var(--color-navy);
+    color: #ffffff;
+    font-family: var(--font-sans), sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: top 150ms ease;
+  }
+  .skip-link:focus {
+    top: 8px;
+  }
+
   .scrollbar-none {
     scrollbar-width: none;
     -ms-overflow-style: none;
