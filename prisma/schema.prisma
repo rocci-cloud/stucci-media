@@ -128,6 +128,27 @@ enum NavPlacement {
   @@map("nav_placement")
 }
 
+// One row per article per UTC day, not per pageview. Article.viewCount is a
+// lifetime counter with no date attached, so nothing could answer "how did
+// this story do this week" — the dashboard had to render an all-time figure
+// and say so. This keeps that counter (it's what the articles list sorts on)
+// and adds the time series beside it, at one row per story per day rather
+// than a row per hit.
+model ArticleView {
+  id        String   @id @default(cuid())
+  articleId Int      @map("article_id")
+  // Date only — the unique constraint below is what makes the upsert
+  // collapse a day's hits into a single row.
+  day       DateTime @db.Date
+  count     Int      @default(1)
+
+  article Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@unique([articleId, day])
+  @@index([day])
+  @@map("article_views")
+}
+
 // An author profile. Deliberately keyed off the article's existing plain
 // `author` text column (matched on a slug of the name) rather than replacing
 // it with a foreign key: every one of the imported articles already carries a
@@ -277,6 +298,7 @@ model Article {
   @@index([isFeatured])
   @@index([deletedAt])
   @@map("articles")
+  views ArticleView[]
 }
 
 // A point-in-time snapshot of an article's editable content, written on
