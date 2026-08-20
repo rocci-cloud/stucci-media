@@ -65,8 +65,14 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  // suppressHydrationWarning below is scoped to <html>'s own attributes and
+  // is the documented next-themes fix: the admin's ThemeProvider writes
+  // class="dark" onto <html> from an inline script before React hydrates, so
+  // the server markup legitimately differs from the client on this one
+  // element. Without it, every admin page logs a hydration mismatch. It does
+  // not suppress warnings for any child content.
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}>
         <script
           type="application/ld+json"
