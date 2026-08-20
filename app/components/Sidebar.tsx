@@ -1,16 +1,22 @@
 import Link from "next/link";
 import type { Article } from "../lib/articles";
+import { getActivePodcasts } from "../lib/podcasts";
 import SubscribeForm from "./SubscribeForm";
 import SectionHeader from "./ui/SectionHeader";
 import ArticleCard from "./ui/ArticleCard";
 
-export default function Sidebar({
+export default async function Sidebar({
   articles,
   excludeSlug,
 }: {
   articles: Article[];
   excludeSlug?: string;
 }) {
+  // "Listen Now" goes to the real podcast section once a feed exists; until
+  // then it falls back to the articles category so the button never lands on
+  // an empty page.
+  const shows = await getActivePodcasts();
+  const listenHref = shows.length > 0 ? "/podcasts" : "/category/podcasts";
   const trending = articles.filter((a) => a.slug !== excludeSlug).slice(0, 6);
 
   return (
@@ -42,7 +48,7 @@ export default function Sidebar({
           New episodes weekly — the stories mainstream media won&apos;t run.
         </p>
         <Link
-          href="/category/podcasts"
+          href={listenHref}
           className="inline-flex items-center min-h-11 bg-[var(--color-red)] hover:bg-[var(--color-red-dark)] text-white text-[11.5px] font-bold uppercase tracking-wide px-4 rounded-control transition active:scale-[0.97]"
         >
           Listen Now

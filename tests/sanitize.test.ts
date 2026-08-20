@@ -71,3 +71,30 @@ describe("plain-text authoring still works", () => {
     expect(out).not.toContain("<p><h2>");
   });
 });
+
+describe("elements left empty by sanitising", () => {
+  it("drops an iframe whose disallowed src was stripped, not just its src", () => {
+    // An <iframe> with no src still paints a ~150px empty box, which is very
+    // visible in third-party podcast show notes.
+    const out = sanitizeArticleHtml('<p>Notes.</p><iframe src="https://evil.example/x"></iframe>');
+    expect(out).not.toContain("<iframe");
+    expect(out).toContain("Notes.");
+  });
+
+  it("keeps an iframe from an allowlisted host", () => {
+    const out = sanitizeArticleHtml('<iframe src="https://www.youtube.com/embed/abc123"></iframe>');
+    expect(out).toContain("<iframe");
+    expect(out).toContain("youtube.com/embed/abc123");
+  });
+
+  it("drops an image whose src was stripped", () => {
+    const out = sanitizeArticleHtml('<p>Text.</p><img src="javascript:alert(1)">');
+    expect(out).not.toContain("<img");
+    expect(out).toContain("Text.");
+  });
+
+  it("keeps a normal image", () => {
+    const out = sanitizeArticleHtml('<img src="https://example.com/a.jpg" alt="A">');
+    expect(out).toContain("https://example.com/a.jpg");
+  });
+});

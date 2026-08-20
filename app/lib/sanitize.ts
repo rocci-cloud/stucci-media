@@ -84,6 +84,13 @@ export function sanitizeArticleHtml(html: string): string {
     transformTags: {
       a: sanitizeHtml.simpleTransform("a", { rel: "noopener noreferrer nofollow", target: "_blank" }),
     },
+    // Stripping a disallowed iframe's src leaves the element itself behind,
+    // and an <iframe> with no src still renders as a ~150px empty box. That
+    // shows up wherever the HTML isn't ours — podcast show notes routinely
+    // carry player and tracker embeds from hosts that aren't allowlisted —
+    // so drop the shell too. Same for an <img> whose src didn't survive.
+    exclusiveFilter: (frame) =>
+      (frame.tag === "iframe" || frame.tag === "img") && !frame.attribs.src,
   });
 }
 

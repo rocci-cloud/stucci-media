@@ -2,21 +2,24 @@ import type { MetadataRoute } from "next";
 import { getAllTagsWithCounts, getPublishedArticles } from "./lib/articles";
 import { getCategories } from "./lib/categories";
 import { getBylinesWithCounts } from "./lib/authors";
+import { getActivePodcasts } from "./lib/podcasts";
 
 // www, not the apex domain — see the PRODUCTION_URL comment in
 // app/lib/auth.ts.
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.stuccimedia.com";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [articles, categories, tags, bylines] = await Promise.all([
+  const [articles, categories, tags, bylines, podcasts] = await Promise.all([
     getPublishedArticles(),
     getCategories(),
     getAllTagsWithCounts(),
     getBylinesWithCounts(),
+    getActivePodcasts(),
   ]);
 
   const staticPages: MetadataRoute.Sitemap = [
     { url: siteUrl, changeFrequency: "hourly", priority: 1 },
+    { url: `${siteUrl}/podcasts`, changeFrequency: "daily", priority: 0.7 },
     { url: `${siteUrl}/subscribe`, changeFrequency: "monthly", priority: 0.6 },
     { url: `${siteUrl}/about`, changeFrequency: "monthly", priority: 0.4 },
     { url: `${siteUrl}/contact`, changeFrequency: "monthly", priority: 0.4 },
@@ -50,5 +53,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.5,
   }));
 
-  return [...staticPages, ...categoryPages, ...tagPages, ...authorPages, ...articlePages];
+  const podcastPages: MetadataRoute.Sitemap = podcasts.map((p) => ({
+    url: `${siteUrl}/podcasts/${p.slug}`,
+    lastModified: p.lastFetchedAt ?? undefined,
+    changeFrequency: "daily",
+    priority: 0.7,
+  }));
+
+  return [
+    ...staticPages,
+    ...categoryPages,
+    ...tagPages,
+    ...authorPages,
+    ...podcastPages,
+    ...articlePages,
+  ];
 }
