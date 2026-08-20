@@ -531,6 +531,79 @@ model MediaFolder {
 
 // --- Podcast ---
 
+// --- Syndicated podcasts (RSS) ---
+
+// A show mirrored from an external RSS feed. Distinct from PodcastEpisode
+// below, which is a hand-authored episode of Rocci's own show with show
+// notes written in the admin's rich editor. This side is a *mirror*: every
+// field is owned by the upstream feed and is overwritten on each refresh,
+// so nothing here is editable in the admin beyond the handful of
+// presentation fields marked below.
+model Podcast {
+  id      String @id @default(cuid())
+  slug    String @unique
+  feedUrl String @unique @map("feed_url")
+
+  // Everything from here to `language` is populated from the feed and
+  // replaced wholesale on refresh.
+  title         String
+  description   String  @default("")
+  coverImageUrl String? @map("cover_image_url")
+  author        String?
+  websiteUrl    String? @map("website_url")
+  language      String?
+  isExplicit    Boolean @default(false) @map("is_explicit")
+  categories    String[] @default([])
+
+  // Editor-owned presentation fields — NOT touched by a feed refresh.
+  isActive  Boolean @default(true) @map("is_active")
+  sortOrder Int     @default(0) @map("sort_order")
+
+  // Refresh bookkeeping. lastFetchError holds the most recent failure
+  // message so the admin can show *why* a feed went stale rather than
+  // just that it did; it's cleared on the next success.
+  lastFetchedAt  DateTime? @map("last_fetched_at")
+  lastFetchError String?   @map("last_fetch_error")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  episodes PodcastFeedEpisode[]
+
+  @@index([isActive, sortOrder])
+  @@map("podcasts")
+}
+
+// One item from a podcast feed. Keyed by the feed's own <guid> within its
+// show, so a refresh updates an existing episode in place rather than
+// duplicating it — publishers routinely re-title or fix an episode after
+// publishing, and a guid-keyed upsert picks that up for free.
+model PodcastFeedEpisode {
+  id        String @id @default(cuid())
+  podcastId String @map("podcast_id")
+  guid      String
+
+  title           String
+  description     String  @default("")
+  audioUrl        String? @map("audio_url")
+  audioType       String? @map("audio_type")
+  durationSeconds Int?    @map("duration_seconds")
+  imageUrl        String? @map("image_url")
+  episodeUrl      String? @map("episode_url")
+  episodeNumber   Int?    @map("episode_number")
+  seasonNumber    Int?    @map("season_number")
+  isExplicit      Boolean @default(false) @map("is_explicit")
+
+  publishedAt DateTime? @map("published_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  podcast Podcast @relation(fields: [podcastId], references: [id], onDelete: Cascade)
+
+  @@unique([podcastId, guid])
+  @@index([podcastId, publishedAt(sort: Desc)])
+  @@map("podcast_feed_episodes")
+}
+
 model PodcastEpisode {
   id       String @id @default(cuid())
   slug     String @unique
