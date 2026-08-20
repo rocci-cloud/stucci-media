@@ -15,7 +15,7 @@ const SOCIAL_LINKS = [
 ];
 
 const COMPANY_LINKS = [
-  { label: "Podcasts", href: "/podcasts" },
+  { label: "All Shows", href: "/podcasts" },
   { label: "About", href: "/about" },
   { label: "Contact", href: "/contact" },
   { label: "Privacy Policy", href: "/privacy" },

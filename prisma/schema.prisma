@@ -149,6 +149,58 @@ model ArticleView {
   @@map("article_views")
 }
 
+// A message from a visitor: either a general contact-form message or a pitch
+// asking for a show to be added to the site.
+//
+// One model with a `kind` rather than two: both are "someone wrote in, an
+// editor reads it and decides", the admin inbox is the same list either way,
+// and the only real difference is a handful of podcast fields that are simply
+// null on a general message. Splitting them would have meant two screens and
+// two pipelines for one workflow.
+enum SubmissionKind {
+  GENERAL
+  PODCAST
+}
+
+enum SubmissionStatus {
+  NEW
+  REVIEWING
+  APPROVED
+  DECLINED
+  ARCHIVED
+}
+
+model Submission {
+  id   String           @id @default(cuid())
+  kind SubmissionKind   @default(GENERAL)
+  status SubmissionStatus @default(NEW)
+
+  name    String
+  email   String
+  // Free text: a phone number, a social handle, whatever they prefer.
+  contact String?
+  subject String?
+  message String
+
+  // Podcast pitches only.
+  showName String? @map("show_name")
+  feedUrl  String? @map("feed_url")
+
+  // Set once a podcast pitch has actually been turned into a live show, so
+  // the same feed can't be imported twice from the same pitch.
+  importedPodcastId String? @map("imported_podcast_id")
+
+  // Editor-only, never shown to the sender.
+  adminNotes String? @map("admin_notes")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([status, createdAt(sort: Desc)])
+  @@index([kind, createdAt(sort: Desc)])
+  @@map("submissions")
+}
+
 // An author profile. Deliberately keyed off the article's existing plain
 // `author` text column (matched on a slug of the name) rather than replacing
 // it with a foreign key: every one of the imported articles already carries a

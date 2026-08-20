@@ -116,6 +116,43 @@ export default async function PodcastsPage() {
             </div>
           </Reveal>
         )}
+
+        <section className="border-t-4 border-[var(--color-navy)] bg-[var(--color-bg-off)]">
+          <div className="mx-auto max-w-[1280px] px-5 py-9 sm:py-11">
+            <div className="grid grid-cols-1 lg:grid-cols-[1.4fr_1fr] gap-6 lg:gap-10 items-center">
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="h-[9px] w-[9px] rounded-full bg-[var(--color-red)] shrink-0" />
+                  <span className="font-headline uppercase font-bold text-[13px] tracking-[0.06em] text-[var(--color-gray)]">
+                    By Invitation
+                  </span>
+                </div>
+                <h2 className="font-headline text-[26px] sm:text-[34px] font-bold uppercase leading-[1.02] tracking-[-0.018em]">
+                  Got a show that belongs here?
+                </h2>
+                <p className="mt-3 max-w-[62ch] font-sans text-[15px] sm:text-[16px] leading-[1.6] text-[var(--color-gray)]">
+                  <strong className="text-[var(--color-text)]">
+                    Stucci Media is a curated network, not an open platform.
+                  </strong>{" "}
+                  Every show here was hand-picked. If you think yours fits, send us your details and
+                  your RSS feed and we&rsquo;ll take a look — we read every submission and come back
+                  to you either way.
+                </p>
+              </div>
+              <div className="lg:justify-self-end">
+                <Link
+                  href="/podcasts/submit"
+                  className="inline-flex min-h-11 items-center rounded-control bg-[var(--color-red)] px-6 font-sans text-[13px] font-bold uppercase tracking-[0.05em] text-white transition hover:bg-[var(--color-red-dark)] active:scale-[0.97]"
+                >
+                  Submit your podcast
+                </Link>
+                <p className="mt-2.5 font-sans text-[12.5px] text-[var(--color-gray-light)]">
+                  Takes two minutes. No account needed.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
       </main>
       <SiteFooter />
     </>

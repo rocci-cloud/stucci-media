@@ -20,6 +20,11 @@ export const SETTING_DEFAULTS = {
   socialInstagram: "",
   socialRumble: "",
 
+  // Where contact-form messages and podcast pitches are emailed. Empty
+  // means nobody is notified — the submission is still saved and visible in
+  // the admin inbox, so nothing is lost either way.
+  contactEmail: "",
+
   // Newsletter integration placeholders — the site's own subscribers
   // table is the real list today; these hold the details for whichever
   // provider gets wired up later.

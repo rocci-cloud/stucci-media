@@ -229,6 +229,36 @@ export default function SiteSettingsForm({ initial }: { initial: SiteSettings })
           </Button>
         </CardContent>
       </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Inbox</CardTitle>
+          <CardDescription>
+            Where contact messages and podcast pitches are emailed. Leave it empty and nothing is
+            sent — every submission still lands in the admin inbox either way.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-4">
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="contactEmail">Notification address</Label>
+            <Input
+              id="contactEmail"
+              type="email"
+              value={values.contactEmail}
+              onChange={(e) => set("contactEmail", e.target.value)}
+              placeholder="rocci@stuccimedia.com"
+            />
+          </div>
+          <Button
+            className="self-start"
+            onClick={() => save("inbox", ["contactEmail"])}
+            disabled={saving !== null}
+          >
+            {saving === "inbox" && <Loader2 className="h-4 w-4 animate-spin" />}
+            Save inbox settings
+          </Button>
+        </CardContent>
+      </Card>
     </>
   );
 }

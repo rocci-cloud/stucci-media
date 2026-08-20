@@ -3,6 +3,7 @@ import {
   FolderTree,
   Image,
   Images,
+  Inbox,
   LayoutDashboard,
   Link2,
   Mail,
@@ -38,6 +39,7 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
   { label: "Authors", href: "/admin/authors", icon: UserSquare2, visible: canManageSettings, group: "Library" },
   { label: "Trash", href: "/admin/trash", icon: Trash2, group: "Library" },
 
+  { label: "Inbox", href: "/admin/inbox", icon: Inbox, visible: canManageSettings, group: "Site" },
   { label: "Banners", href: "/admin/banners", icon: Image, visible: canManageSettings, group: "Site" },
   { label: "Subscribers", href: "/admin/subscribers", icon: Mail, visible: canManageSettings, group: "Site" },
   { label: "Weekly Digest", href: "/admin/digest", icon: Mail, visible: canManageSettings, group: "Site" },
