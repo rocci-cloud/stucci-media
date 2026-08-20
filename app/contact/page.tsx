@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Mail } from "lucide-react";
 import BreakingBar from "../components/BreakingBar";
 import SiteHeader from "../components/SiteHeader";
 import SiteFooter from "../components/SiteFooter";
+import ContactForm from "./ContactForm";
 
 export const metadata: Metadata = {
   title: "Contact",
@@ -34,7 +36,12 @@ export default function ContactPage() {
           Contact Stucci Media
         </h1>
         <p className="font-sans text-[15px] sm:text-[16px] text-[var(--color-gray)] leading-[1.5] mb-7 max-w-[52ch]">
-          Tips, corrections, questions, or media inquiries — we read every message.
+          Tips, corrections, questions, or media inquiries — we read every message. Pitching a
+          podcast?{" "}
+          <Link href="/podcasts/submit" className="font-bold text-[var(--color-red)] hover:underline">
+            Use the show submission form
+          </Link>{" "}
+          instead — it asks for the details we actually need.
         </p>
 
         {/* Prominent, tap-friendly direct-email card */}
@@ -63,48 +70,7 @@ export default function ContactPage() {
           <span className="h-px flex-1 bg-[var(--color-hairline)]" />
         </div>
 
-        {/* Static for now — wired to real email delivery in a later phase */}
-        <form className="font-sans flex flex-col gap-4">
-          <div>
-            <label htmlFor="name" className="block text-[12.5px] font-bold uppercase tracking-[0.04em] mb-1.5">
-              Name
-            </label>
-            <input
-              id="name"
-              type="text"
-              required
-              className="w-full px-3.5 py-3 min-h-11 border border-[#B9B9B9] rounded-control bg-white text-[15px] text-[var(--color-text)] focus:border-[var(--color-navy)] outline-none transition-colors"
-            />
-          </div>
-          <div>
-            <label htmlFor="email" className="block text-[12.5px] font-bold uppercase tracking-[0.04em] mb-1.5">
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              required
-              className="w-full px-3.5 py-3 min-h-11 border border-[#B9B9B9] rounded-control bg-white text-[15px] text-[var(--color-text)] focus:border-[var(--color-navy)] outline-none transition-colors"
-            />
-          </div>
-          <div>
-            <label htmlFor="message" className="block text-[12.5px] font-bold uppercase tracking-[0.04em] mb-1.5">
-              Message
-            </label>
-            <textarea
-              id="message"
-              required
-              rows={6}
-              className="w-full px-3.5 py-3 border border-[#B9B9B9] rounded-control bg-white text-[15px] text-[var(--color-text)] focus:border-[var(--color-navy)] outline-none transition-colors resize-y"
-            />
-          </div>
-          <button
-            type="submit"
-            className="self-start min-h-11 bg-[var(--color-red)] hover:bg-[var(--color-red-dark)] text-white text-[13px] font-bold uppercase tracking-wide px-6 py-3 rounded-control transition active:scale-[0.97]"
-          >
-            Send Message
-          </button>
-        </form>
+        <ContactForm />
       </main>
       <SiteFooter />
     </>
