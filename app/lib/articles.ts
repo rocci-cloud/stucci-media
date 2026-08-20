@@ -1,4 +1,5 @@
 import { prisma } from "./prisma";
+import { slugify } from "./slugify";
 import { getCategories } from "./categories";
 import type { Article as PrismaArticle, ArticleStatus, Prisma } from "@prisma/client";
 // Re-exported below for existing server-side importers — the type and its
@@ -247,33 +248,39 @@ export async function getArticlesByTag(tag: string): Promise<Article[]> {
 }
 
 /**
- * Published articles for a byline, matched on a slug of the stored author
- * name. The slug is computed in SQL with the same rules as slugify() so an
- * author page URL resolves without needing a foreign key on every article.
+ * Published articles for a byline.
+ *
+ * The slug is matched by running the site's own slugify() over the distinct
+ * author strings, not by reimplementing it in SQL. An earlier version did the
+ * latter and the two drifted: JS collapses runs of hyphens and treats tabs as
+ * whitespace, the SQL expression did neither, so a byline like "Rocci -
+ * Stucci" produced a link to /author/rocci-stucci while the lookup computed
+ * "rocci---stucci" and the page 404'd. There are only ever a handful of
+ * distinct bylines, so filtering them in JS costs nothing and keeps one
+ * implementation of the rule.
  */
 export async function getArticlesByAuthorSlug(slug: string): Promise<Article[]> {
   const normalized = slug.trim().toLowerCase();
   if (!normalized) return [];
 
-  const matches = await prisma.$queryRaw<Array<{ id: number }>>`
-    SELECT id FROM articles
-    WHERE status = 'PUBLISHED' AND published_at <= now() AND deleted_at IS NULL
-      AND regexp_replace(
-            regexp_replace(lower(trim(author)), '[^a-z0-9 -]', '', 'g'),
-            '[ ]+', '-', 'g'
-          ) = ${normalized}
-    ORDER BY published_at DESC
-  `;
-  if (matches.length === 0) return [];
+  const distinctAuthors = await prisma.article.findMany({
+    where: publishedWhere(),
+    select: { author: true },
+    distinct: ["author"],
+  });
+  const names = distinctAuthors
+    .map((a) => a.author)
+    .filter((name) => slugify(name) === normalized);
+  if (names.length === 0) return [];
 
-  const order = new Map(matches.map((r, i) => [r.id, i]));
   const [rows, labelBySlug] = await Promise.all([
-    prisma.article.findMany({ where: { id: { in: matches.map((r) => r.id) } } }),
+    prisma.article.findMany({
+      where: { ...publishedWhere(), author: { in: names } },
+      orderBy: { publishedAt: "desc" },
+    }),
     categorySlugToLabel(),
   ]);
-  return rows
-    .sort((a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0))
-    .map((row) => mapRow(row, labelBySlug));
+  return rows.map((row) => mapRow(row, labelBySlug));
 }
 
 const SEARCH_LIMIT = 50;

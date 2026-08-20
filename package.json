@@ -5,7 +5,7 @@
   "scripts": {
     "postinstall": "prisma generate",
     "dev": "next dev",
-    "build": "next build",
+    "build": "node scripts/migrate-deploy.mjs && next build",
     "start": "next start",
     "db:migrate": "node --env-file=.env.local scripts/migrate.mjs",
     "db:migrate:prisma": "node --env-file=.env.local scripts/apply-prisma-migration.mjs",
@@ -16,7 +16,8 @@
     "prisma:generate": "prisma generate",
     "db:seed-newsroom": "node --env-file=.env.local scripts/seed-newsroom.mjs",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "db:deploy": "node --env-file=.env.local scripts/migrate-deploy.mjs"
   },
   "dependencies": {
     "@fontsource-variable/archivo": "^5.3.0",

@@ -24,11 +24,6 @@ export type AuthorInput = {
   facebookUrl?: string | null;
 };
 
-/** The canonical slug for a byline string, so URLs and lookups agree. */
-export function authorSlug(name: string): string {
-  return slugify(name);
-}
-
 type AuthorRow = {
   id: string;
   slug: string;
@@ -82,7 +77,7 @@ export async function getBylinesWithCounts(): Promise<
   for (const row of rows) {
     const name = row.author?.trim();
     if (!name) continue;
-    const slug = authorSlug(name);
+    const slug = slugify(name);
     if (!slug) continue;
     const existing = bySlug.get(slug);
     if (existing) {

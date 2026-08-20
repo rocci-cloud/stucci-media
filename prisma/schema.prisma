@@ -671,7 +671,11 @@ model PodcastEpisode {
   durationSeconds Int?    @map("duration_seconds")
 
   coverImageUrl String? @map("cover_image_url")
-  showNotes     String  @default("")
+  // @map is required here: the migration that created this table writes
+  // snake_case like every other column, but these two were declared without
+  // it, so Prisma looked for a "showNotes" column that production never had
+  // and every query against podcast_episodes failed.
+  showNotes     String  @default("") @map("show_notes")
   transcript    String  @default("")
 
   guestName String? @map("guest_name")

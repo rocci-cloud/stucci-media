@@ -30,7 +30,7 @@ import { recordVisit } from "../../lib/streaks";
 import { recordCategoryInterest } from "../../lib/interests";
 import { auth } from "../../lib/auth";
 import { getSiteSettings } from "../../lib/settings";
-import { authorSlug } from "../../lib/authors";
+import { slugify } from "../../lib/slugify";
 import { splitHtmlAtMidpoint } from "../../lib/split-html-midpoint";
 
 function getInitials(name: string) {
@@ -180,7 +180,7 @@ export default async function ArticlePage({ params }: Props) {
     author: {
       "@type": "Person",
       name: article.author,
-      url: `${siteUrl}/author/${authorSlug(article.author)}`,
+      url: `${siteUrl}/author/${slugify(article.author)}`,
     },
     publisher: {
       "@type": "Organization",
@@ -279,7 +279,7 @@ export default async function ArticlePage({ params }: Props) {
                     {getInitials(article.author)}
                   </span>
                   <Link
-                    href={`/author/${authorSlug(article.author)}`}
+                    href={`/author/${slugify(article.author)}`}
                     className="inline-flex min-h-11 items-center font-bold text-white hover:underline"
                   >
                     {article.author}
