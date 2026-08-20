@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"
+     xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd"
+     xmlns:content="http://purl.org/rss/1.0/modules/content/"
+     xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>The Rocci Stucci Show</title>
+    <link>https://example.com/show</link>
+    <language>en-us</language>
+    <description><![CDATA[<p>The stories mainstream media won't run.</p>]]></description>
+    <itunes:author>Rocci Stucci</itunes:author>
+    <itunes:explicit>no</itunes:explicit>
+    <itunes:image href="https://example.com/art.jpg"/>
+    <itunes:category text="News"/>
+    <itunes:category text="Politics"/>
+    <image><url>https://example.com/legacy-art.jpg</url></image>
+
+    <item>
+      <title>Episode 142: The Open Records Fight</title>
+      <guid isPermaLink="false">ep-142</guid>
+      <link>https://example.com/show/142</link>
+      <pubDate>Wed, 13 Aug 2026 10:00:00 GMT</pubDate>
+      <description><![CDATA[What it takes to pry a document loose.]]></description>
+      <enclosure url="https://example.com/audio/142.mp3" type="audio/mpeg" length="50000000"/>
+      <itunes:duration>52:10</itunes:duration>
+      <itunes:episode>142</itunes:episode>
+      <itunes:season>4</itunes:season>
+      <itunes:image href="https://example.com/ep142.jpg"/>
+    </item>
+
+    <item>
+      <title>Episode 143: A Sheriff And A Missing Log Book</title>
+      <guid>ep-143</guid>
+      <pubDate>Wed, 20 Aug 2026 10:00:00 GMT</pubDate>
+      <itunes:summary>An hour on accountability.</itunes:summary>
+      <enclosure url="https://example.com/audio/143.mp3" type="audio/mpeg"/>
+      <itunes:duration>3130</itunes:duration>
+      <itunes:explicit>yes</itunes:explicit>
+    </item>
+
+    <item>
+      <title>Episode 141: No Enclosure, Media Content Only</title>
+      <guid>ep-141</guid>
+      <pubDate>Wed, 06 Aug 2026 10:00:00 GMT</pubDate>
+      <content:encoded><![CDATA[<p>Rich <strong>HTML</strong> body.</p>]]></content:encoded>
+      <media:content xmlns:media="http://search.yahoo.com/mrss/" url="https://example.com/audio/141.mp3"/>
+      <itunes:duration>1:02:03</itunes:duration>
+    </item>
+
+    <item>
+      <title>Malicious Link Episode</title>
+      <guid>ep-evil</guid>
+      <pubDate>Tue, 05 Aug 2026 10:00:00 GMT</pubDate>
+      <link>javascript:alert(1)</link>
+      <enclosure url="javascript:alert(2)" type="audio/mpeg"/>
+    </item>
+  </channel>
+</rss>
