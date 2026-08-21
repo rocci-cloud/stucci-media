@@ -5,7 +5,7 @@ import SiteFooter from "../components/SiteFooter";
 
 export const metadata: Metadata = {
   title: "About",
-  description: "About Stucci Media — independent news and analysis from Florida.",
+  description: "Who runs Stucci Media, what it covers and why it exists. Independent reporting on politics, crime, veterans and free speech, from Florida.",
   alternates: {
     canonical: "/about",
   },
