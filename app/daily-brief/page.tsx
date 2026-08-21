@@ -8,7 +8,7 @@ import DailyBriefQuiz from "./DailyBriefQuiz";
 
 export const metadata: Metadata = {
   title: "The Daily Brief",
-  description: "A 5-question daily quiz on real Stucci Media headlines. Did you actually read the news today?",
+  description: "A free five-question quiz built from real Stucci Media headlines, refreshed every day. Test how closely you actually followed the news this week.",
   alternates: { canonical: "/daily-brief" },
 };
 

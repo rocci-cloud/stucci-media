@@ -85,10 +85,11 @@ function isSameOrigin(headers: Headers): boolean {
   try {
     const host = new URL(candidate).hostname.replace(/^www\./, "");
     if (host === SITE_HOST.replace(/^www\./, "")) return true;
-    // Local development and Vercel preview deployments are served from a
-    // host that is not the production one. Without this, tracking silently
-    // does nothing everywhere except production, which is exactly the kind
-    // of failure that gets discovered months later.
+    // The tracker itself is mounted production-only (see layout.tsx), so
+    // these branches are not on the normal path. They are kept so the
+    // collector still works if the tracker is ever un-gated for a local
+    // debugging session, rather than failing in a way that looks like a
+    // bug in the collector.
     if (process.env.NODE_ENV !== "production") return host === "localhost" || host === "127.0.0.1";
     return host.endsWith(".vercel.app");
   } catch {

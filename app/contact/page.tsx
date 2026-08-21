@@ -8,7 +8,7 @@ import ContactForm from "./ContactForm";
 
 export const metadata: Metadata = {
   title: "Contact",
-  description: "Get in touch with Stucci Media — tips, corrections, questions, and media inquiries.",
+  description: "Send Stucci Media a news tip, request a correction, or reach out about media and press enquiries. Every message goes straight to Rocci Stucci.",
   alternates: {
     canonical: "/contact",
   },

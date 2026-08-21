@@ -67,14 +67,87 @@ export const metadata: Metadata = {
 // `sameAs` only lists profiles that are real, verifiable links already
 // used elsewhere on the site (SiteFooter's social icon) — never fabricate
 // a social URL just to fill out the schema.
+//
+// Entity clarity for answer engines: the two objects below are linked by
+// @id so a crawler reads one publisher entity rather than two unrelated
+// blobs. Every field is drawn from something the site already states
+// publicly — the founder's name, the coverage areas that are literally the
+// site's categories, the contact address on /contact. Nothing here is
+// invented to pad the schema: a fabricated founding date or award is worse
+// than a missing one, because it makes the whole entity untrustworthy to
+// the systems this is meant to satisfy.
+const ORGANIZATION_ID = `${siteUrl}/#organization`;
+const WEBSITE_ID = `${siteUrl}/#website`;
+
 const organizationSchema = {
   "@context": "https://schema.org",
   "@type": ["Organization", "NewsMediaOrganization"],
+  "@id": ORGANIZATION_ID,
   name: "Stucci Media",
+  alternateName: "Stucci Media News",
   url: siteUrl,
-  logo: `${siteUrl}/og-default.png`,
+  logo: {
+    "@type": "ImageObject",
+    url: `${siteUrl}/og-default.png`,
+    width: 1200,
+    height: 630,
+  },
+  image: `${siteUrl}/og-default.png`,
   description,
+  slogan: "The stories mainstream media won't run.",
+  founder: {
+    "@type": "Person",
+    name: "Rocci Stucci",
+  },
+  foundingLocation: {
+    "@type": "Place",
+    address: { "@type": "PostalAddress", addressRegion: "FL", addressCountry: "US" },
+  },
+  areaServed: { "@type": "Country", name: "United States" },
+  contactPoint: {
+    "@type": "ContactPoint",
+    contactType: "editorial",
+    email: "rocci@stuccimedia.com",
+    url: `${siteUrl}/contact`,
+  },
+  // The site's actual sections. This is what tells an answer engine what
+  // this publisher is a source *about*, which is the question it has to
+  // answer before it will cite anyone.
+  knowsAbout: [
+    "Political news",
+    "World news",
+    "Crime and investigation",
+    "Veterans affairs",
+    "Social issues",
+    "Free speech",
+    "Opinion and analysis",
+  ],
+  publishingPrinciples: `${siteUrl}/about`,
+  // Only profiles that are real and verifiable, already linked from the
+  // site's own footer. Never fabricate one to fill the array out.
   sameAs: ["https://www.facebook.com/RocciStucciMedia"],
+};
+
+// Declares the site as searchable. This is what earns a sitelinks search
+// box in Google, and it tells an answer engine there is a query interface
+// it can point a user at rather than only a homepage.
+const websiteSchema = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "@id": WEBSITE_ID,
+  url: siteUrl,
+  name: "Stucci Media",
+  description,
+  publisher: { "@id": ORGANIZATION_ID },
+  inLanguage: "en-US",
+  potentialAction: {
+    "@type": "SearchAction",
+    target: {
+      "@type": "EntryPoint",
+      urlTemplate: `${siteUrl}/search?q={search_term_string}`,
+    },
+    "query-input": "required name=search_term_string",
+  },
 };
 
 export default function RootLayout({
@@ -102,11 +175,23 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
         />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
+        />
         {children}
+        {/* A real UI feature, not telemetry, so it renders everywhere. Gating
+            it to production made it impossible to see on a preview
+            deployment, which is exactly where its trigger timing and
+            dismissal behaviour need to be checked before it reaches
+            readers. */}
+        <NewsletterModal />
+        {/* Telemetry stays production-only. Preview deployments share the
+            production database, so a tracker running there would file
+            build-check and reviewer traffic as real readers. */}
         {process.env.NODE_ENV === "production" && (
           <>
             <AnalyticsTracker />
-            <NewsletterModal />
             <Analytics />
             <SpeedInsights />
           </>

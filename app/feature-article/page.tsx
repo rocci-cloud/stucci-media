@@ -20,6 +20,7 @@ import SiteFooter from "../components/SiteFooter";
 import Reveal from "../components/Reveal";
 import FeatureArticleForm from "./FeatureArticleForm";
 import { getSiteSettings } from "../lib/settings";
+import { buildFeatureArticleSchema } from "../lib/feature-article-schema";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.stuccimedia.com";
 const PRICE = "$125";
@@ -28,13 +29,29 @@ const CONTACT_EMAIL = "rocci@stuccimedia.com";
 export const metadata: Metadata = {
   title: "Get Your Business Featured — Professional Article Writing",
   description:
-    "A full-length, professionally written feature article about your business, published on Stucci Media and built for Google. One flat fee of $125, and it stays online permanently.",
+    "A professionally written feature article about your business, built for Google and published permanently on Stucci Media. $125 flat, live in 72 hours.",
   alternates: { canonical: `${siteUrl}/feature-article` },
+  keywords: [
+    "professional article writing service",
+    "business feature article",
+    "SEO article writing",
+    "get your business featured",
+    "press coverage for small business",
+    "sponsored article",
+  ],
   openGraph: {
     title: "Get Your Business Featured on Stucci Media",
     description:
       "A professionally written feature article about your business, built for search and published permanently. $125 flat.",
     url: `${siteUrl}/feature-article`,
+    type: "website",
+    images: ["/og-default.png"],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Get Your Business Featured on Stucci Media",
+    description:
+      "A professionally written feature article about your business, built for search and published permanently. $125 flat.",
     images: ["/og-default.png"],
   },
 };
@@ -148,9 +165,17 @@ export default async function FeatureArticlePage() {
   const BENEFITS = benefits(turnaround);
   const STEPS = steps(turnaround);
   const FAQS = faqs(turnaround);
+  const schemas = buildFeatureArticleSchema(siteUrl, turnaround, FAQS);
 
   return (
     <>
+      {schemas.map((schema) => (
+        <script
+          key={schema["@type"] as string}
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+        />
+      ))}
       <BreakingBar />
       <SiteHeader />
 
