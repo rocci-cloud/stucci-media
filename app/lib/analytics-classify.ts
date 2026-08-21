@@ -202,3 +202,40 @@ export function formatDuration(ms: number | null | undefined): string {
   if (mins < 60) return `${mins}m ${secs}s`;
   return `${Math.floor(mins / 60)}h ${mins % 60}m`;
 }
+
+/**
+ * The day window a dashboard period covers.
+ *
+ * Kept here, in the Prisma-free module, for two reasons. It is pure, so it
+ * can be tested without a database; and both the headline totals and the
+ * chart derive their range from this one function, so the two cannot
+ * disagree about what "last 7 days" means.
+ *
+ * That disagreement was a real bug: the window used to start at "now minus
+ * N x 24h", a mid-day timestamp, while the chart only drew the last N whole
+ * calendar days. Views from the oldest, partial day were counted in the
+ * headline and dropped from the chart, so the bars never summed to the
+ * number printed above them. Windows are now aligned to UTC day boundaries,
+ * matching the day the rows are grouped by, so the totals reconcile.
+ *
+ * `days` counts today as one of them: days=7 is today plus the previous six.
+ */
+export function analyticsWindow(
+  days: number,
+  now: Date = new Date(),
+): { from: Date; previousFrom: Date; buckets: string[] } {
+  const startOfToday = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+  const dayMs = 24 * 60 * 60 * 1000;
+
+  const from = new Date(startOfToday - (days - 1) * dayMs);
+  // The equally-sized window immediately before, so period-over-period
+  // deltas compare like with like.
+  const previousFrom = new Date(startOfToday - (2 * days - 1) * dayMs);
+
+  const buckets: string[] = [];
+  for (let i = days - 1; i >= 0; i--) {
+    buckets.push(new Date(startOfToday - i * dayMs).toISOString().slice(0, 10));
+  }
+
+  return { from, previousFrom, buckets };
+}
