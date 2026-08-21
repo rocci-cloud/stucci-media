@@ -1,10 +1,15 @@
 import { NextResponse } from "next/server";
 import { requireAdminSession } from "../../../../lib/require-admin";
-import { getAllSubscribers } from "../../../../lib/subscribers";
+import { getAllSubscribers, subscriberSourceLabel } from "../../../../lib/subscribers";
 
-function toCsv(rows: { email: string; subscribedAt: string }[]) {
-  const header = "email,subscribed_at";
-  const lines = rows.map((r) => `${JSON.stringify(r.email)},${JSON.stringify(r.subscribedAt)}`);
+function toCsv(rows: { email: string; subscribedAt: string; source: string | null }[]) {
+  const header = "email,subscribed_at,source";
+  const lines = rows.map(
+    (r) =>
+      `${JSON.stringify(r.email)},${JSON.stringify(r.subscribedAt)},${JSON.stringify(
+        subscriberSourceLabel(r.source),
+      )}`,
+  );
   return [header, ...lines].join("\n");
 }
 

@@ -39,7 +39,7 @@ export default async function Sidebar({
         <p className="font-sans text-[13px] text-[var(--color-gray)] mb-4">
           Independent reporting, straight to your inbox.
         </p>
-        <SubscribeForm compact />
+        <SubscribeForm compact source="sidebar" />
       </div>
 
       <div className="rounded-card border border-[var(--color-hairline)] shadow-card px-5 py-4 sm:py-5 bg-gradient-to-br from-[var(--color-navy)] to-[var(--color-navy-dark)] text-white">

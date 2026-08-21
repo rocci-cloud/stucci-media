@@ -189,7 +189,7 @@ export default function SubscribePage() {
                     ))}
                   </ul>
 
-                  <SubscribeForm stacked />
+                  <SubscribeForm stacked source="subscribe-page" />
                   <p className="font-sans text-[11.5px] text-[var(--color-gray-light)] text-center mt-3.5">
                     No spam, ever. Cancel anytime, one click.
                   </p>

@@ -3344,3 +3344,162 @@ revisions, export, command palette, dark mode).
   Neon database.** The migration has not been applied anywhere, and no
   admin screen in this phase has been loaded in a real browser. That pass
   is still owed before this is trusted in production.
+
+## Note on phase numbering
+
+Several changes merged between Phase 56 and Phase 57 were never written up
+here: the site-audit fixes and migrations-on-deploy (#66), podcast RSS
+import (#67), submissions plus a working contact form (#68), retiring the
+hand-entry episode manager (#69), and the `authors`, `search_index` and
+`article_views` migrations. The code is on `main` and the migrations are
+applied; only the write-ups are missing. The numbering below continues from
+56 rather than trying to reconstruct them after the fact.
+
+## Phase 57 — done: "The Illusion of Freedom" feature + two fixes it surfaced
+
+A commissioned long-form feature, plus two real bugs the work exposed.
+
+- **The article** (`illusion-of-freedom-cancel-culture-economic-dependence`,
+  2,414 words, Featured + Exclusive, Opinion & Analysis) argues that
+  American freedom is better measured by the cost of using a right than by
+  the existence of the right, built entirely from primary sources across
+  both the speech side (Freedom House, the Cato/Fraser Human Freedom Index,
+  Cato/YouGov self-censorship polling, FIRE's Scholars Under Fire database,
+  Pew) and the economic side (NY Fed household debt, Bankrate emergency
+  savings, KFF employer premiums, EPI's productivity-pay gap, Harvard JCHS
+  renter cost burden, the FTC's abandoned noncompete rule). Two editorial
+  choices worth keeping: it leans on FIRE's own left/right split of
+  targeting incidents (632 vs 573) so it can't be read as one-party
+  grievance, and it argues explicitly that "dependence" and not "slavery"
+  is the accurate word, on the grounds that the looser term hands critics
+  an easy exit.
+- **Shipped as a script, not a DB row**: that session had no
+  `DATABASE_URL`, so the article ships as
+  `scripts/data/illusion-of-freedom-{article.json,body.html}` plus
+  `scripts/publish-illusion-of-freedom.mjs` and a `workflow_dispatch`
+  action, the same delivery pattern as Phase 11's image re-host. The script
+  re-hosts the three generated images into this app's own Blob store rather
+  than hotlinking the generation CDN (Phase 11's lesson, applied up front),
+  indexes them in the Media Library, and upserts the article and its
+  `article_categories` join row. Run once: 3/3 images, article id 102.
+- **`computeSeoScore()` returns 100/100** on the stored values. Verified by
+  compiling `app/lib/seo-score.ts` and running it, not by eyeballing the
+  rules; the body was also confirmed to round-trip through
+  `sanitizeArticleHtml()` with an identical tag sequence and identical
+  visible text.
+- **Fix: internal links were being `nofollow`ed** (`app/lib/sanitize.ts`).
+  `simpleTransform` applied `rel="noopener noreferrer nofollow"` plus
+  `target="_blank"` to *every* anchor regardless of destination, so every
+  internal link any editor had ever written threw away internal link equity
+  and opened in a new tab. The transform now branches on the destination.
+  **The first version of that fix preserved any author-set `rel`, which
+  silently let 11 outbound citations escape `nofollow` entirely** — caught
+  by running the transform over a real article body, not by reading it. The
+  outbound guarantee is now unconditional: outbound `rel` is the union of
+  the author's tokens and the required ones, so `sponsored` survives without
+  lowering the floor.
+- **Fix: the publish script's update path never set `published_at`** —
+  caught by the Vercel agent review, which posted *after* the PR had been
+  merged because it was merged while that check was still in flight. Since
+  every public read goes through `publishedWhere()` (which requires
+  `published_at <= now`), a re-run would have marked the article PUBLISHED
+  and left it invisible. Uses `coalesce(published_at, now())` so a re-run
+  can't reset the original publication date either. **The lesson is the
+  merge, not the bug: don't merge past an in-flight review.**
+
+## Phase 58 — done: real analytics (`/admin/analytics`)
+
+What existed was a hit counter, not analytics. `Article.viewCount` and the
+`article_views` day series answered "how many times was this article
+rendered"; nothing tracked the homepage, category pages or `/subscribe`,
+nothing measured time on page, unique visitors, referrers, devices or
+countries, and the counter incremented on **every render**, so crawlers and
+link-preview scrapers were counted as readers. The pre-existing counter is
+deliberately kept: it is the only history for anything published before
+this, and the Dashboard still reads it.
+
+- **`page_views`** (migration `20260821210000_page_views`, applies
+  automatically on deploy via `scripts/migrate-deploy.mjs`): one row per
+  view sitewide, with session, visitor, referrer, UTM, device, browser, OS,
+  country, and the article when the page has one.
+- **Cookieless visitor counting.** `visitor_hash` is
+  `SESSION_SECRET + IP + user agent + UTC date`, so somebody is
+  identifiable for one day and then not at all. No consent banner, no IP
+  stored. The honest cost, printed in the UI rather than hidden: a visitor
+  on two days counts on both, so a multi-day "visitors" figure is the sum
+  of daily uniques.
+- **Two writes per view.** The page records the view on arrival and gets an
+  id back, then reports duration and scroll depth by `sendBeacon` when the
+  tab is hidden or closed. **Duration counts visible time only**, so a
+  backgrounded tab isn't reported as a long read. A reader who closes
+  abruptly never reports back, which is why `duration_ms` is nullable and
+  every average excludes nulls instead of counting them as a zero-second
+  read; the dashboard prints the live coverage percentage next to the
+  average.
+- **Bots dropped before anything is written**, and the legacy counter now
+  applies the same filter, so it stops inflating. Existing lifetime totals
+  are left as they are rather than rewritten.
+- **The collector is public, so nothing it receives is trusted**: client
+  input is range-checked, and device/country/visitor identity are derived
+  server-side from headers, never read from the body. A same-origin check
+  filters drive-by writes — that is **not** rate limiting and doesn't claim
+  to be; real rate limiting needs a shared counter store this project
+  doesn't have. `NODE_ENV`/`*.vercel.app` are allowed through so tracking
+  doesn't silently do nothing outside production.
+- **The dashboard**: live "reading now" (deliberately first — it's what the
+  page gets opened for), six metrics with period-over-period deltas,
+  traffic over time, sources and referring sites, per-article views with
+  average read time and read-through rate, top pages sitewide, category
+  performance, and device/browser/OS/country breakdowns. Range lives in the
+  URL so a view is shareable and survives a refresh.
+- **Charts follow the dataviz guidance**: one shared axis rather than a dual
+  axis, colour assigned to the entity rather than to rank, legend always
+  present. The two-series palette was run through the palette validator in
+  both modes rather than eyeballed (worst adjacent CVD ΔE 19.0 light / 21.4
+  dark, both over the 8 floor); the first dark-mode blue failed the
+  lightness band and was re-stepped. Ranked breakdowns are deliberately
+  HTML rows, not bar charts, so long labels can't collide and every value
+  is directly labelled. Chart colours live in `--admin-chart-1/2` — don't
+  substitute a hue without re-running the validator.
+- **Not verified**: no live database or browser in that session, so the
+  collector has never recorded a real view and the dashboard has not been
+  seen with real data. The Vercel preview build did succeed, which proves
+  the migration applies cleanly against a real database.
+- **Open**: `page_views` has no retention policy. It grows one row per view
+  forever and will eventually want pruning or rollups.
+
+## Phase 59 — done: sitewide email capture
+
+Articles — the pages readers actually arrive on from search and social —
+had **no capture point at all**. The only forms were the homepage strip,
+the sidebar and the `/subscribe` page.
+
+- **`SubscribeForm` had hardcoded DOM ids** (`email-input` /
+  `email-input-compact`), which Phase 28 had already flagged as a
+  duplicate-id hazard. With a modal and an in-article form now on the same
+  page as the sidebar form, that became real, so ids come from `useId()`.
+- **`NewsletterModal.tsx`**: navy-gradient panel with the site's red radial
+  glow, using the existing `overlayPop`/`fadein` keyframes. Deliberately
+  the opposite of the usual interstitial — it fires at **45 seconds or 45%
+  scrolled**, never on arrival; is suppressed 60 days after a dismissal and
+  **permanently after a signup**; and never appears on `/admin`,
+  `/preview`, `/subscribe`, `/login`, `/register` or `/saved`. Proper
+  dialog behaviour: focus moved in and restored on close, Escape closes,
+  body scroll locked. A blocked `localStorage` is treated as suppressed
+  rather than risking a modal on every page load with no way to stop it.
+  **The signup-suppression case was a real bug caught before shipping**: a
+  subscriber never presses dismiss, so without recording the signup the
+  modal would have reappeared on their very next page.
+- **`ArticleSubscribeCta.tsx`** sits after the like/save bar and before
+  "Keep Reading" — the moment the reader has finished and is deciding what
+  to do next.
+- **`Subscriber.source`** (migration `20260821220000_subscriber_source`)
+  records which capture point earned each signup. Nullable, because rows
+  that predate the column genuinely have no answer and backfilling a guess
+  would be worse than an honest blank. The value is a hidden form field and
+  therefore client-controlled, so it is **allowlisted** in
+  `subscribe-actions.ts` rather than stored as-is.
+- **`/admin/subscribers`** already existed with a working CSV export
+  (Phase 3) and was not rebuilt. It gained total / last-7 / last-30 /
+  capture-point stat cards, a "where signups came from" breakdown, and a
+  Source column; the CSV gained a `source` column.

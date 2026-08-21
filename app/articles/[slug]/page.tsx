@@ -16,6 +16,7 @@ import LikeButton from "./LikeButton";
 import SaveButton from "./SaveButton";
 import ListenButton from "./ListenButton";
 import CommentSection from "./CommentSection";
+import ArticleSubscribeCta from "../../components/ArticleSubscribeCta";
 import LiveBlogTimeline from "./LiveBlogTimeline";
 import {
   getArticleBySlug,
@@ -415,6 +416,15 @@ export default async function ArticlePage({ params }: Props) {
                 />
               </div>
             </div>
+
+            {/* Placed after the like/save bar and before "Keep Reading":
+                the reader has finished the piece and is deciding what to do
+                next, which is the moment the ask is worth making. */}
+            <Reveal>
+              <div className="mt-8">
+                <ArticleSubscribeCta />
+              </div>
+            </Reveal>
 
             <Reveal>
               <RelatedArticles articles={relatedArticles} />
