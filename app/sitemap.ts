@@ -21,6 +21,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: siteUrl, changeFrequency: "hourly", priority: 1 },
     { url: `${siteUrl}/podcasts`, changeFrequency: "daily", priority: 0.7 },
     { url: `${siteUrl}/subscribe`, changeFrequency: "monthly", priority: 0.6 },
+    // A commercial landing page, so it gets a high priority: it is one of
+    // the few pages on the site meant to be found by search rather than by
+    // a reader already here.
+    { url: `${siteUrl}/feature-article`, changeFrequency: "monthly", priority: 0.8 },
     { url: `${siteUrl}/about`, changeFrequency: "monthly", priority: 0.4 },
     { url: `${siteUrl}/contact`, changeFrequency: "monthly", priority: 0.4 },
     { url: `${siteUrl}/privacy`, changeFrequency: "yearly", priority: 0.2 },

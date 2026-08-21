@@ -32,6 +32,18 @@ export const SETTING_DEFAULTS = {
   newsletterListId: "",
   newsletterFromEmail: "",
 
+  // Paid feature-article service (/feature-article). The Stripe payment
+  // link is created in the Stripe dashboard and pasted here, rather than
+  // wiring the Stripe API into this app: for one fixed-price product a
+  // hosted payment link needs no secret key in the codebase, no webhook
+  // endpoint and no card data anywhere near this server. Empty means the
+  // page simply doesn't show a pay button, which is a valid state — an
+  // enquiry can still be sent and invoiced by hand.
+  featureArticlePaymentLink: "",
+  // Stated publicly on the landing page, so it has to be a promise that
+  // can actually be kept.
+  featureArticleTurnaround: "72 hours",
+
   // Feature flags.
   featureBreakingBar: true,
   featureComments: true,

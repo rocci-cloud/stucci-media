@@ -12,6 +12,7 @@ import SubscribeStrip from "./components/SubscribeStrip";
 import SiteFooter from "./components/SiteFooter";
 import Reveal from "./components/Reveal";
 import BannerSlot from "./components/BannerSlot";
+import ServicePromo from "./components/ServicePromo";
 import { getPublishedArticles, getFeaturedArticles, getPersonalizedArticles } from "./lib/articles";
 import { getCategories } from "./lib/categories";
 import { getTopCategorySlugs } from "./lib/interests";
@@ -101,6 +102,11 @@ export default async function HomePage() {
             top wire desk and the category rail stack. BannerSlot returns
             null with zero DOM output when there's no active banner, so
             this never leaves an empty box behind. */}
+        {/* Wrapper carries the page gutter; the promo itself is the card,
+            so padding on it would pad the inside, not the outside. */}
+        <div className="mx-auto my-6 max-w-[1280px] px-5 sm:my-8">
+          <ServicePromo />
+        </div>
         <BannerSlot placement="HOMEPAGE" className="mx-auto max-w-[1280px] px-5 py-4" />
 
         <div className="mx-auto max-w-[1280px] px-5 grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-x-10">

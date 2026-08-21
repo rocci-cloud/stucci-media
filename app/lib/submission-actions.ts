@@ -39,9 +39,10 @@ export async function submitToInboxAction(
   _prev: SubmissionFormState,
   formData: FormData
 ): Promise<SubmissionFormState> {
-  const kind = (String(formData.get("kind") || "GENERAL") === "PODCAST"
-    ? "PODCAST"
-    : "GENERAL") as SubmissionKind;
+  const rawKind = String(formData.get("kind") || "GENERAL");
+  const kind = (
+    rawKind === "PODCAST" || rawKind === "FEATURE_ARTICLE" ? rawKind : "GENERAL"
+  ) as SubmissionKind;
 
   // Honeypot: a field hidden from people but not from most bots. Anything
   // that fills it gets the success screen and nothing gets stored, so a
@@ -86,6 +87,27 @@ export async function submitToInboxAction(
     }
   }
 
+  // The feature-article questionnaire asks a handful of extra questions.
+  // They're folded into the message body with labels rather than given
+  // their own columns: they're free text an editor reads once, not
+  // structured data anything queries, and a table shaped around one form
+  // ages badly.
+  let composedMessage = message;
+  if (kind === "FEATURE_ARTICLE") {
+    const answers: [string, string][] = [
+      ["Business / subject", String(formData.get("business") || "").trim()],
+      ["Website or social", String(formData.get("businessUrl") || "").trim()],
+      ["What they do", String(formData.get("about") || "").trim()],
+      ["What to highlight", message],
+      ["Timing", String(formData.get("timing") || "").trim()],
+    ];
+    composedMessage = answers
+      .filter(([, value]) => value)
+      .map(([label, value]) => `${label}:\n${value}`)
+      .join("\n\n")
+      .slice(0, LIMITS.message);
+  }
+
   try {
     if ((await countRecentFromEmail(email)) >= MAX_PER_HOUR) {
       return {
@@ -99,7 +121,7 @@ export async function submitToInboxAction(
       email,
       contact: contact || null,
       subject: subject || null,
-      message,
+      message: composedMessage,
       showName: showName || null,
       feedUrl: feedUrl || null,
     });

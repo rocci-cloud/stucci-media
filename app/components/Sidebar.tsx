@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Article } from "../lib/articles";
 import { getActivePodcasts } from "../lib/podcasts";
 import SubscribeForm from "./SubscribeForm";
+import ServicePromo from "./ServicePromo";
 import SectionHeader from "./ui/SectionHeader";
 import ArticleCard from "./ui/ArticleCard";
 
@@ -41,6 +42,8 @@ export default async function Sidebar({
         </p>
         <SubscribeForm compact source="sidebar" />
       </div>
+
+      <ServicePromo variant="compact" />
 
       <div className="rounded-card border border-[var(--color-hairline)] shadow-card px-5 py-4 sm:py-5 bg-gradient-to-br from-[var(--color-navy)] to-[var(--color-navy-dark)] text-white">
         <h3 className="font-headline uppercase font-bold text-[18px] tracking-[-0.01em] mb-1.5">The Rocci Stucci Show</h3>

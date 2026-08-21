@@ -232,6 +232,50 @@ export default function SiteSettingsForm({ initial }: { initial: SiteSettings })
 
       <Card>
         <CardHeader>
+          <CardTitle>Feature article service</CardTitle>
+          <CardDescription>
+            Powers the /feature-article landing page. Create a Payment Link in your Stripe dashboard for the
+            $125 article and paste it here — no Stripe keys go anywhere near this site. Leave it empty and the
+            page shows the enquiry form only, with no pay button.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-4">
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="featureArticlePaymentLink">Stripe payment link</Label>
+            <Input
+              id="featureArticlePaymentLink"
+              value={values.featureArticlePaymentLink}
+              onChange={(e) => set("featureArticlePaymentLink", e.target.value)}
+              placeholder="https://buy.stripe.com/…"
+            />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="featureArticleTurnaround">Turnaround time</Label>
+            <Input
+              id="featureArticleTurnaround"
+              value={values.featureArticleTurnaround}
+              onChange={(e) => set("featureArticleTurnaround", e.target.value)}
+              placeholder="72 hours"
+            />
+            <p className="text-[12px] text-[var(--admin-fg-muted)]">
+              Shown publicly on the landing page, so only promise what you can hit every time.
+            </p>
+          </div>
+          <Button
+            className="self-start"
+            onClick={() =>
+              save("featureArticle", ["featureArticlePaymentLink", "featureArticleTurnaround"])
+            }
+            disabled={saving !== null}
+          >
+            {saving === "featureArticle" && <Loader2 className="h-4 w-4 animate-spin" />}
+            Save service settings
+          </Button>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
           <CardTitle>Inbox</CardTitle>
           <CardDescription>
             Where contact messages and podcast pitches are emailed. Leave it empty and nothing is
