@@ -1,5 +1,5 @@
 import { prisma } from "./prisma";
-import type { TrafficSource } from "./analytics-classify";
+import { analyticsWindow, type TrafficSource } from "./analytics-classify";
 
 /**
  * Read side of the analytics system. Everything here reads `page_views`,
@@ -17,7 +17,7 @@ import type { TrafficSource } from "./analytics-classify";
 export type Period = { days: number; label: string };
 
 export const PERIODS: Record<string, Period> = {
-  "24h": { days: 1, label: "Last 24 hours" },
+  "today": { days: 1, label: "Today" },
   "7d": { days: 7, label: "Last 7 days" },
   "30d": { days: 30, label: "Last 30 days" },
   "90d": { days: 90, label: "Last 90 days" },
@@ -29,8 +29,10 @@ export function resolvePeriod(key: string | undefined): { key: string; period: P
   return { key: k, period: PERIODS[k] };
 }
 
+// Both the totals and the chart take their range from analyticsWindow, so
+// they cannot disagree about what a period covers. See the note there.
 function since(days: number): Date {
-  return new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+  return analyticsWindow(days).from;
 }
 
 export type Overview = {
@@ -86,8 +88,7 @@ async function windowStats(from: Date, to: Date) {
 
 export async function getOverview(days: number): Promise<Overview> {
   const now = new Date();
-  const from = since(days);
-  const prevFrom = since(days * 2);
+  const { from, previousFrom: prevFrom } = analyticsWindow(days);
 
   const [current, previous, scroll, bounce, coverage] = await Promise.all([
     windowStats(from, now),
@@ -133,7 +134,7 @@ export type TrafficPoint = { date: string; label: string; views: number; visitor
 
 /** Daily views and visitors, with zero-filled gaps so the chart has no holes. */
 export async function getTrafficSeries(days: number): Promise<TrafficPoint[]> {
-  const from = since(days);
+  const { from, buckets } = analyticsWindow(days);
   const rows = await prisma.$queryRaw<{ day: Date; views: bigint | number; visitors: bigint | number }[]>`
     SELECT
       date_trunc('day', created_at) AS day,
@@ -151,18 +152,20 @@ export async function getTrafficSeries(days: number): Promise<TrafficPoint[]> {
     byDay.set(key, { views: num(r.views), visitors: num(r.visitors) });
   }
 
-  const out: TrafficPoint[] = [];
-  for (let i = days - 1; i >= 0; i--) {
-    const d = new Date(Date.now() - i * 24 * 60 * 60 * 1000);
-    const key = d.toISOString().slice(0, 10);
+  // One bucket per day in the same window the totals used, so the bars sum
+  // to the headline figure rather than falling short of it.
+  return buckets.map((key) => {
     const hit = byDay.get(key) ?? { views: 0, visitors: 0 };
-    out.push({
+    return {
       date: key,
-      label: d.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+      label: new Date(`${key}T00:00:00Z`).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        timeZone: "UTC",
+      }),
       ...hit,
-    });
-  }
-  return out;
+    };
+  });
 }
 
 export type ArticlePerformance = {

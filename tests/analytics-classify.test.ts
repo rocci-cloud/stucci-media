@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  analyticsWindow,
   applyUtmOverride,
   articleSlugFromPath,
   classifyReferrer,
@@ -215,5 +216,57 @@ describe("duration formatting", () => {
   it("renders a missing duration as a dash, not zero", () => {
     expect(formatDuration(null)).toBe("—");
     expect(formatDuration(undefined)).toBe("—");
+  });
+});
+
+// The bug this pins: the headline totals and the traffic chart used to
+// derive their range separately. The totals counted from "now minus N x 24h"
+// (a mid-day timestamp) while the chart drew only the last N whole calendar
+// days, so views from the oldest partial day were counted in the headline
+// and missing from the bars. The two now share analyticsWindow, and these
+// tests exist to keep them sharing it.
+describe("analytics window", () => {
+  const now = new Date("2026-08-21T21:40:00.000Z");
+
+  it("starts at a UTC day boundary, not a mid-day timestamp", () => {
+    const { from } = analyticsWindow(7, now);
+    expect(from.toISOString()).toBe("2026-08-15T00:00:00.000Z");
+  });
+
+  it("counts today as one of the days", () => {
+    const { buckets } = analyticsWindow(7, now);
+    expect(buckets).toHaveLength(7);
+    expect(buckets[buckets.length - 1]).toBe("2026-08-21");
+    expect(buckets[0]).toBe("2026-08-15");
+  });
+
+  // This is the actual reconciliation guarantee: every day the totals query
+  // can return a row for has a bucket to land in.
+  it("gives every day in the counted range a bucket", () => {
+    for (const days of [1, 7, 30, 90, 365]) {
+      const { from, buckets } = analyticsWindow(days, now);
+      expect(buckets).toHaveLength(days);
+      expect(buckets[0]).toBe(from.toISOString().slice(0, 10));
+      expect(buckets[buckets.length - 1]).toBe("2026-08-21");
+    }
+  });
+
+  it("puts the previous window immediately before the current one, same size", () => {
+    const { from, previousFrom } = analyticsWindow(7, now);
+    expect(previousFrom.toISOString()).toBe("2026-08-08T00:00:00.000Z");
+    const spanDays = (from.getTime() - previousFrom.getTime()) / (24 * 60 * 60 * 1000);
+    expect(spanDays).toBe(7);
+  });
+
+  it("treats a single day as today only", () => {
+    const { from, buckets } = analyticsWindow(1, now);
+    expect(buckets).toEqual(["2026-08-21"]);
+    expect(from.toISOString()).toBe("2026-08-21T00:00:00.000Z");
+  });
+
+  it("crosses a month boundary without skipping or repeating a day", () => {
+    const { buckets } = analyticsWindow(5, new Date("2026-09-02T10:00:00.000Z"));
+    expect(buckets).toEqual(["2026-08-29", "2026-08-30", "2026-08-31", "2026-09-01", "2026-09-02"]);
+    expect(new Set(buckets).size).toBe(buckets.length);
   });
 });
