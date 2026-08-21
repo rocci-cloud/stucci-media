@@ -62,7 +62,9 @@ describe("feature article structured data", () => {
 
   it("carries the configured turnaround into the description", () => {
     const withFive = buildFeatureArticleSchema(SITE, "5 business days", FAQS);
-    const service = withFive.find((s) => s["@type"] === "Service") as Record<string, string>;
+    const service = withFive.find((s) => s["@type"] === "Service") as unknown as {
+      description: string;
+    };
     expect(service.description).toContain("5 business days");
     expect(service.description).not.toContain("72 hours");
   });

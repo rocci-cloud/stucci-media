@@ -16,7 +16,10 @@ import { getPublishedArticles } from "../lib/articles";
  * Generated from the live database rather than hand-written, so it cannot
  * describe categories the site no longer has or miss ones it gained.
  */
-export const dynamic = "force-dynamic";
+// Cached for an hour rather than force-dynamic: this file changes only when
+// content does, and an answer engine fetching it does not need the last
+// sixty seconds of publishing. (force-dynamic and revalidate together are
+// contradictory — one says never cache, the other says cache for an hour.)
 export const revalidate = 3600;
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.stuccimedia.com";
