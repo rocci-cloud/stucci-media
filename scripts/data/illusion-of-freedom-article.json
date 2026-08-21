@@ -1,0 +1,41 @@
+{
+  "slug": "illusion-of-freedom-cancel-culture-economic-dependence",
+  "categorySlug": "opinion-analysis",
+  "author": "Rocci J. Stucci",
+  "headline": "The Illusion of Freedom: Free on Paper, Owned in Practice",
+  "dek": "America still writes the strongest speech protections on earth. It also ranks 15th for human freedom, and most working people cannot absorb the cost of using the rights they were promised.",
+  "seoTitle": "The Illusion of Freedom: What Speaking Freely Costs",
+  "seoDescription": "America scores 81 of 100 at Freedom House and ranks 15th for human freedom. Inside the illusion of freedom, cancel culture, and the debt that buys silence.",
+  "seoKeywords": "illusion of freedom, cancel culture, free speech, economic freedom, American freedom",
+  "tags": ["freedom", "cancel culture", "free speech", "economic freedom", "self censorship", "household debt", "first amendment"],
+  "isFeatured": true,
+  "isExclusive": true,
+  "bulletPoints": [
+    "The United States scores 81 out of 100 at Freedom House, out of the global top 20 for the first time, and ranks 15th on the Human Freedom Index after ranking 8th in 2000.",
+    "62% of Americans say the political climate stops them from saying what they believe. Nearly a third of workers fear their opinions could cost them their job.",
+    "Only 30% of Americans could cover a $1,000 emergency from savings, while 154 million people get health coverage from the employer who could fire them tomorrow.",
+    "The First Amendment restrains the government. It does not restrain your boss, your bank, or your landlord, and that gap is where American freedom is actually decided."
+  ],
+  "comparisonTitle": "What They're Not Telling You",
+  "comparisonBody": "Mainstream outlets file cancel culture under politics and household debt under business, then run them as unrelated stories for unrelated audiences. They are the same story. A firing only silences the people who cannot afford to be fired. The speech data and the balance-sheet data explain each other, and almost nobody prints them on the same page.",
+  "comparisonSourceLabel": "Pew Research Center: Americans and 'Cancel Culture'",
+  "comparisonSourceUrl": "https://www.pewresearch.org/internet/2021/05/19/americans-and-cancel-culture-where-some-see-calls-for-accountability-others-see-censorship-punishment/",
+  "socialNotes": "Lead with the Freedom House 81/100 stat and the 'free on paper, owned in practice' line. The FIRE left-vs-right split (632 vs 573) is the credibility anchor when partisans on either side try to claim the piece. Pull quote for graphics: 'A right you cannot afford to use is a privilege you have been loaned.'",
+  "images": {
+    "cover": {
+      "source": "https://cdn.gamma.app/408s36ob2a3di3t/design-anything/MICGmDOOu2yODDl9Yrmvi/wDzNFE5BzH0qcAY5nFRJr.jpg",
+      "filename": "illusion-of-freedom-cover.jpg",
+      "alt": "A frayed American flag in deep shadow with a lone worker silhouetted in a dim office corridor behind it"
+    },
+    "inline1": {
+      "source": "https://cdn.gamma.app/408s36ob2a3di3t/design-anything/lxLZ0PACswj9lvto0PQ6e/vKKNZkvKr9GbdSOO-1oyB.jpg",
+      "filename": "illusion-of-freedom-01.jpg",
+      "alt": "Hands stopped above a laptop keyboard in a darkened office, screen light casting long shadows across the desk"
+    },
+    "inline2": {
+      "source": "https://cdn.gamma.app/408s36ob2a3di3t/design-anything/hsWJlhu9BVJFlV45UdBB5/PWALQfWBvyUWl-mo3Iqbo.jpg",
+      "filename": "illusion-of-freedom-02.jpg",
+      "alt": "Unopened bills, a rent notice and a credit card on a kitchen table in hard raking dawn light"
+    }
+  }
+}

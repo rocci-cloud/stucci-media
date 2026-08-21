@@ -1,0 +1,36 @@
+name: "Publish: The Illusion of Freedom"
+
+# One-click publisher for the feature article "The Illusion of Freedom:
+# Free on Paper, Owned in Practice". Runs
+# scripts/publish-illusion-of-freedom.mjs, which re-hosts the article's
+# three images into this app's own Vercel Blob store and then upserts the
+# article into Postgres as PUBLISHED.
+#
+# Click "Run workflow" in the Actions tab to fire this. Uses the same two
+# repo secrets the image re-host workflow already needs (Settings →
+# Secrets and variables → Actions): DATABASE_URL and BLOB_READ_WRITE_TOKEN.
+#
+# Safe to re-run: the article upserts by slug and the images overwrite the
+# same three Blob paths. Read the job's logged output, not just the green
+# check — the script reports per-image success counts and publishes with a
+# fallback cover rather than failing outright if an upload cannot complete.
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - run: npm ci
+
+      - run: node scripts/publish-illusion-of-freedom.mjs
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
