@@ -163,6 +163,14 @@ if (existing.length > 0) {
       is_featured = ${meta.isFeatured},
       is_exclusive = ${meta.isExclusive},
       status = 'PUBLISHED',
+      -- Every public read goes through publishedWhere() in lib/articles.ts,
+      -- which requires published_at <= now on top of the status. Setting
+      -- status alone would mark a row PUBLISHED and leave it invisible to
+      -- readers if its published_at were still null. coalesce rather than
+      -- now() so a re-run never resets the original publication date, which
+      -- would corrupt datePublished in the article's structured data and
+      -- bump it back to the top of every recency-ordered rail.
+      published_at = coalesce(published_at, now()),
       deleted_at = null,
       updated_at = now()
     where id = ${articleId}
