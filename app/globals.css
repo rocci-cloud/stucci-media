@@ -80,6 +80,18 @@
   --admin-sidebar-fg-active: #ffffff;
   --admin-sidebar-active-bg: rgba(255, 255, 255, 0.08);
   --admin-sidebar-border: rgba(255, 255, 255, 0.08);
+
+  /* Chart series, in fixed assignment order: 1 = page views, 2 = visitors.
+     Assigned to the entity, never to rank, so a filter that reorders the
+     data never repaints a series. Both pairs (light here, dark below) were
+     checked with the dataviz palette validator: adjacent-pair CVD
+     separation is deltaE 19+ under protanopia and both clear 3:1 against
+     their own surface. Do not substitute a hue here without re-running it. */
+  --admin-chart-1: #c8102e;
+  --admin-chart-2: #1c5aa6;
+  /* Proportion-cue fill behind ranked rows. An explicit token rather than an
+     alpha modifier over the var above, so it does not depend on color-mix. */
+  --admin-chart-2-soft: rgba(28, 90, 166, 0.1);
 }
 
 /* Admin dark mode.
@@ -108,6 +120,9 @@
   --admin-primary-hover: #ff6478;
   --admin-ring: rgba(240, 71, 95, 0.45);
   --admin-danger: #f85149;
+  --admin-chart-1: #f0475f;
+  --admin-chart-2: #4f95e8;
+  --admin-chart-2-soft: rgba(79, 149, 232, 0.16);
   --admin-danger-bg: #2d1618;
   --admin-success: #3fb950;
   --admin-success-bg: #12261a;

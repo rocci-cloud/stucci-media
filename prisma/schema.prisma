@@ -58,15 +58,15 @@ model User {
 }
 
 model Session {
-  id        String   @id @default(cuid())
-  userId    String   @map("user_id")
-  token     String   @unique
-  expiresAt DateTime @map("expires_at")
-  ipAddress String?  @map("ip_address")
-  userAgent String?  @map("user_agent")
-  impersonatedBy String? @map("impersonated_by")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id             String   @id @default(cuid())
+  userId         String   @map("user_id")
+  token          String   @unique
+  expiresAt      DateTime @map("expires_at")
+  ipAddress      String?  @map("ip_address")
+  userAgent      String?  @map("user_agent")
+  impersonatedBy String?  @map("impersonated_by")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -171,8 +171,8 @@ enum SubmissionStatus {
 }
 
 model Submission {
-  id   String           @id @default(cuid())
-  kind SubmissionKind   @default(GENERAL)
+  id     String           @id @default(cuid())
+  kind   SubmissionKind   @default(GENERAL)
   status SubmissionStatus @default(NEW)
 
   name    String
@@ -209,13 +209,13 @@ model Submission {
 // page exists for every byline immediately, and filling in a profile enriches
 // it rather than being a precondition for it.
 model Author {
-  id        String  @id @default(cuid())
+  id          String  @id @default(cuid())
   // Slug of the byline as it appears on articles, e.g. "rocci-stucci".
-  slug      String  @unique
-  name      String
-  title     String?
-  bio       String?
-  avatarUrl String? @map("avatar_url")
+  slug        String  @unique
+  name        String
+  title       String?
+  bio         String?
+  avatarUrl   String? @map("avatar_url")
   // Only ever profiles that genuinely belong to this author — an empty
   // field renders nothing rather than a dead link.
   websiteUrl  String? @map("website_url")
@@ -229,9 +229,9 @@ model Author {
 }
 
 model Category {
-  id          String   @id @default(cuid())
+  id          String  @id @default(cuid())
   name        String
-  slug        String   @unique
+  slug        String  @unique
   description String?
   color       String?
 
@@ -258,8 +258,8 @@ model Category {
 }
 
 model Article {
-  id     Int    @id @default(autoincrement())
-  slug   String @unique
+  id   Int    @id @default(autoincrement())
+  slug String @unique
 
   // Legacy primary-category slug, kept for the existing site UI (nav rails,
   // category pages) which reads a single category per article. Additional
@@ -306,9 +306,9 @@ model Article {
   // model, so turning the flag off doesn't lose anything.
   isLiveBlog Boolean @default(false) @map("is_live_blog")
 
-  status      ArticleStatus @default(DRAFT)
-  isFeatured  Boolean       @default(false) @map("is_featured")
-  viewCount   Int           @default(0) @map("view_count")
+  status     ArticleStatus @default(DRAFT)
+  isFeatured Boolean       @default(false) @map("is_featured")
+  viewCount  Int           @default(0) @map("view_count")
 
   // Breaking-news flag — drives the site's BreakingBar ticker. Distinct
   // from isFeatured (homepage curation) and isExclusive (original
@@ -331,8 +331,8 @@ model Article {
   ogImage        String? @map("og_image")
   canonicalUrl   String? @map("canonical_url")
 
-  authorId String? @map("author_id")
-  authorUser User? @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  authorId   String? @map("author_id")
+  authorUser User?   @relation(fields: [authorId], references: [id], onDelete: SetNull)
 
   publishedAt DateTime? @map("published_at")
   createdAt   DateTime  @default(now()) @map("created_at")
@@ -344,13 +344,14 @@ model Article {
   savedBy         SavedArticle[]
   liveBlogEntries LiveBlogEntry[]
   revisions       ArticleRevision[]
+  views           ArticleView[]
+  pageViews       PageView[]
 
   @@index([categorySlug], map: "articles_category_slug_idx")
   @@index([status, publishedAt(sort: Desc)], map: "articles_status_published_at_idx")
   @@index([isFeatured])
   @@index([deletedAt])
   @@map("articles")
-  views ArticleView[]
 }
 
 // A point-in-time snapshot of an article's editable content, written on
@@ -361,8 +362,8 @@ model Article {
 // snapshotted by name/email for the same reason ActivityLog does it: the
 // history still reads correctly after an account is renamed or removed.
 model ArticleRevision {
-  id        String   @id @default(cuid())
-  articleId Int      @map("article_id")
+  id        String @id @default(cuid())
+  articleId Int    @map("article_id")
 
   headline String
   dek      String
@@ -511,9 +512,9 @@ model PushSubscription {
 }
 
 model Subscriber {
-  id            Int      @id @default(autoincrement())
-  email         String   @unique
-  subscribedAt  DateTime @default(now()) @map("subscribed_at")
+  id           Int      @id @default(autoincrement())
+  email        String   @unique
+  subscribedAt DateTime @default(now()) @map("subscribed_at")
 
   @@map("subscribers")
 }
@@ -648,12 +649,12 @@ model Podcast {
   // Everything from here to `language` is populated from the feed and
   // replaced wholesale on refresh.
   title         String
-  description   String  @default("")
-  coverImageUrl String? @map("cover_image_url")
+  description   String   @default("")
+  coverImageUrl String?  @map("cover_image_url")
   author        String?
-  websiteUrl    String? @map("website_url")
+  websiteUrl    String?  @map("website_url")
   language      String?
-  isExplicit    Boolean @default(false) @map("is_explicit")
+  isExplicit    Boolean  @default(false) @map("is_explicit")
   categories    String[] @default([])
 
   // Editor-owned presentation fields — NOT touched by a feed refresh.
@@ -717,8 +718,8 @@ model PodcastFeedEpisode {
 // To see what's in it:   SELECT count(*) FROM podcast_episodes;
 // To retire it for good: DROP TABLE podcast_episodes;  (then delete this model)
 model PodcastEpisode {
-  id       String @id @default(cuid())
-  slug     String @unique
+  id       String  @id @default(cuid())
+  slug     String  @unique
   title    String
   subtitle String?
 
@@ -777,14 +778,14 @@ model SiteSetting {
 // lib/invites.ts), so Better Auth stays the only thing that ever hashes a
 // password.
 model Invite {
-  id        String    @id @default(cuid())
-  email     String    @unique
-  role      Role
-  token     String    @unique
-  invitedBy String    @map("invited_by")
-  expiresAt DateTime  @map("expires_at")
+  id         String    @id @default(cuid())
+  email      String    @unique
+  role       Role
+  token      String    @unique
+  invitedBy  String    @map("invited_by")
+  expiresAt  DateTime  @map("expires_at")
   acceptedAt DateTime? @map("accepted_at")
-  createdAt DateTime  @default(now()) @map("created_at")
+  createdAt  DateTime  @default(now()) @map("created_at")
 
   @@map("invites")
 }
@@ -807,4 +808,67 @@ model Redirect {
   updatedAt  DateTime @updatedAt @map("updated_at")
 
   @@map("redirects")
+}
+
+// --- Analytics ---
+
+// One row per page view, across the whole public site rather than just
+// articles. The pre-existing Article.viewCount / ArticleView pair stays
+// exactly as it was (the dashboard and the admin list read it, and it is
+// the only history that exists for anything published before this table);
+// this is the richer series everything new is built on.
+//
+// Engagement is filled in on a second write: the page POSTs the view on
+// load and gets an id back, then sends duration and scroll depth by
+// `navigator.sendBeacon` when the tab is hidden or closed. Both columns
+// stay null for a visitor who leaves before that fires, so every average
+// over them has to exclude nulls rather than treat them as zero.
+//
+// Visitors are counted without a cookie: `visitorHash` is a salted hash of
+// IP + user agent + the UTC date, so it identifies a person for one day and
+// then stops. That keeps unique-visitor counts honest without storing
+// anything that follows someone around, and means the site needs no consent
+// banner for it. The tradeoff, stated plainly because it shows up in the
+// numbers: a visitor who comes back tomorrow counts as new tomorrow.
+model PageView {
+  id String @id @default(cuid())
+
+  path      String
+  pageType  String   @map("page_type")
+  articleId Int?     @map("article_id")
+  article   Article? @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  // Anonymous, client-generated, sessionStorage-scoped. Groups the pages of
+  // one visit together so bounce rate and pages-per-session are computable.
+  sessionId   String @map("session_id")
+  visitorHash String @map("visitor_hash")
+
+  // Where they came from. `source` is the bucketed form (direct / search /
+  // social / referral / internal) that the UI groups by; the raw referrer is
+  // kept alongside it so a surprising bucket can always be traced back.
+  referrer       String? @db.Text
+  referrerDomain String? @map("referrer_domain")
+  source         String
+  utmSource      String? @map("utm_source")
+  utmMedium      String? @map("utm_medium")
+  utmCampaign    String? @map("utm_campaign")
+
+  device  String
+  browser String
+  os      String
+  country String?
+
+  // Null until the engagement beacon lands. See the note above.
+  durationMs Int? @map("duration_ms")
+  scrollPct  Int? @map("scroll_pct")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([createdAt(sort: Desc)])
+  @@index([articleId, createdAt(sort: Desc)])
+  @@index([path, createdAt(sort: Desc)])
+  @@index([sessionId])
+  @@index([visitorHash, createdAt])
+  @@index([source, createdAt(sort: Desc)])
+  @@map("page_views")
 }
