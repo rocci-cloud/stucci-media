@@ -160,6 +160,10 @@ model ArticleView {
 enum SubmissionKind {
   GENERAL
   PODCAST
+  // Paid feature-article enquiries from /feature-article. Its own kind so
+  // the Inbox can be filtered to sales enquiries rather than mixing them
+  // in with tips and corrections.
+  FEATURE_ARTICLE
 }
 
 enum SubmissionStatus {

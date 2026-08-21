@@ -1,6 +1,6 @@
 import { prisma } from "./prisma";
 
-export type SubmissionKind = "GENERAL" | "PODCAST";
+export type SubmissionKind = "GENERAL" | "PODCAST" | "FEATURE_ARTICLE";
 export type SubmissionStatus = "NEW" | "REVIEWING" | "APPROVED" | "DECLINED" | "ARCHIVED";
 
 export type Submission = {

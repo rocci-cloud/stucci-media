@@ -4,6 +4,7 @@ import { useMemo, useOptimistic, useState, useTransition } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import {
+  BadgeDollarSign,
   CheckCircle2,
   Inbox as InboxIcon,
   Loader2,
@@ -71,7 +72,7 @@ export default function InboxClient({ initial }: { initial: Submission[] }) {
   const [optimistic, applyOptimistic] = useOptimistic(submissions, reducer);
   const [, startTransition] = useTransition();
 
-  const [kindFilter, setKindFilter] = useState<"all" | "PODCAST" | "GENERAL">("all");
+  const [kindFilter, setKindFilter] = useState<"all" | "PODCAST" | "GENERAL" | "FEATURE_ARTICLE">("all");
   const [statusFilter, setStatusFilter] = useState<"all" | SubmissionStatus>("all");
   const [query, setQuery] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(initial[0]?.id ?? null);
@@ -177,6 +178,7 @@ export default function InboxClient({ initial }: { initial: Submission[] }) {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All types</SelectItem>
+            <SelectItem value="FEATURE_ARTICLE">Article enquiries</SelectItem>
             <SelectItem value="PODCAST">Podcast pitches</SelectItem>
             <SelectItem value="GENERAL">Messages</SelectItem>
           </SelectContent>
@@ -225,6 +227,8 @@ export default function InboxClient({ initial }: { initial: Submission[] }) {
                   <div className="flex items-center gap-2">
                     {s.kind === "PODCAST" ? (
                       <Mic className="h-3.5 w-3.5 shrink-0 text-[var(--admin-primary)]" />
+                    ) : s.kind === "FEATURE_ARTICLE" ? (
+                      <BadgeDollarSign className="h-3.5 w-3.5 shrink-0 text-[var(--admin-success)]" />
                     ) : (
                       <Mail className="h-3.5 w-3.5 shrink-0 text-[var(--admin-fg-muted)]" />
                     )}
@@ -248,8 +252,12 @@ export default function InboxClient({ initial }: { initial: Submission[] }) {
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
-                    <Badge variant={selected.kind === "PODCAST" ? undefined : "outline"}>
-                      {selected.kind === "PODCAST" ? "Podcast pitch" : "Message"}
+                    <Badge variant={selected.kind === "GENERAL" ? "outline" : undefined}>
+                      {selected.kind === "PODCAST"
+                        ? "Podcast pitch"
+                        : selected.kind === "FEATURE_ARTICLE"
+                          ? "Article enquiry"
+                          : "Message"}
                     </Badge>
                     <Badge variant="outline">{STATUS_LABEL[selected.status]}</Badge>
                     {selected.importedPodcastId && <Badge>Added to site</Badge>}

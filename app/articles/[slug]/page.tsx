@@ -17,6 +17,7 @@ import SaveButton from "./SaveButton";
 import ListenButton from "./ListenButton";
 import CommentSection from "./CommentSection";
 import ArticleSubscribeCta from "../../components/ArticleSubscribeCta";
+import ServicePromo from "../../components/ServicePromo";
 import LiveBlogTimeline from "./LiveBlogTimeline";
 import {
   getArticleBySlug,
@@ -365,6 +366,10 @@ export default async function ArticlePage({ params }: Props) {
 
             {articleBodySecondHalf && (
               <>
+                {/* Mid-article: the reader is engaged and has not yet
+                    decided what to do next, which is the strongest slot on
+                    the site for a house ad. */}
+                <ServicePromo className="my-8" />
                 <BannerSlot placement="ARTICLE" className="my-6" />
                 <div
                   className="prose prose-neutral max-w-none text-[17px] sm:text-[19px] leading-[1.75]
