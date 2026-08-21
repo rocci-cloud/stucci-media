@@ -98,3 +98,60 @@ describe("elements left empty by sanitising", () => {
     expect(out).toContain("https://example.com/a.jpg");
   });
 });
+
+// Outbound citations and in-site navigation are not the same kind of link.
+// A blanket nofollow + target="_blank" on every anchor is right for the
+// former and actively harmful for the latter: it throws away internal link
+// equity on every article an editor writes, and kicks readers into a new
+// tab to move around our own site.
+describe("link rel/target treatment", () => {
+  it("marks an outbound link nofollow and opens it in a new tab", () => {
+    const out = sanitizeArticleHtml('<p><a href="https://example.com/study">A study</a></p>');
+    expect(out).toContain('rel="noopener noreferrer nofollow"');
+    expect(out).toContain('target="_blank"');
+  });
+
+  it.each([
+    ["a root-relative path", '<a href="/category/political-news">Politics</a>'],
+    ["an in-page fragment", '<a href="#sources">Sources</a>'],
+    ["a bare query string", '<a href="?page=2">Next</a>'],
+    ["an absolute URL on our own host", '<a href="https://www.stuccimedia.com/about">About</a>'],
+    ["our apex domain", '<a href="https://stuccimedia.com/about">About</a>'],
+  ])("leaves %s clean", (_name, html) => {
+    const out = sanitizeArticleHtml(html);
+    expect(out).not.toContain("nofollow");
+    expect(out).not.toContain('target="_blank"');
+  });
+
+  it("treats a protocol-relative URL as outbound despite the leading slash", () => {
+    const out = sanitizeArticleHtml('<a href="//evil.example.com/x">Click</a>');
+    expect(out).toContain("nofollow");
+  });
+
+  it("treats a lookalike hostname as outbound", () => {
+    const out = sanitizeArticleHtml('<a href="https://stuccimedia.com.evil.example/x">Click</a>');
+    expect(out).toContain("nofollow");
+  });
+
+  it("merges an author's rel with the required outbound tokens rather than dropping either", () => {
+    const out = sanitizeArticleHtml('<a href="https://example.com" rel="sponsored">Ad</a>');
+    expect(out).toContain("sponsored");
+    expect(out).toContain("nofollow");
+  });
+
+  it("never lets an outbound link escape nofollow by pre-setting rel", () => {
+    const out = sanitizeArticleHtml('<a href="https://example.com" rel="noopener noreferrer">Cite</a>');
+    expect(out).toContain("nofollow");
+  });
+
+  it("does not duplicate rel tokens already present", () => {
+    const out = sanitizeArticleHtml('<a href="https://example.com" rel="nofollow">Cite</a>');
+    expect(out.match(/nofollow/g)).toHaveLength(1);
+  });
+
+  it("still keeps the href on both kinds of link", () => {
+    const out = sanitizeArticleHtml('<a href="/about">In</a><a href="https://example.com">Out</a>');
+    expect(out).toContain('href="/about"');
+    expect(out).toContain('href="https://example.com"');
+  });
+});

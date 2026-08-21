@@ -47,6 +47,63 @@ const ALLOWED_CLASSES = {
   table: ["article-table"],
 };
 
+// Our own origin, matched so an editor who pastes a full absolute URL to a
+// Stucci Media page gets the same treatment as one who writes a relative
+// path. Same env-var-with-hardcoded-fallback pattern used across the app
+// (robots.ts, sitemap.ts, the article and category pages).
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.stuccimedia.com";
+const INTERNAL_HOSTNAMES = (() => {
+  try {
+    const host = new URL(SITE_URL).hostname.toLowerCase();
+    const bare = host.replace(/^www\./, "");
+    return new Set([bare, `www.${bare}`]);
+  } catch {
+    return new Set<string>();
+  }
+})();
+
+// A link is internal when it stays on this site: a root-relative path, a
+// bare fragment or query, or an absolute URL on our own hostname. Note the
+// `//` guard — a protocol-relative `//evil.com` starts with a slash but is
+// very much not our page.
+function isInternalHref(href: string): boolean {
+  const target = href.trim();
+  if (!target) return false;
+  if (target.startsWith("//")) return false;
+  if (target.startsWith("/") || target.startsWith("#") || target.startsWith("?")) return true;
+  try {
+    return INTERNAL_HOSTNAMES.has(new URL(target).hostname.toLowerCase());
+  } catch {
+    // Not parseable as an absolute URL and not root-relative (e.g. a bare
+    // "example.com"). Treat it as outbound, which is the safe default.
+    return false;
+  }
+}
+
+// Outbound links are always forced to carry noopener/noreferrer/nofollow.
+// That guarantee is the whole point of doing this in the sanitizer rather
+// than trusting the editor: no pasted or hand-written anchor can leak a
+// dofollow vote to somewhere we did not vouch for. Extra rel tokens the
+// author set deliberately (`sponsored` on a paid link, `ugc`) are merged in
+// rather than overwritten, so intent survives without weakening the floor.
+//
+// Internal links get none of it. `nofollow` on our own pages throws away
+// internal link equity on every article an editor writes, and forcing
+// `target="_blank"` on in-site navigation is hostile to the reader.
+const REQUIRED_OUTBOUND_REL = ["noopener", "noreferrer", "nofollow"];
+
+function transformAnchor(tagName: string, attribs: Record<string, string>) {
+  if (isInternalHref(attribs.href ?? "")) {
+    return { tagName, attribs };
+  }
+  const authored = (attribs.rel ?? "").split(/\s+/).filter(Boolean);
+  const rel = [...new Set([...authored, ...REQUIRED_OUTBOUND_REL])].join(" ");
+  return {
+    tagName,
+    attribs: { ...attribs, rel, target: attribs.target || "_blank" },
+  };
+}
+
 export function sanitizeArticleHtml(html: string): string {
   return sanitizeHtml(html, {
     allowedTags: ALLOWED_TAGS,
@@ -82,7 +139,7 @@ export function sanitizeArticleHtml(html: string): string {
     allowedIframeHostnames: ALLOWED_IFRAME_HOSTNAMES,
     allowedSchemes: ["http", "https"],
     transformTags: {
-      a: sanitizeHtml.simpleTransform("a", { rel: "noopener noreferrer nofollow", target: "_blank" }),
+      a: transformAnchor,
     },
     // Stripping a disallowed iframe's src leaves the element itself behind,
     // and an <iframe> with no src still renders as a ~150px empty box. That
