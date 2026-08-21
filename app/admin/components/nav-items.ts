@@ -1,5 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 import {
+  ChartColumnIncreasing,
   FolderTree,
   Image,
   Images,
@@ -30,6 +31,7 @@ export type AdminNavItem = {
 export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
   { label: "Dashboard", href: "/admin", icon: LayoutDashboard, group: "Content" },
   { label: "Articles", href: "/admin/articles", icon: Newspaper, group: "Content" },
+  { label: "Analytics", href: "/admin/analytics", icon: ChartColumnIncreasing, group: "Content" },
   { label: "Podcasts", href: "/admin/podcast-feeds", icon: Rss, visible: canManageSettings, group: "Content" },
   { label: "Comments", href: "/admin/comments", icon: MessageSquare, visible: canModerateComments, group: "Content" },
 

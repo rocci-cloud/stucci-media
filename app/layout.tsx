@@ -13,6 +13,7 @@ import "./globals.css";
 // Vercel's CDN, which just adds two failed requests and console errors to
 // every local page load.
 import { Analytics } from "@vercel/analytics/next";
+import AnalyticsTracker from "./components/AnalyticsTracker";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
 // www, not the apex domain — see the PRODUCTION_URL comment in
@@ -103,6 +104,7 @@ export default function RootLayout({
         {children}
         {process.env.NODE_ENV === "production" && (
           <>
+            <AnalyticsTracker />
             <Analytics />
             <SpeedInsights />
           </>

@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { headers } from "next/headers";
+import { isBot } from "../../lib/analytics-classify";
 import type { Metadata } from "next";
 import BreakingBar from "../../components/BreakingBar";
 import SiteHeader from "../../components/SiteHeader";
@@ -120,7 +121,16 @@ export default async function ArticlePage({ params }: Props) {
   if (!article) notFound();
 
   // Fire-and-forget — never block rendering on a write.
-  incrementArticleViewCount(article.id).catch(() => {});
+  //
+  // Skipped for crawlers and link-preview scrapers. This counter used to
+  // increment on every render, which is why the lifetime totals it has
+  // accumulated so far read high; they are left as they are rather than
+  // rewritten, but from here on it counts people. The richer per-visit
+  // series lives in page_views (see lib/analytics.ts) and applies the same
+  // filter at its own collector.
+  if (!isBot((await headers()).get("user-agent"))) {
+    incrementArticleViewCount(article.id).catch(() => {});
+  }
   if (session) {
     recordVisit(session.user.id).catch(() => {});
     recordCategoryInterest(session.user.id, article.categorySlug).catch(() => {});

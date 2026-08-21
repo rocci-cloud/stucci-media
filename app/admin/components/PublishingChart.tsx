@@ -4,10 +4,11 @@ import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YA
 import type { PublishingDay } from "../../lib/dashboard";
 
 /**
- * Publishing volume over the last month. Deliberately a volume chart, not
- * a traffic chart: article view counts are lifetime totals with no daily
- * time series behind them (see getDashboardStats), so a "views over time"
- * line would be fabricated. This shows something the data actually knows.
+ * Publishing volume over the last month — how much went out, not how much
+ * was read. Traffic now has a real per-day series of its own behind it
+ * (page_views, see lib/analytics.ts) and is charted on /admin/analytics;
+ * this chart deliberately stays a volume chart so the two answer different
+ * questions rather than one being a worse copy of the other.
  */
 export default function PublishingChart({ data }: { data: PublishingDay[] }) {
   const total = data.reduce((sum, d) => sum + d.published, 0);
