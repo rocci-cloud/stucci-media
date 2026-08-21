@@ -1,6 +1,7 @@
 "use server";
 
-import { addSubscriber, SUBSCRIBER_SOURCE_LABELS } from "./subscribers";
+import { addSubscriber } from "./subscribers";
+import { normalizeSubscriberSource } from "./subscriber-sources";
 import { sendEmail } from "./email";
 import { welcomeEmail } from "./email-templates";
 
@@ -14,11 +15,10 @@ export async function subscribeAction(
 ): Promise<SubscribeFormState> {
   const email = String(formData.get("email") || "").trim().toLowerCase();
 
-  // The source is a hidden field, so it is client-controlled: allowlisted
-  // rather than stored as-is, otherwise the column fills with whatever
-  // anyone chooses to post at it.
-  const rawSource = String(formData.get("source") || "").trim();
-  const source = rawSource in SUBSCRIBER_SOURCE_LABELS ? rawSource : "unknown";
+  // The source is a hidden field, so it is client-controlled. Allowlisted
+  // with Object.hasOwn rather than `in` — see normalizeSubscriberSource for
+  // why that distinction matters.
+  const source = normalizeSubscriberSource(formData.get("source"));
 
   if (!EMAIL_RE.test(email)) {
     return { error: "Enter a valid email address." };

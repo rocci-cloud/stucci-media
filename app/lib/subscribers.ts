@@ -1,6 +1,14 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "./prisma";
 
+// Re-exported so existing server-side callers keep one import site, while
+// the pure logic stays in a Prisma-free module that tests can import.
+export {
+  SUBSCRIBER_SOURCE_LABELS,
+  normalizeSubscriberSource,
+  subscriberSourceLabel,
+} from "./subscriber-sources";
+
 export type Subscriber = {
   id: number;
   email: string;
@@ -8,29 +16,6 @@ export type Subscriber = {
   source: string | null;
 };
 
-/** Human labels for the capture points, shared by the admin list and CSV. */
-export const SUBSCRIBER_SOURCE_LABELS: Record<string, string> = {
-  modal: "Newsletter popup",
-  article: "Article page",
-  "homepage-strip": "Homepage strip",
-  sidebar: "Sidebar",
-  "subscribe-page": "Subscribe page",
-  unknown: "Unknown",
-};
-
-export function subscriberSourceLabel(source: string | null): string {
-  if (!source) return "Before tracking";
-  return SUBSCRIBER_SOURCE_LABELS[source] ?? source;
-}
-
-/**
- * Adds an email to the newsletter list.
- *
- * Returns true when a new subscriber was added, false when the email was
- * already on the list — an existing signup is a silent no-op rather than
- * an error, so the public form can show the same confirmation either way
- * instead of leaking who is already subscribed.
- */
 export async function addSubscriber(email: string, source?: string | null): Promise<boolean> {
   try {
     await prisma.subscriber.create({ data: { email, source: source ?? null } });
