@@ -1,6 +1,6 @@
 "use server";
 
-import { addSubscriber } from "./subscribers";
+import { addSubscriber, SUBSCRIBER_SOURCE_LABELS } from "./subscribers";
 import { sendEmail } from "./email";
 import { welcomeEmail } from "./email-templates";
 
@@ -14,13 +14,19 @@ export async function subscribeAction(
 ): Promise<SubscribeFormState> {
   const email = String(formData.get("email") || "").trim().toLowerCase();
 
+  // The source is a hidden field, so it is client-controlled: allowlisted
+  // rather than stored as-is, otherwise the column fills with whatever
+  // anyone chooses to post at it.
+  const rawSource = String(formData.get("source") || "").trim();
+  const source = rawSource in SUBSCRIBER_SOURCE_LABELS ? rawSource : "unknown";
+
   if (!EMAIL_RE.test(email)) {
     return { error: "Enter a valid email address." };
   }
 
   let isNew = false;
   try {
-    isNew = await addSubscriber(email);
+    isNew = await addSubscriber(email, source);
   } catch {
     return { error: "Something went wrong. Try again in a moment." };
   }

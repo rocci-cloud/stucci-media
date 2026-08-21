@@ -516,6 +516,12 @@ model Subscriber {
   email        String   @unique
   subscribedAt DateTime @default(now()) @map("subscribed_at")
 
+  // Which capture point earned this signup (footer strip, sidebar, the
+  // modal, an article, the subscribe page). Nullable because every row
+  // that existed before this column did genuinely has no answer, and
+  // backfilling a guess would be worse than an honest blank.
+  source String?
+
   @@map("subscribers")
 }
 

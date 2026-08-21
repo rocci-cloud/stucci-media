@@ -14,6 +14,7 @@ import "./globals.css";
 // every local page load.
 import { Analytics } from "@vercel/analytics/next";
 import AnalyticsTracker from "./components/AnalyticsTracker";
+import NewsletterModal from "./components/NewsletterModal";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
 // www, not the apex domain — see the PRODUCTION_URL comment in
@@ -105,6 +106,7 @@ export default function RootLayout({
         {process.env.NODE_ENV === "production" && (
           <>
             <AnalyticsTracker />
+            <NewsletterModal />
             <Analytics />
             <SpeedInsights />
           </>
