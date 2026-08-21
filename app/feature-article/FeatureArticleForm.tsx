@@ -15,7 +15,13 @@ const initialState: SubmissionFormState = {};
  * receipt emails already wired up. Only the kind differs, which is what
  * lets the Inbox filter sales enquiries away from tips and corrections.
  */
-export default function FeatureArticleForm() {
+export default function FeatureArticleForm({
+  hasPaymentLink = false,
+  turnaround = "72 hours",
+}: {
+  hasPaymentLink?: boolean;
+  turnaround?: string;
+}) {
   const [state, formAction, pending] = useActionState(submitToInboxAction, initialState);
   const id = useId();
 
@@ -27,7 +33,7 @@ export default function FeatureArticleForm() {
         </p>
         <p className="mt-2.5 text-[15px] leading-[1.6] text-[var(--color-gray)]">
           We&apos;ve sent you a confirmation and Rocci will follow up personally to confirm the details and get
-          your article started.
+          your article started. Most articles publish within {turnaround} of us having what we need.
         </p>
       </div>
     );
@@ -124,7 +130,9 @@ export default function FeatureArticleForm() {
         {!pending && <Send className="h-4 w-4" />}
       </button>
       <p className="text-center font-sans text-[12.5px] text-[var(--color-gray-light)]">
-        No payment now. We&apos;ll confirm the details with you first.
+        {hasPaymentLink
+          ? "No payment on this form. We'll confirm the details, then send you a secure Stripe link."
+          : "No payment now. We'll confirm the details with you first."}
       </p>
     </form>
   );

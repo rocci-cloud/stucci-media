@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import {
   ArrowRight,
+  CreditCard,
   Check,
   FileSearch,
   Infinity as InfinityIcon,
@@ -10,6 +11,7 @@ import {
   Search,
   Send,
   Share2,
+  Timer,
   ShieldCheck,
 } from "lucide-react";
 import BreakingBar from "../components/BreakingBar";
@@ -17,6 +19,7 @@ import SiteHeader from "../components/SiteHeader";
 import SiteFooter from "../components/SiteFooter";
 import Reveal from "../components/Reveal";
 import FeatureArticleForm from "./FeatureArticleForm";
+import { getSiteSettings } from "../lib/settings";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.stuccimedia.com";
 const PRICE = "$125";
@@ -36,7 +39,12 @@ export const metadata: Metadata = {
   },
 };
 
-const BENEFITS = [
+const benefits = (turnaround: string) => [
+  {
+    icon: Timer,
+    title: "Turned around fast",
+    body: `Most articles are written, approved and published within ${turnaround} of us having what we need from you. If something about your story means it'll take longer, we tell you that up front rather than after.`,
+  },
   {
     icon: InfinityIcon,
     title: "It never expires",
@@ -80,7 +88,7 @@ const INCLUDED = [
   "Your article live permanently, at its own permanent URL",
 ];
 
-const STEPS = [
+const steps = (turnaround: string) => [
   {
     n: "01",
     title: "Fill in the questionnaire",
@@ -94,11 +102,11 @@ const STEPS = [
   {
     n: "03",
     title: "It publishes, and it stays",
-    body: "Once you're happy, it goes live on Stucci Media with its own permanent link, gets picked up in our sitemap, and goes out to our readers.",
+    body: `Once you're happy, it goes live on Stucci Media with its own permanent link, gets picked up in our sitemap, and goes out to our readers. Usually within ${turnaround} of us having your answers.`,
   },
 ];
 
-const FAQS = [
+const faqs = (turnaround: string) => [
   {
     q: `Why ${PRICE}? What's the catch?`,
     a: "There isn't one. It's a flat fee for a piece of work, not a subscription, not a retainer, and not a rate that climbs once you're in. You pay once and the article is yours permanently.",
@@ -106,6 +114,14 @@ const FAQS = [
   {
     q: "How much work is this for me?",
     a: "One questionnaire. You answer some questions about your business in plain language, and our staff turns that into a finished, publishable article. You read it before it goes live. That's it.",
+  },
+  {
+    q: "How fast is it?",
+    a: `Typically published within ${turnaround} of us having your questionnaire answers. Some stories need a little longer — if yours is one of them, we'll tell you at the start rather than let a deadline slide quietly.`,
+  },
+  {
+    q: "When do I pay?",
+    a: "You send the questionnaire first and we confirm the details with you. Payment is handled securely through Stripe — we never see or store your card details.",
   },
   {
     q: "Do I get to approve it before it publishes?",
@@ -125,7 +141,14 @@ const FAQS = [
   },
 ];
 
-export default function FeatureArticlePage() {
+export default async function FeatureArticlePage() {
+  const settings = await getSiteSettings();
+  const turnaround = settings.featureArticleTurnaround.trim() || "72 hours";
+  const payLink = settings.featureArticlePaymentLink.trim();
+  const BENEFITS = benefits(turnaround);
+  const STEPS = steps(turnaround);
+  const FAQS = faqs(turnaround);
+
   return (
     <>
       <BreakingBar />
@@ -145,7 +168,7 @@ export default function FeatureArticlePage() {
           <div className="relative mx-auto w-full max-w-[820px] text-center animate-[heroTextReveal_0.9s_cubic-bezier(0.16,1,0.3,1)_both]">
             <p className="font-sans text-[10.5px] font-bold uppercase tracking-[0.2em] text-[var(--color-red)]">
               <span className="mr-2 inline-block h-1 w-1 rounded-full bg-[var(--color-red)] align-middle" />
-              Featured coverage · {PRICE} flat
+              Featured coverage · {PRICE} flat · Published in {turnaround}
             </p>
             <h1 className="font-headline mt-4 text-[38px] font-bold uppercase leading-[0.96] tracking-[-0.02em] text-white sm:text-[58px] lg:text-[66px]">
               Get your business
@@ -280,6 +303,26 @@ export default function FeatureArticlePage() {
                     Start my article
                     <ArrowRight className="h-4 w-4" />
                   </Link>
+                  {/* Only rendered once a Stripe payment link is set in
+                      admin settings. Until then the page sells the service
+                      and takes enquiries, which is a working state rather
+                      than a broken one. */}
+                  {payLink && (
+                    <a
+                      href={payLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-2.5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-control border border-[var(--color-navy)] px-6 font-sans text-[13.5px] font-bold uppercase tracking-wide text-[var(--color-navy)] transition hover:bg-[var(--color-navy)] hover:text-white active:scale-[0.97]"
+                    >
+                      <CreditCard className="h-4 w-4" />
+                      Pay {PRICE} now
+                    </a>
+                  )}
+                  <p className="mt-3 text-[12px] leading-[1.5] text-[var(--color-gray-light)]">
+                    {payLink
+                      ? "Card payments handled securely by Stripe. We never see your card details."
+                      : "Send your details first and we'll confirm everything before any payment."}
+                  </p>
                 </div>
               </div>
             </div>
@@ -330,7 +373,7 @@ export default function FeatureArticlePage() {
                 </p>
               </div>
               <div className="mt-8">
-                <FeatureArticleForm />
+                <FeatureArticleForm hasPaymentLink={Boolean(payLink)} turnaround={turnaround} />
               </div>
               <p className="mt-6 text-center text-[14px] leading-[1.6] text-[var(--color-gray)]">
                 Prefer to just talk to a person? Email{" "}
