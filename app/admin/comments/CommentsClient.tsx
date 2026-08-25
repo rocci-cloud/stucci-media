@@ -59,7 +59,7 @@ export default function CommentsClient({ initialComments }: { initialComments: A
         c.content.toLowerCase().includes(q) ||
         c.authorName.toLowerCase().includes(q) ||
         c.authorEmail.toLowerCase().includes(q) ||
-        c.articleHeadline.toLowerCase().includes(q)
+        c.targetTitle.toLowerCase().includes(q)
       );
     });
   }, [optimisticComments, query, status]);
@@ -168,7 +168,7 @@ export default function CommentsClient({ initialComments }: { initialComments: A
               <TableRow>
                 <TableHead>Comment</TableHead>
                 <TableHead className="hidden sm:table-cell">Author</TableHead>
-                <TableHead className="hidden md:table-cell">Article</TableHead>
+                <TableHead className="hidden md:table-cell">On</TableHead>
                 <TableHead className="hidden lg:table-cell">Date</TableHead>
                 <TableHead className="w-20 text-center">Visible</TableHead>
                 <TableHead className="w-10" />
@@ -190,12 +190,18 @@ export default function CommentsClient({ initialComments }: { initialComments: A
                   </TableCell>
                   <TableCell className="hidden max-w-[220px] truncate md:table-cell">
                     <Link
-                      href={`/articles/${comment.articleSlug}`}
+                      href={comment.targetHref}
                       target="_blank"
                       className="text-[13px] text-[var(--admin-primary)] hover:underline"
                     >
-                      {comment.articleHeadline}
+                      {comment.targetTitle}
                     </Link>
+                    {/* Which surface this came from. Without it an episode
+                        comment and an article comment are indistinguishable
+                        in the queue. */}
+                    <div className="text-[11px] uppercase tracking-wide text-[var(--admin-fg-muted)]">
+                      {comment.targetKind === "episode" ? "Episode" : "Article"}
+                    </div>
                   </TableCell>
                   <TableCell className="hidden text-[var(--admin-fg-muted)] lg:table-cell">
                     {new Date(comment.createdAt).toLocaleDateString("en-US", {

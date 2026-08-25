@@ -9,8 +9,16 @@ import SiteFooter from "../../../components/SiteFooter";
 import Reveal from "../../../components/Reveal";
 import { formatDuration } from "../../../lib/podcast-duration";
 import { episodeTeaser } from "../../../lib/podcast-text";
-import { sanitizeArticleHtml } from "../../../lib/sanitize";
+import { showNotesToHtml } from "../../../lib/podcast-text";
 import { getAdjacentEpisodes, getEpisodeBySlug, getPodcastBySlug } from "../../../lib/podcasts";
+import { headers } from "next/headers";
+import { auth } from "../../../lib/auth";
+import { getEpisodeLikeCount, hasUserLikedEpisode } from "../../../lib/likes";
+import { getApprovedCommentsForEpisode } from "../../../lib/comments";
+import CommentSection from "../../../articles/[slug]/CommentSection";
+import EpisodeLikeButton from "./EpisodeLikeButton";
+import ShareRow from "../../ShareRow";
+import { createEpisodeCommentAction } from "./actions";
 import PlayButton from "../../PlayButton";
 import type { PlayableEpisode } from "../../PlayerProvider";
 
@@ -57,6 +65,14 @@ export default async function EpisodePage({ params }: Props) {
 
   const { newer, older } = await getAdjacentEpisodes(show.id, episode.publishedAt);
 
+  const session = await auth.api.getSession({ headers: await headers() });
+  const [likeCount, liked, comments] = await Promise.all([
+    getEpisodeLikeCount(episode.id),
+    session ? hasUserLikedEpisode(episode.id, session.user.id) : Promise.resolve(false),
+    getApprovedCommentsForEpisode(episode.id),
+  ]);
+  const episodePath = `/podcasts/${show.slug}/${episode.slug}`;
+
   const playable: PlayableEpisode | null = episode.audioUrl
     ? {
         id: episode.id,
@@ -70,9 +86,11 @@ export default async function EpisodePage({ params }: Props) {
       }
     : null;
 
-  // Show notes are third-party HTML from the feed — through the same
-  // sanitiser the newsroom's own article bodies use, never raw.
-  const notes = sanitizeArticleHtml(episode.description);
+  // Show notes are third-party content from the feed. showNotesToHtml
+  // sanitises real HTML and, for the many publishers who send plain text,
+  // turns newlines into paragraphs and breaks — without it a timestamp
+  // list arrives as one unbroken run-on line.
+  const notes = showNotesToHtml(episode.description);
   const artwork = episode.imageUrl || show.coverImageUrl;
 
   const episodeSchema = {
@@ -226,7 +244,12 @@ export default async function EpisodePage({ params }: Props) {
           {(newer || older) && (
             <nav
               aria-label="More episodes"
-              className="mt-10 grid grid-cols-1 gap-3 border-t-2 border-[var(--color-navy)] pt-6 sm:grid-cols-2"
+              // Two columns only when there is something on both sides.
+              // With one neighbour a fixed 2-up grid leaves a conspicuous
+              // empty cell and pushes the lone card to an edge.
+              className={`mt-10 grid grid-cols-1 gap-3 border-t-2 border-[var(--color-navy)] pt-6 ${
+                newer && older ? "sm:grid-cols-2" : ""
+              }`}
             >
               {newer ? (
                 <Link
@@ -243,14 +266,14 @@ export default async function EpisodePage({ params }: Props) {
                     </span>
                   </span>
                 </Link>
-              ) : (
-                <span aria-hidden />
-              )}
+              ) : null}
 
               {older && (
                 <Link
                   href={`/podcasts/${show.slug}/${older.slug}`}
-                  className="group flex min-h-11 items-start justify-end gap-2 rounded-card border border-[var(--color-hairline)] px-4 py-3 text-right transition hover:border-[var(--color-navy)] hover:shadow-card"
+                  className={`group flex min-h-11 items-start gap-2 rounded-card border border-[var(--color-hairline)] px-4 py-3 transition hover:border-[var(--color-navy)] hover:shadow-card ${
+                    newer ? "justify-end text-right" : ""
+                  }`}
                 >
                   <span className="min-w-0">
                     <span className="block font-sans text-[10.5px] font-bold uppercase tracking-[0.06em] text-[var(--color-gray-light)]">
@@ -265,6 +288,39 @@ export default async function EpisodePage({ params }: Props) {
               )}
             </nav>
           )}
+          {/* --- Engagement --- */}
+          <div className="mt-10 rounded-card bg-[var(--color-bg-off)] px-5 py-5">
+            <p className="mb-3 font-headline text-[15px] font-bold uppercase tracking-[0.04em] text-[var(--color-gray)]">
+              Enjoyed this episode?
+            </p>
+            <div className="flex flex-wrap items-center gap-2">
+              <EpisodeLikeButton
+                episodeId={episode.id}
+                initialCount={likeCount}
+                initialLiked={liked}
+                isSignedIn={Boolean(session)}
+                signInRedirect={episodePath}
+              />
+              <ShareRow url={`${siteUrl}${episodePath}`} title={episode.title} />
+            </div>
+          </div>
+
+          <Reveal>
+            <CommentSection
+              postComment={createEpisodeCommentAction.bind(null, episode.id)}
+              initialComments={comments}
+              currentUser={
+                session
+                  ? {
+                      id: session.user.id,
+                      name: session.user.name,
+                      image: session.user.image ?? null,
+                    }
+                  : null
+              }
+              signInRedirect={episodePath}
+            />
+          </Reveal>
         </div>
       </main>
       <SiteFooter />

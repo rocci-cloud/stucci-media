@@ -16,6 +16,7 @@ import LikeButton from "./LikeButton";
 import SaveButton from "./SaveButton";
 import ListenButton from "./ListenButton";
 import CommentSection from "./CommentSection";
+import { createCommentAction } from "./actions";
 import ArticleSubscribeCta from "../../components/ArticleSubscribeCta";
 import ServicePromo from "../../components/ServicePromo";
 import LiveBlogTimeline from "./LiveBlogTimeline";
@@ -438,7 +439,7 @@ export default async function ArticlePage({ params }: Props) {
             {settings.featureComments && (
               <Reveal>
                 <CommentSection
-                  articleId={article.id}
+                  postComment={createCommentAction.bind(null, article.id)}
                   initialComments={comments}
                   currentUser={currentUser}
                   signInRedirect={pagePath}

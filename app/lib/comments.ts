@@ -22,8 +22,12 @@ export type AdminComment = {
   authorEmail: string;
   isApproved: boolean;
   isPinned: boolean;
-  articleSlug: string;
-  articleHeadline: string;
+  // What the comment is attached to. One queue moderates both articles and
+  // podcast episodes, so the row has to say which — and link to the right
+  // public page.
+  targetKind: "article" | "episode";
+  targetTitle: string;
+  targetHref: string;
 };
 
 type CommentRow = PrismaComment & { user: User };
@@ -98,24 +102,79 @@ export async function createComment(input: {
   return mapRow(row);
 }
 
+/**
+ * The same thread machinery, pointed at a podcast episode.
+ *
+ * Deliberately thin wrappers over the article versions rather than a
+ * parallel implementation: tree building, pin ordering and approval are
+ * identical, and the admin moderation queue reads both from one table.
+ */
+export async function getApprovedCommentsForEpisode(episodeId: string): Promise<CommentNode[]> {
+  const rows = await prisma.comment.findMany({
+    where: { podcastEpisodeId: episodeId, isApproved: true },
+    include: { user: true },
+    orderBy: { createdAt: "asc" },
+  });
+  return buildTree(rows);
+}
+
+export async function getEpisodeCommentCount(episodeId: string): Promise<number> {
+  return prisma.comment.count({ where: { podcastEpisodeId: episodeId, isApproved: true } });
+}
+
+export async function createEpisodeComment(input: {
+  episodeId: string;
+  userId: string;
+  content: string;
+  parentId: string | null;
+}): Promise<CommentNode> {
+  const row = await prisma.comment.create({
+    data: {
+      podcastEpisodeId: input.episodeId,
+      userId: input.userId,
+      content: input.content,
+      parentId: input.parentId,
+      isApproved: true,
+    },
+    include: { user: true },
+  });
+  return mapRow(row);
+}
+
 // --- Admin moderation ---
 
 export async function getAllCommentsAdmin(): Promise<AdminComment[]> {
   const rows = await prisma.comment.findMany({
-    include: { user: true, article: { select: { slug: true, headline: true } } },
+    include: {
+      user: true,
+      article: { select: { slug: true, headline: true } },
+      episode: { select: { slug: true, title: true, podcast: { select: { slug: true } } } },
+    },
     orderBy: { createdAt: "desc" },
   });
-  return rows.map((row) => ({
-    id: row.id,
-    content: row.content,
-    createdAt: row.createdAt.toISOString(),
-    authorName: row.user.name,
-    authorEmail: row.user.email,
-    isApproved: row.isApproved,
-    isPinned: row.isPinned,
-    articleSlug: row.article.slug,
-    articleHeadline: row.article.headline,
-  }));
+  return rows.map((row) => {
+    const target = row.episode
+      ? {
+          targetKind: "episode" as const,
+          targetTitle: row.episode.title,
+          targetHref: `/podcasts/${row.episode.podcast.slug}/${row.episode.slug}`,
+        }
+      : {
+          targetKind: "article" as const,
+          targetTitle: row.article?.headline ?? "(deleted)",
+          targetHref: row.article ? `/articles/${row.article.slug}` : "#",
+        };
+    return {
+      id: row.id,
+      content: row.content,
+      createdAt: row.createdAt.toISOString(),
+      authorName: row.user.name,
+      authorEmail: row.user.email,
+      isApproved: row.isApproved,
+      isPinned: row.isPinned,
+      ...target,
+    };
+  });
 }
 
 export async function setCommentApproved(id: string, isApproved: boolean): Promise<void> {

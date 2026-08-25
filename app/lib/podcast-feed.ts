@@ -1,5 +1,6 @@
 import { XMLParser } from "fast-xml-parser";
 import { parseDuration } from "./podcast-duration";
+import { cleanEpisodeTitle } from "./podcast-text";
 
 /**
  * Podcast RSS parsing.
@@ -124,7 +125,7 @@ function isExplicitValue(value: string): boolean {
 }
 
 function parseEpisode(item: Record<string, unknown>): ParsedFeedEpisode | null {
-  const title = firstText(item.title, item["itunes:title"]);
+  const title = cleanEpisodeTitle(firstText(item.title, item["itunes:title"]));
   const enclosure = item.enclosure;
 
   const audioUrl =
@@ -187,9 +188,20 @@ export function parsePodcastFeed(xml: string): ParsedFeed {
     .sort((a, b) => (b.publishedAt?.getTime() ?? 0) - (a.publishedAt?.getTime() ?? 0))
     .slice(0, MAX_EPISODES_PER_FEED);
 
+  // Feeds routinely declare the same category more than once — a parent
+  // alongside its own subcategory, or just a duplicate line. Left as-is
+  // that puts the show into the same bucket twice on the hub's browse-by-
+  // topic row. Deduped case-insensitively, keeping the first spelling.
+  const seenCategories = new Set<string>();
   const categories = ((channel["itunes:category"] as unknown[] | undefined) ?? [])
     .map((c) => attr(c, "text"))
     .filter(Boolean)
+    .filter((category) => {
+      const key = category.toLowerCase();
+      if (seenCategories.has(key)) return false;
+      seenCategories.add(key);
+      return true;
+    })
     .slice(0, 8);
 
   return {

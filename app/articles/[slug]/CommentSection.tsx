@@ -3,7 +3,7 @@
 import { useOptimistic, useState, useTransition } from "react";
 import Link from "next/link";
 import { MessageCircle, Loader2, Pin } from "lucide-react";
-import { createCommentAction } from "./actions";
+import type { CommentActionResult } from "./actions";
 import type { CommentNode } from "../../lib/comments";
 
 function getInitials(name: string) {
@@ -33,15 +33,28 @@ function insertReply(nodes: CommentNode[], parentId: string | null, newNode: Com
   );
 }
 
+/**
+ * Posts a comment against whatever this thread belongs to.
+ *
+ * Injected rather than imported so one threaded, optimistic, pin-aware
+ * comment UI serves both articles and podcast episodes. The page binds its
+ * own server action to its own id and passes it down; nothing in here
+ * needs to know which kind of thing is being discussed.
+ */
+export type PostComment = (
+  content: string,
+  parentId: string | null
+) => Promise<CommentActionResult>;
+
 type CurrentUser = { id: string; name: string; image: string | null };
 
 export default function CommentSection({
-  articleId,
+  postComment,
   initialComments,
   currentUser,
   signInRedirect,
 }: {
-  articleId: number;
+  postComment: PostComment;
   initialComments: CommentNode[];
   currentUser: CurrentUser | null;
   signInRedirect: string;
@@ -66,7 +79,7 @@ export default function CommentSection({
 
       {currentUser ? (
         <CommentForm
-          articleId={articleId}
+          postComment={postComment}
           parentId={null}
           currentUser={currentUser}
           onOptimisticAdd={(node) => applyOptimistic({ parentId: null, node })}
@@ -94,7 +107,7 @@ export default function CommentSection({
             <CommentItem
               key={comment.id}
               comment={comment}
-              articleId={articleId}
+              postComment={postComment}
               currentUser={currentUser}
               signInRedirect={signInRedirect}
               onOptimisticAdd={(parentId, node) => applyOptimistic({ parentId, node })}
@@ -109,7 +122,7 @@ export default function CommentSection({
 
 function CommentItem({
   comment,
-  articleId,
+  postComment,
   currentUser,
   signInRedirect,
   onOptimisticAdd,
@@ -117,7 +130,7 @@ function CommentItem({
   depth = 0,
 }: {
   comment: CommentNode;
-  articleId: number;
+  postComment: PostComment;
   currentUser: CurrentUser | null;
   signInRedirect: string;
   onOptimisticAdd: (parentId: string, node: CommentNode) => void;
@@ -169,7 +182,7 @@ function CommentItem({
           {replying && currentUser && (
             <div className="mt-3">
               <CommentForm
-                articleId={articleId}
+                postComment={postComment}
                 parentId={comment.id}
                 currentUser={currentUser}
                 autoFocus
@@ -191,7 +204,7 @@ function CommentItem({
             <CommentItem
               key={reply.id}
               comment={reply}
-              articleId={articleId}
+              postComment={postComment}
               currentUser={currentUser}
               signInRedirect={signInRedirect}
               onOptimisticAdd={onOptimisticAdd}
@@ -212,7 +225,7 @@ const MIN_COMMENT_LENGTH = 2;
 const MAX_COMMENT_LENGTH = 2000;
 
 function CommentForm({
-  articleId,
+  postComment,
   parentId,
   currentUser,
   onOptimisticAdd,
@@ -220,7 +233,7 @@ function CommentForm({
   autoFocus,
   compact,
 }: {
-  articleId: number;
+  postComment: PostComment;
   parentId: string | null;
   currentUser: CurrentUser;
   onOptimisticAdd: (node: CommentNode) => void;
@@ -258,7 +271,7 @@ function CommentForm({
     startTransition(async () => {
       onOptimisticAdd(tempNode);
       setContent("");
-      const result = await createCommentAction(articleId, trimmed, parentId);
+      const result = await postComment(trimmed, parentId);
       if (result.success) {
         onCommitted(result.comment);
       } else {
