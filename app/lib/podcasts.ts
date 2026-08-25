@@ -26,6 +26,7 @@ export type Podcast = {
 export type PodcastEpisodeItem = {
   id: string;
   guid: string;
+  slug: string;
   title: string;
   description: string;
   audioUrl: string | null;
@@ -74,6 +75,7 @@ function mapPodcast(row: PodcastRow): Podcast {
 type EpisodeRow = {
   id: string;
   guid: string;
+  slug: string;
   title: string;
   description: string;
   audioUrl: string | null;
@@ -140,6 +142,121 @@ export async function getPodcastEpisodes(podcastId: string, limit = MAX_EPISODES
   return rows.map(mapEpisode);
 }
 
+/** An episode plus the show it belongs to — the network-wide feed's unit. */
+export type EpisodeWithShow = PodcastEpisodeItem & {
+  show: { slug: string; title: string; author: string | null; coverImageUrl: string | null };
+};
+
+const SHOW_FIELDS = { select: { slug: true, title: true, author: true, coverImageUrl: true } };
+
+/**
+ * Newest episodes across every active show — the hub's cross-network feed.
+ *
+ * Ordered by publish date, so a show that posts daily naturally dominates
+ * over one that posts monthly. That is the correct behaviour for a "latest"
+ * rail; per-show balance is what the Shows grid is for.
+ */
+export async function getLatestEpisodes(limit = 12): Promise<EpisodeWithShow[]> {
+  const rows = await prisma.podcastFeedEpisode.findMany({
+    where: { podcast: { isActive: true } },
+    orderBy: [{ publishedAt: "desc" }, { createdAt: "desc" }],
+    take: limit,
+    include: { podcast: SHOW_FIELDS },
+  });
+  return rows.map((row) => ({ ...mapEpisode(row), show: row.podcast }));
+}
+
+export async function getEpisodeBySlug(
+  podcastSlug: string,
+  episodeSlug: string
+): Promise<EpisodeWithShow | undefined> {
+  const row = await prisma.podcastFeedEpisode.findFirst({
+    where: { slug: episodeSlug, podcast: { slug: podcastSlug, isActive: true } },
+    include: { podcast: SHOW_FIELDS },
+  });
+  return row ? { ...mapEpisode(row), show: row.podcast } : undefined;
+}
+
+/**
+ * The episodes either side of this one, for in-page navigation.
+ *
+ * "Newer" and "older" are by publish date, matching the order every episode
+ * list on the site uses, so next/previous move the way the list reads.
+ * Episodes with no pubDate at all sort last and simply get no neighbours.
+ */
+export async function getAdjacentEpisodes(
+  podcastId: string,
+  publishedAt: string | null
+): Promise<{ newer?: PodcastEpisodeItem; older?: PodcastEpisodeItem }> {
+  if (!publishedAt) return {};
+  const at = new Date(publishedAt);
+  const [newer, older] = await Promise.all([
+    prisma.podcastFeedEpisode.findFirst({
+      where: { podcastId, publishedAt: { gt: at } },
+      orderBy: { publishedAt: "asc" },
+    }),
+    prisma.podcastFeedEpisode.findFirst({
+      where: { podcastId, publishedAt: { lt: at } },
+      orderBy: { publishedAt: "desc" },
+    }),
+  ]);
+  return {
+    ...(newer ? { newer: mapEpisode(newer) } : {}),
+    ...(older ? { older: mapEpisode(older) } : {}),
+  };
+}
+
+/**
+ * Active shows bucketed by the categories their feeds declare.
+ *
+ * A show appears under every category it lists, not just its first — that
+ * is how Apple and Spotify both treat iTunes categories, and a politics
+ * show that is also true crime genuinely belongs in both. Buckets are
+ * ordered by size so the network's real centre of gravity leads, and a
+ * category holding only one show is dropped: a "browse by topic" row of
+ * one-item groups is noise, not navigation.
+ */
+export async function getShowsByCategory(): Promise<{ category: string; shows: Podcast[] }[]> {
+  const shows = await getActivePodcasts();
+  const buckets = new Map<string, Podcast[]>();
+  for (const show of shows) {
+    for (const category of show.categories) {
+      const key = category.trim();
+      if (!key) continue;
+      const bucket = buckets.get(key);
+      if (bucket) bucket.push(show);
+      else buckets.set(key, [show]);
+    }
+  }
+  return [...buckets.entries()]
+    .filter(([, group]) => group.length > 1)
+    .sort((a, b) => b[1].length - a[1].length || a[0].localeCompare(b[0]))
+    .map(([category, group]) => ({ category, shows: group }));
+}
+
+/**
+ * Every episode's URL and last-changed date, for the sitemap.
+ *
+ * Deliberately a narrow select rather than reusing getPodcastEpisodes:
+ * a sitemap needs two columns per row across the whole network, and
+ * pulling full descriptions for hundreds of episodes to throw them away
+ * would be the expensive way to build one.
+ */
+export async function getEpisodeSitemapEntries(): Promise<
+  { showSlug: string; episodeSlug: string; publishedAt: Date | null }[]
+> {
+  const rows = await prisma.podcastFeedEpisode.findMany({
+    where: { podcast: { isActive: true } },
+    orderBy: { publishedAt: "desc" },
+    select: { slug: true, publishedAt: true, podcast: { select: { slug: true } } },
+  });
+  return rows.map((row) => ({
+    showSlug: row.podcast.slug,
+    episodeSlug: row.slug,
+    publishedAt: row.publishedAt,
+  }));
+}
+
 // --- Writes ---
 
 /**
@@ -167,13 +284,40 @@ async function uniqueSlug(title: string): Promise<string> {
  * can't leave a show with no episodes at all.
  */
 async function replaceEpisodes(podcastId: string, feed: ParsedFeed): Promise<number> {
+  const episodes = withEpisodeSlugs(feed.episodes);
   await prisma.$transaction([
     prisma.podcastFeedEpisode.deleteMany({ where: { podcastId } }),
     prisma.podcastFeedEpisode.createMany({
-      data: feed.episodes.map((episode) => ({ podcastId, ...episode })),
+      data: episodes.map((episode) => ({ podcastId, ...episode })),
     }),
   ]);
-  return feed.episodes.length;
+  return episodes.length;
+}
+
+/**
+ * Assigns each episode the URL segment its page is served from.
+ *
+ * Derived from the title rather than the feed's guid, which is unique but
+ * routinely a full URL or a UUID and so can't sit in a path. Because
+ * `replaceEpisodes` deletes and re-inserts on every refresh, this has to be
+ * deterministic: the same feed must produce the same slugs each time, or
+ * every refresh would silently break every episode link. Collisions within
+ * a show (publishers reuse titles more than you would think) get a -2, -3
+ * suffix in feed order, and a title that slugifies to nothing falls back to
+ * its episode number so the row is still addressable.
+ */
+function withEpisodeSlugs<T extends { title: string; episodeNumber: number | null }>(
+  episodes: T[]
+): (T & { slug: string })[] {
+  const seen = new Map<string, number>();
+  return episodes.map((episode, index) => {
+    const base =
+      slugify(episode.title).slice(0, 80) ||
+      (episode.episodeNumber !== null ? `episode-${episode.episodeNumber}` : `episode-${index + 1}`);
+    const priorUses = seen.get(base) ?? 0;
+    seen.set(base, priorUses + 1);
+    return { ...episode, slug: priorUses === 0 ? base : `${base}-${priorUses + 1}` };
+  });
 }
 
 export type ImportResult = { podcast: Podcast; episodeCount: number };

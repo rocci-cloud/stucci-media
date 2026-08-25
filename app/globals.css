@@ -473,3 +473,61 @@ body {
     pointer-events: none;
   }
 }
+
+@layer components {
+  /* The podcast player's scrub bar. A range input rather than a div so it
+     is keyboard- and screen-reader-operable for free; the track is painted
+     from --progress, which the player sets as an inline custom property. */
+  .podcast-seek {
+    --progress: 0%;
+  }
+  .podcast-seek::-webkit-slider-runnable-track {
+    height: 3px;
+    border-radius: 999px;
+    background: linear-gradient(
+      to right,
+      var(--color-red) var(--progress),
+      rgba(255, 255, 255, 0.18) var(--progress)
+    );
+  }
+  .podcast-seek::-moz-range-track {
+    height: 3px;
+    border-radius: 999px;
+    background: linear-gradient(
+      to right,
+      var(--color-red) var(--progress),
+      rgba(255, 255, 255, 0.18) var(--progress)
+    );
+  }
+  .podcast-seek::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 11px;
+    height: 11px;
+    margin-top: -4px;
+    border-radius: 999px;
+    background: #fff;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
+    opacity: 0;
+    transition: opacity 120ms ease;
+  }
+  .podcast-seek::-moz-range-thumb {
+    width: 11px;
+    height: 11px;
+    border: 0;
+    border-radius: 999px;
+    background: #fff;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
+    opacity: 0;
+    transition: opacity 120ms ease;
+  }
+  /* The handle only appears when it is actually usable — a dot floating on
+     the bar at rest reads as clutter on a bar this thin. */
+  .podcast-seek:hover::-webkit-slider-thumb,
+  .podcast-seek:focus-visible::-webkit-slider-thumb { opacity: 1; }
+  .podcast-seek:hover::-moz-range-thumb,
+  .podcast-seek:focus-visible::-moz-range-thumb { opacity: 1; }
+  .podcast-seek:focus-visible {
+    outline: 2px solid var(--color-red);
+    outline-offset: 3px;
+  }
+}

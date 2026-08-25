@@ -695,6 +695,11 @@ model PodcastFeedEpisode {
   podcastId String @map("podcast_id")
   guid      String
 
+  // Derived from the title, unique within its show. The feed's own guid is
+  // unique but routinely a full URL or a UUID, so it can't be a path
+  // segment — this is what /podcasts/<show>/<episode> actually uses.
+  slug String
+
   title           String
   description     String  @default("")
   audioUrl        String? @map("audio_url")
@@ -712,6 +717,7 @@ model PodcastFeedEpisode {
   podcast Podcast @relation(fields: [podcastId], references: [id], onDelete: Cascade)
 
   @@unique([podcastId, guid])
+  @@unique([podcastId, slug])
   @@index([podcastId, publishedAt(sort: Desc)])
   @@map("podcast_feed_episodes")
 }

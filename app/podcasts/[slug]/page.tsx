@@ -7,10 +7,11 @@ import BreakingBar from "../../components/BreakingBar";
 import SiteHeader from "../../components/SiteHeader";
 import SiteFooter from "../../components/SiteFooter";
 import Reveal from "../../components/Reveal";
-import Badge from "../../components/ui/Badge";
+import SectionHeader from "../../components/ui/SectionHeader";
+import EpisodeRow from "../EpisodeRow";
+import PlayButton from "../PlayButton";
+import type { PlayableEpisode } from "../PlayerProvider";
 import { getActivePodcasts, getPodcastBySlug, getPodcastEpisodes } from "../../lib/podcasts";
-import { formatDuration } from "../../lib/podcast-duration";
-import { sanitizeArticleHtml } from "../../lib/sanitize";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -67,6 +68,20 @@ export default async function PodcastPage({ params }: Props) {
 
   const episodes = await getPodcastEpisodes(podcast.id);
   const showDescription = plainText(podcast.description);
+  const [latest, ...archive] = episodes;
+
+  const latestPlayable: PlayableEpisode | null = latest?.audioUrl
+    ? {
+        id: latest.id,
+        title: latest.title,
+        audioUrl: latest.audioUrl,
+        durationSeconds: latest.durationSeconds,
+        showTitle: podcast.title,
+        showSlug: podcast.slug,
+        episodeSlug: latest.slug,
+        coverImageUrl: podcast.coverImageUrl,
+      }
+    : null;
 
   const seriesSchema = {
     "@context": "https://schema.org",
@@ -96,68 +111,78 @@ export default async function PodcastPage({ params }: Props) {
 
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(seriesSchema) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
-      />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(seriesSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
       <BreakingBar />
       <SiteHeader />
       <main id="main-content">
-        <div className="border-b-4 border-[var(--color-navy)] bg-gradient-to-b from-[var(--color-navy)] to-[var(--color-navy-dark)] text-white">
-          <div className="mx-auto max-w-[1280px] px-5 py-8 sm:py-11">
+        {/* --- Show hero --- */}
+        <section className="relative isolate overflow-hidden border-b-4 border-[var(--color-navy)] bg-[var(--color-navy)] text-white">
+          {podcast.coverImageUrl && (
+            <Image
+              src={podcast.coverImageUrl}
+              alt=""
+              fill
+              priority
+              sizes="100vw"
+              aria-hidden
+              className="scale-110 object-cover opacity-30 blur-2xl"
+            />
+          )}
+          <span aria-hidden className="absolute inset-0 bg-gradient-to-b from-[var(--color-navy)]/70 via-[var(--color-navy)]/85 to-[var(--color-navy)]" />
+          <span aria-hidden className="absolute inset-0 [background:radial-gradient(circle_at_25%_15%,transparent_18%,rgba(0,0,0,0.45)_100%)]" />
+
+          <div className="relative mx-auto max-w-[1280px] px-5 py-7 sm:py-10">
             <Link
               href="/podcasts"
-              className="inline-flex min-h-11 items-center font-sans text-[12px] font-bold uppercase tracking-[0.06em] text-white/60 hover:text-white transition-colors"
+              className="inline-flex min-h-11 items-center font-sans text-[12px] font-bold uppercase tracking-[0.06em] text-white/60 transition-colors hover:text-white"
             >
-              ← All podcasts
+              ← All shows
             </Link>
 
-            <div className="mt-2 flex flex-col sm:flex-row gap-5 sm:gap-7">
-              <div className="relative h-[150px] w-[150px] sm:h-[190px] sm:w-[190px] shrink-0 overflow-hidden rounded-card shadow-pop ring-1 ring-white/10">
+            <div className="mt-1 flex flex-col gap-5 sm:flex-row sm:gap-8">
+              <div className="relative mx-auto h-[172px] w-[172px] shrink-0 overflow-hidden rounded-card shadow-pop ring-1 ring-white/15 sm:mx-0 sm:h-[210px] sm:w-[210px]">
                 {podcast.coverImageUrl ? (
                   <Image
                     src={podcast.coverImageUrl}
                     alt={podcast.title}
                     fill
-                    sizes="(max-width: 640px) 150px, 190px"
-                    className="img-cinematic object-cover"
                     priority
-                    // Cover art lives on the publisher's podcast host, which
-                    // no fixed remotePatterns allowlist can anticipate.
-                    unoptimized
+                    sizes="210px"
+                    className="img-cinematic object-cover"
                   />
                 ) : (
-                  <div className="img-placeholder absolute inset-0 flex items-center justify-center">
-                    <Rss className="h-10 w-10 text-[var(--color-gray-light)]" />
-                  </div>
+                  <span className="img-placeholder flex h-full w-full items-center justify-center px-4 text-center font-headline text-[17px] font-bold uppercase leading-tight text-[var(--color-navy)]/50">
+                    {podcast.title}
+                  </span>
                 )}
               </div>
 
-              <div className="min-w-0">
-                <h1 className="font-headline text-[32px] sm:text-[46px] font-bold uppercase leading-[0.98] tracking-[-0.02em]">
+              <div className="min-w-0 flex-1">
+                <h1 className="font-headline text-[30px] font-bold uppercase leading-[0.98] tracking-[-0.02em] sm:text-[42px] lg:text-[50px]">
                   {podcast.title}
                 </h1>
+
                 {podcast.author && (
-                  <p className="mt-2 font-sans text-[13px] font-bold uppercase tracking-[0.05em] text-[var(--color-red)]">
+                  <p className="mt-2 font-sans text-[13px] uppercase tracking-[0.06em] text-white/60">
                     {podcast.author}
                   </p>
                 )}
+
                 {showDescription && (
-                  <p className="mt-3 max-w-[70ch] font-sans text-[14.5px] sm:text-[15.5px] leading-[1.55] text-white/80">
-                    {showDescription}
+                  <p className="mt-3.5 max-w-[70ch] font-sans text-[15px] leading-[1.6] text-white/75 sm:text-[16px]">
+                    {showDescription.length > 400
+                      ? `${showDescription.slice(0, 400).trimEnd()}…`
+                      : showDescription}
                   </p>
                 )}
 
                 {podcast.categories.length > 0 && (
-                  <div className="mt-3.5 flex flex-wrap gap-2">
+                  <div className="mt-3.5 flex flex-wrap gap-1.5">
                     {podcast.categories.map((category) => (
                       <span
                         key={category}
-                        className="rounded-full bg-white/10 px-2.5 py-1 font-sans text-[11px] font-bold uppercase tracking-[0.05em] text-white/75"
+                        className="rounded-full border border-white/20 px-2.5 py-1 font-sans text-[11px] uppercase tracking-[0.05em] text-white/70"
                       >
                         {category}
                       </span>
@@ -165,111 +190,78 @@ export default async function PodcastPage({ params }: Props) {
                   </div>
                 )}
 
-                <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2">
+                <div className="mt-5 flex flex-wrap items-center gap-2.5">
+                  {latestPlayable && <PlayButton episode={latestPlayable} variant="hero" label="Play latest" />}
                   <a
                     href={podcast.feedUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex min-h-11 items-center gap-2 rounded-control bg-[var(--color-red)] px-4 font-sans text-[13px] font-bold uppercase tracking-[0.05em] text-white transition hover:bg-[var(--color-red-dark)] active:scale-[0.97]"
+                    className="inline-flex min-h-11 items-center gap-2 rounded-control border border-white/25 px-5 font-sans text-[13px] font-bold uppercase tracking-[0.05em] text-white transition hover:border-white/60 hover:bg-white/10 active:scale-[0.97]"
                   >
                     <Rss className="h-4 w-4" />
-                    Subscribe
+                    RSS feed
                   </a>
                   {podcast.websiteUrl && (
                     <a
                       href={podcast.websiteUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex min-h-11 items-center gap-1.5 font-sans text-[13px] font-bold uppercase tracking-[0.05em] text-white/70 hover:text-white transition-colors"
+                      className="inline-flex min-h-11 items-center gap-2 rounded-control px-3 font-sans text-[13px] font-bold uppercase tracking-[0.05em] text-white/65 transition hover:text-white"
                     >
+                      <ExternalLink className="h-4 w-4" />
                       Show site
-                      <ExternalLink className="h-3.5 w-3.5" />
                     </a>
                   )}
-                  <span className="font-sans text-[12px] uppercase tracking-[0.04em] text-white/50">
-                    {episodes.length} {episodes.length === 1 ? "episode" : "episodes"}
-                  </span>
                 </div>
+
+                <p className="mt-4 font-sans text-[11.5px] uppercase tracking-[0.05em] text-white/45">
+                  {podcast.episodeCount} {podcast.episodeCount === 1 ? "episode" : "episodes"}
+                  {podcast.isExplicit && (
+                    <>
+                      <span aria-hidden className="mx-2">•</span>
+                      <span>Explicit</span>
+                    </>
+                  )}
+                </p>
               </div>
             </div>
           </div>
+        </section>
+
+        {/* --- Episodes --- */}
+        <div className="mx-auto max-w-[1280px] px-5 py-8 sm:py-10">
+          {episodes.length === 0 ? (
+            <p className="rounded-card border border-[var(--color-hairline)] bg-[var(--color-bg-off)] px-5 py-8 text-center font-sans text-[15px] text-[var(--color-gray)]">
+              No episodes have been imported for this show yet.
+            </p>
+          ) : (
+            <Reveal>
+              <SectionHeader variant="underline" title="Episodes" />
+              <div className="overflow-hidden rounded-card bg-[var(--color-hairline)] shadow-card">
+                <div className="grid grid-cols-1 gap-px">
+                  {[latest, ...archive].map((episode) => (
+                    <EpisodeRow
+                      key={episode.id}
+                      episode={{ ...episode, coverImageUrl: podcast.coverImageUrl }}
+                      showSlug={podcast.slug}
+                      showTitle={podcast.title}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {podcast.episodeCount >= 100 && (
+                <p className="mt-3 font-sans text-[12.5px] text-[var(--color-gray-light)]">
+                  Showing the most recent 100 episodes. The full archive is in the{" "}
+                  <a href={podcast.feedUrl} target="_blank" rel="noopener noreferrer" className="underline">
+                    RSS feed
+                  </a>
+                  .
+                </p>
+              )}
+            </Reveal>
+          )}
         </div>
-
-        <Reveal>
-          <div className="mx-auto max-w-[900px] px-5 py-8 sm:py-10">
-            {episodes.length === 0 ? (
-              <p className="py-10 text-center font-sans text-[15px] text-[var(--color-gray)]">
-                No episodes in this feed yet.
-              </p>
-            ) : (
-              <ol className="flex flex-col divide-y divide-[var(--color-hairline)]">
-                {episodes.map((episode) => (
-                  <li key={episode.id} className="py-6 first:pt-0">
-                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 font-sans text-[11px] uppercase tracking-[0.04em] text-[var(--color-gray-light)]">
-                      {episode.episodeNumber !== null && (
-                        <>
-                          <span className="font-bold text-[var(--color-red)]">
-                            {episode.seasonNumber !== null ? `S${episode.seasonNumber} · ` : ""}
-                            Ep {episode.episodeNumber}
-                          </span>
-                          <span className="text-[var(--color-hairline-strong)]/30">·</span>
-                        </>
-                      )}
-                      {episode.date && <span>{episode.date}</span>}
-                      {episode.durationSeconds !== null && (
-                        <>
-                          <span className="text-[var(--color-hairline-strong)]/30">·</span>
-                          <span>{formatDuration(episode.durationSeconds)}</span>
-                        </>
-                      )}
-                      {episode.isExplicit && <Badge variant="navy">Explicit</Badge>}
-                    </div>
-
-                    <h2 className="mt-1.5 font-headline text-[19px] sm:text-[22px] font-bold leading-[1.2] tracking-[-0.01em]">
-                      {episode.episodeUrl ? (
-                        <a
-                          href={episode.episodeUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="hover:text-[var(--color-red)] transition-colors"
-                        >
-                          {episode.title}
-                        </a>
-                      ) : (
-                        episode.title
-                      )}
-                    </h2>
-
-                    {episode.description && (
-                      <div
-                        className="prose prose-sm mt-2 max-w-none text-[var(--color-gray)] prose-a:text-[var(--color-red)] prose-p:leading-[1.6]"
-                        // Show notes are HTML written by whoever publishes the
-                        // feed, so they go through the same allowlist as
-                        // article bodies before they reach the page.
-                        dangerouslySetInnerHTML={{
-                          __html: sanitizeArticleHtml(episode.description),
-                        }}
-                      />
-                    )}
-
-                    {episode.audioUrl && (
-                      <audio
-                        controls
-                        preload="none"
-                        className="mt-3.5 w-full"
-                        aria-label={`Play ${episode.title}`}
-                      >
-                        <source src={episode.audioUrl} type={episode.audioType ?? undefined} />
-                        Your browser can&rsquo;t play audio here —{" "}
-                        <a href={episode.audioUrl}>download the episode</a> instead.
-                      </audio>
-                    )}
-                  </li>
-                ))}
-              </ol>
-            )}
-          </div>
-        </Reveal>
       </main>
       <SiteFooter />
     </>
