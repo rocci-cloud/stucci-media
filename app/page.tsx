@@ -6,7 +6,7 @@ import PersonalizedRail from "./components/PersonalizedRail";
 import LatestModule from "./components/LatestModule";
 import TopicRail from "./components/TopicRail";
 import OpinionModule from "./components/OpinionModule";
-import PodcastShelf from "./components/PodcastShelf";
+import PodcastModule from "./components/PodcastModule";
 import Sidebar from "./components/Sidebar";
 import SubscribeStrip from "./components/SubscribeStrip";
 import SiteFooter from "./components/SiteFooter";
@@ -15,6 +15,7 @@ import BannerSlot from "./components/BannerSlot";
 import ServicePromo from "./components/ServicePromo";
 import { getPublishedArticles, getFeaturedArticles, getPersonalizedArticles } from "./lib/articles";
 import { getCategories } from "./lib/categories";
+import { getActivePodcasts, getLatestEpisodes } from "./lib/podcasts";
 import { getTopCategorySlugs } from "./lib/interests";
 import { auth } from "./lib/auth";
 
@@ -27,13 +28,16 @@ export const revalidate = 60;
 export default async function HomePage() {
   const session = await auth.api.getSession({ headers: await headers() });
 
-  const [articles, featuredArticles, categories, personalizedArticles] = await Promise.all([
+  const [articles, featuredArticles, categories, personalizedArticles, podcastShows, podcastEpisodes] =
+    await Promise.all([
     getPublishedArticles(),
     getFeaturedArticles(),
     getCategories(),
     session
       ? getTopCategorySlugs(session.user.id).then((slugs) => getPersonalizedArticles(slugs, 4))
       : Promise.resolve([]),
+    getActivePodcasts(),
+    getLatestEpisodes(5),
   ]);
 
   if (articles.length === 0) {
@@ -70,11 +74,13 @@ export default async function HomePage() {
   const railItems = afterFeatured.filter((a) => !shownSlugs.has(a.slug));
 
   // Opinion & Analysis and Podcasts get their own distinct module layouts
-  // (OpinionModule, PodcastShelf) instead of the standard TopicRail
+  // (OpinionModule) instead of the standard TopicRail
   // lead+briefs treatment — see those components for why. `topicRailIndex`
   // tracks position only among the standard TopicRail modules, so the
   // alternating background rhythm stays clean between same-type modules
   // instead of skipping a beat whenever a specialty module sits between them.
+  const [podcastLead] = podcastEpisodes;
+
   let topicRailIndex = 0;
 
   return (
@@ -109,6 +115,19 @@ export default async function HomePage() {
         </div>
         <BannerSlot placement="HOMEPAGE" className="mx-auto max-w-[1280px] px-5 py-4" />
 
+        {/* The listen desk sits above the category rails: it is the one
+            module driven by feeds rather than the newsroom, and burying it
+            under seven text modules is how the shows stayed invisible. */}
+        {podcastLead && (
+          <Reveal>
+            <PodcastModule
+              lead={podcastLead}
+              shows={podcastShows}
+              recent={podcastEpisodes.slice(1, 5)}
+            />
+          </Reveal>
+        )}
+
         <div className="mx-auto max-w-[1280px] px-5 grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-x-10">
           <div className="flex flex-col">
             {categories.map((category) => {
@@ -117,14 +136,6 @@ export default async function HomePage() {
                 return (
                   <Reveal key={category.slug}>
                     <OpinionModule category={category} articles={categoryArticles} />
-                  </Reveal>
-                );
-              }
-              if (category.slug === "podcasts") {
-                const categoryArticles = railItems.filter((a) => a.categorySlug === category.slug).slice(0, 6);
-                return (
-                  <Reveal key={category.slug}>
-                    <PodcastShelf category={category} articles={categoryArticles} />
                   </Reveal>
                 );
               }
