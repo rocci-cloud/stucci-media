@@ -400,39 +400,54 @@ model ArticleCategory {
   @@map("article_categories")
 }
 
+// Same shape as Comment: one like points at an article or an episode.
+// Both compound uniques coexist safely because Postgres treats NULLs as
+// distinct, so an article like (episode null) never collides with another.
 model Like {
-  id        String   @id @default(cuid())
-  userId    String   @map("user_id")
-  articleId Int      @map("article_id")
-  createdAt DateTime @default(now()) @map("created_at")
+  id               String   @id @default(cuid())
+  userId           String   @map("user_id")
+  articleId        Int?     @map("article_id")
+  podcastEpisodeId String?  @map("podcast_episode_id")
+  createdAt        DateTime @default(now()) @map("created_at")
 
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  article Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  user    User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  article Article?            @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  episode PodcastFeedEpisode? @relation(fields: [podcastEpisodeId], references: [id], onDelete: Cascade)
 
   @@unique([userId, articleId])
+  @@unique([userId, podcastEpisodeId])
   @@index([articleId])
+  @@index([podcastEpisodeId])
   @@map("likes")
 }
 
+// A comment belongs to exactly one thing: an article or a podcast episode.
+// Two nullable foreign keys rather than a second Comment model, so
+// threading, approval, pinning and the single admin moderation queue are
+// shared instead of built twice. A database check constraint enforces
+// "exactly one target" — see the migration; Prisma cannot express it.
 model Comment {
-  id         String   @id @default(cuid())
-  content    String
-  articleId  Int      @map("article_id")
-  userId     String   @map("user_id")
-  parentId   String?  @map("parent_id")
-  isApproved Boolean  @default(false) @map("is_approved")
+  id               String   @id @default(cuid())
+  content          String
+  articleId        Int?     @map("article_id")
+  podcastEpisodeId String?  @map("podcast_episode_id")
+  userId           String   @map("user_id")
+  parentId         String?  @map("parent_id")
+  isApproved       Boolean  @default(false) @map("is_approved")
   // Admin-curated "Editor's Pick" — pinned top-level comments sort first
   // on the article page (see getApprovedCommentsForArticle). Independent
   // of isApproved; a pin doesn't bypass moderation.
-  isPinned   Boolean  @default(false) @map("is_pinned")
-  createdAt  DateTime @default(now()) @map("created_at")
+  isPinned         Boolean  @default(false) @map("is_pinned")
+  createdAt        DateTime @default(now()) @map("created_at")
 
-  article Article   @relation(fields: [articleId], references: [id], onDelete: Cascade)
-  user    User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  parent  Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
-  replies Comment[] @relation("CommentReplies")
+  article Article?            @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  episode PodcastFeedEpisode? @relation(fields: [podcastEpisodeId], references: [id], onDelete: Cascade)
+  user    User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent  Comment?            @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies Comment[]           @relation("CommentReplies")
 
   @@index([articleId, isApproved])
+  @@index([podcastEpisodeId, isApproved])
   @@index([parentId])
   @@map("comments")
 }
@@ -714,7 +729,9 @@ model PodcastFeedEpisode {
   publishedAt DateTime? @map("published_at")
   createdAt   DateTime  @default(now()) @map("created_at")
 
-  podcast Podcast @relation(fields: [podcastId], references: [id], onDelete: Cascade)
+  podcast  Podcast   @relation(fields: [podcastId], references: [id], onDelete: Cascade)
+  comments Comment[]
+  likes    Like[]
 
   @@unique([podcastId, guid])
   @@unique([podcastId, slug])

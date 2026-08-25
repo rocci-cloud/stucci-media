@@ -1,5 +1,6 @@
 import { prisma } from "./prisma";
 import { slugify } from "./slugify";
+import { cleanEpisodeTitle } from "./podcast-text";
 import { fetchPodcastFeed, MAX_EPISODES_PER_FEED, type ParsedFeed } from "./podcast-feed";
 
 export type Podcast = {
@@ -92,6 +93,12 @@ type EpisodeRow = {
 function mapEpisode(row: EpisodeRow): PodcastEpisodeItem {
   return {
     ...row,
+    // Also cleaned here, not only on import. Episodes imported before the
+    // parser learned to strip production suffixes still hold "…_mixdown"
+    // in the database, and re-importing every feed to tidy display text
+    // would be a worse trade than normalising on the way out. Idempotent,
+    // so a title already cleaned on import passes through untouched.
+    title: cleanEpisodeTitle(row.title),
     publishedAt: row.publishedAt ? row.publishedAt.toISOString() : null,
     date: row.publishedAt
       ? row.publishedAt.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })
@@ -220,9 +227,15 @@ export async function getShowsByCategory(): Promise<{ category: string; shows: P
   const shows = await getActivePodcasts();
   const buckets = new Map<string, Podcast[]>();
   for (const show of shows) {
+    // Guard against a show landing in the same bucket twice. The parser
+    // dedupes on import, but rows imported before that fix still hold
+    // repeated categories, and re-importing every feed to clean data is a
+    // worse answer than not trusting the array here.
+    const placed = new Set<string>();
     for (const category of show.categories) {
       const key = category.trim();
-      if (!key) continue;
+      if (!key || placed.has(key.toLowerCase())) continue;
+      placed.add(key.toLowerCase());
       const bucket = buckets.get(key);
       if (bucket) bucket.push(show);
       else buckets.set(key, [show]);
@@ -274,23 +287,40 @@ async function uniqueSlug(title: string): Promise<string> {
 }
 
 /**
- * Writes a parsed feed's episodes, replacing whatever was there before.
+ * Syncs a parsed feed's episodes into the database.
  *
- * Delete-then-insert rather than a per-episode upsert: the feed is the
- * only source of truth here, nothing else references these rows, and a
- * wholesale replace is the one approach that also handles episodes the
- * publisher *removed* — an upsert-only sync would leave those orphaned
- * on the site forever. Wrapped in a transaction so a failure mid-way
- * can't leave a show with no episodes at all.
+ * Upsert keyed on the feed's own guid, then delete whatever is no longer
+ * in the feed. This used to delete every episode and re-insert them, which
+ * was simpler and fine while nothing referenced these rows — but comments
+ * and likes now hang off an episode's id, and a wholesale replace would
+ * cascade-delete every one of them on the next refresh. Episode rows have
+ * to survive a refresh, so identity comes from the guid rather than from
+ * whatever cuid happened to be minted last time.
+ *
+ * Still wrapped in a transaction: a failure part-way through must not
+ * leave a show holding half a feed.
  */
 async function replaceEpisodes(podcastId: string, feed: ParsedFeed): Promise<number> {
   const episodes = withEpisodeSlugs(feed.episodes);
+  const guids = episodes.map((episode) => episode.guid);
+
   await prisma.$transaction([
-    prisma.podcastFeedEpisode.deleteMany({ where: { podcastId } }),
-    prisma.podcastFeedEpisode.createMany({
-      data: episodes.map((episode) => ({ podcastId, ...episode })),
+    // Episodes the publisher pulled. Without this they would sit on the
+    // site forever, which is what an upsert-only sync gets wrong.
+    prisma.podcastFeedEpisode.deleteMany({
+      where: { podcastId, guid: { notIn: guids.length > 0 ? guids : [""] } },
     }),
+    ...episodes.map((episode) =>
+      prisma.podcastFeedEpisode.upsert({
+        where: { podcastId_guid: { podcastId, guid: episode.guid } },
+        create: { podcastId, ...episode },
+        // Everything except the guid is the publisher's to change: they
+        // retitle, fix descriptions, and re-cut audio after publishing.
+        update: { ...episode },
+      })
+    ),
   ]);
+
   return episodes.length;
 }
 
