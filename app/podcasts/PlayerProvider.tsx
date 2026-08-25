@@ -10,7 +10,7 @@ import {
   useState,
 } from "react";
 import Link from "next/link";
-import Image from "next/image";
+import FeedImage from "./FeedImage";
 import { Play, Pause, RotateCcw, RotateCw, X, Loader2 } from "lucide-react";
 import { formatDuration } from "../lib/podcast-duration";
 
@@ -174,7 +174,7 @@ export default function PlayerProvider({ children }: { children: React.ReactNode
               className="relative hidden h-12 w-12 shrink-0 overflow-hidden rounded-[6px] ring-1 ring-white/15 sm:block"
             >
               {current.coverImageUrl ? (
-                <Image src={current.coverImageUrl} alt="" fill sizes="48px" className="object-cover" />
+                <FeedImage src={current.coverImageUrl} alt="" fill sizes="48px" className="object-cover" />
               ) : (
                 <span className="img-placeholder block h-full w-full" />
               )}

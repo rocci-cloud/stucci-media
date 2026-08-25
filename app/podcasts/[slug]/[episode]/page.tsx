@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import Image from "next/image";
+import FeedImage from "../../FeedImage";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight, Rss } from "lucide-react";
 import BreakingBar from "../../../components/BreakingBar";
@@ -126,7 +126,7 @@ export default async function EpisodePage({ params }: Props) {
       <main id="main-content">
         <section className="relative isolate overflow-hidden border-b-4 border-[var(--color-navy)] bg-[var(--color-navy)] text-white">
           {artwork && (
-            <Image
+            <FeedImage
               src={artwork}
               alt=""
               fill
@@ -150,7 +150,7 @@ export default async function EpisodePage({ params }: Props) {
             <div className="mt-1 flex flex-col gap-5 sm:flex-row sm:gap-7">
               <div className="relative mx-auto h-[144px] w-[144px] shrink-0 overflow-hidden rounded-card shadow-pop ring-1 ring-white/15 sm:mx-0 sm:h-[168px] sm:w-[168px]">
                 {artwork ? (
-                  <Image src={artwork} alt={show.title} fill priority sizes="168px" className="img-cinematic object-cover" />
+                  <FeedImage src={artwork} alt={show.title} fill priority sizes="168px" className="img-cinematic object-cover" />
                 ) : (
                   <span className="img-placeholder flex h-full w-full items-center justify-center px-3 text-center font-headline text-[15px] font-bold uppercase leading-tight text-[var(--color-navy)]/50">
                     {show.title}

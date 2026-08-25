@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Image from "next/image";
+import FeedImage from "./FeedImage";
 import Link from "next/link";
 import { Rss, Mic } from "lucide-react";
 import BreakingBar from "../components/BreakingBar";
@@ -69,7 +69,7 @@ export default async function PodcastsPage() {
                 show a distinct hero without needing a bespoke hero image
                 per show — the same trick Spotify and Apple both use. */}
             {lead.show.coverImageUrl && (
-              <Image
+              <FeedImage
                 src={lead.show.coverImageUrl}
                 alt=""
                 fill
@@ -102,7 +102,7 @@ export default async function PodcastsPage() {
                   className="group relative mx-auto aspect-square w-[168px] shrink-0 overflow-hidden rounded-card shadow-pop ring-1 ring-white/15 sm:mx-0 sm:w-full"
                 >
                   {lead.show.coverImageUrl ? (
-                    <Image
+                    <FeedImage
                       src={lead.show.coverImageUrl}
                       alt={lead.show.title}
                       fill

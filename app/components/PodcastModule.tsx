@@ -1,4 +1,4 @@
-import Image from "next/image";
+import FeedImage from "../podcasts/FeedImage";
 import Link from "next/link";
 import { Headphones, ChevronRight } from "lucide-react";
 import { formatDuration } from "../lib/podcast-duration";
@@ -75,7 +75,7 @@ export default function PodcastModule({
               className="group relative aspect-square w-[132px] shrink-0 self-start overflow-hidden rounded-card shadow-pop ring-1 ring-white/15 sm:w-[168px]"
             >
               {lead.show.coverImageUrl ? (
-                <Image
+                <FeedImage
                   src={lead.show.coverImageUrl}
                   alt={lead.show.title}
                   fill
