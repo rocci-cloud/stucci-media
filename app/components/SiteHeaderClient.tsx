@@ -37,6 +37,9 @@ export default function SiteHeaderClient({
   // not a real Category row — it's a structural nav entry like Subscribe/
   // Search, always first, not admin-configurable from /admin/categories.
   const isFeaturedActive = pathname === "/";
+  // The whole podcast section lights the tab — a listener deep in an
+  // episode page should still see where they are in the nav.
+  const isPodcastsActive = pathname === "/podcasts" || pathname.startsWith("/podcasts/");
   const isMoreActive = moreCategories.some((c) => pathname === `/category/${c.slug}`);
 
   return (
@@ -84,6 +87,16 @@ export default function SiteHeaderClient({
               }`}
             >
               Featured
+            </Link>
+            <Link
+              href="/podcasts"
+              className={`min-h-11 flex items-center text-[12px] font-bold uppercase tracking-[0.03em] whitespace-nowrap px-3 border-l border-l-white/10 border-b-[3px] transition-colors ${
+                isPodcastsActive
+                  ? "text-[var(--color-red)] border-b-[var(--color-red)]"
+                  : "text-white border-b-transparent hover:border-b-white/40 hover:text-white/90"
+              }`}
+            >
+              Podcasts
             </Link>
             {mainCategories.map((category) => {
               const href = `/category/${category.slug}`;

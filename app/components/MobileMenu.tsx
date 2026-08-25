@@ -108,6 +108,13 @@ export default function MobileMenu({
             </Link>
           );
         })}
+        <Link
+          href="/podcasts"
+          onClick={onClose}
+          className={navLinkClass(pathname === "/podcasts" || pathname.startsWith("/podcasts/"))}
+        >
+          Podcasts
+        </Link>
 
         {moreCategories.length > 0 && (
           <>

@@ -2,19 +2,20 @@ import type { MetadataRoute } from "next";
 import { getAllTagsWithCounts, getPublishedArticles } from "./lib/articles";
 import { getCategories } from "./lib/categories";
 import { getBylinesWithCounts } from "./lib/authors";
-import { getActivePodcasts } from "./lib/podcasts";
+import { getActivePodcasts, getEpisodeSitemapEntries } from "./lib/podcasts";
 
 // www, not the apex domain — see the PRODUCTION_URL comment in
 // app/lib/auth.ts.
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.stuccimedia.com";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [articles, categories, tags, bylines, podcasts] = await Promise.all([
+  const [articles, categories, tags, bylines, podcasts, episodes] = await Promise.all([
     getPublishedArticles(),
     getCategories(),
     getAllTagsWithCounts(),
     getBylinesWithCounts(),
     getActivePodcasts(),
+    getEpisodeSitemapEntries(),
   ]);
 
   const staticPages: MetadataRoute.Sitemap = [
@@ -64,12 +65,24 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }));
 
+  // Each episode is its own indexable page — the single biggest search
+  // surface this section has, since a show has one URL but an archive has
+  // hundreds. lastModified is the publish date: feed episodes are not
+  // edited in place here, they are replaced wholesale on refresh.
+  const episodePages: MetadataRoute.Sitemap = episodes.map((e) => ({
+    url: `${siteUrl}/podcasts/${e.showSlug}/${e.episodeSlug}`,
+    ...(e.publishedAt ? { lastModified: e.publishedAt } : {}),
+    changeFrequency: "monthly" as const,
+    priority: 0.5,
+  }));
+
   return [
     ...staticPages,
     ...categoryPages,
     ...tagPages,
     ...authorPages,
     ...podcastPages,
+    ...episodePages,
     ...articlePages,
   ];
 }

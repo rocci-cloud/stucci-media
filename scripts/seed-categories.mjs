@@ -67,7 +67,13 @@ const categories = [
     name: "Podcasts",
     description:
       "The Rocci Stucci Show and the full Stucci Media podcast lineup — unfiltered conversations on the news of the day.",
-    navPlacement: "MORE",
+    // Hidden from the nav on purpose. The top-level "Podcasts" tab points
+    // at /podcasts (the show and episode hub), which is what a visitor
+    // clicking "Podcasts" actually wants. This category holds *articles*
+    // written about the shows; it stays reachable from the hub's "From The
+    // Newsroom" link, but a second "Podcasts" entry in the More dropdown
+    // going somewhere different would just be a trap.
+    navPlacement: "HIDDEN",
     navOrder: 0,
   },
   {
