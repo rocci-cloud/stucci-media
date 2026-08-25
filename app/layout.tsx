@@ -8,6 +8,7 @@ import type { Metadata } from "next";
 import "@fontsource-variable/oswald";
 import "@fontsource-variable/archivo";
 import "./globals.css";
+import PlayerProvider from "./podcasts/PlayerProvider";
 // Traffic, referrers and Core Web Vitals. Neither sets a cookie. Both are
 // mounted in production only: in development they fetch a debug script from
 // Vercel's CDN, which just adds two failed requests and console errors to
@@ -179,7 +180,12 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
         />
-        {children}
+        {/* Wraps the whole site so an episode started anywhere keeps playing
+            while the visitor carries on reading. `children` is passed through
+            as a prop, so every page underneath stays a server component; the
+            provider renders nothing at all until something is played, so
+            pages that never touch audio are unaffected. */}
+        <PlayerProvider>{children}</PlayerProvider>
         {/* A real UI feature, not telemetry, so it renders everywhere. Gating
             it to production made it impossible to see on a preview
             deployment, which is exactly where its trigger timing and
