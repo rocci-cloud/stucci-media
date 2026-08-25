@@ -1,4 +1,4 @@
-import Image from "next/image";
+import FeedImage from "./FeedImage";
 import Link from "next/link";
 import { formatDuration } from "../lib/podcast-duration";
 import { episodeTeaser } from "../lib/podcast-text";
@@ -60,7 +60,7 @@ export default function EpisodeRow({
       {withArt && (
         <Link href={`/podcasts/${showSlug}`} className="relative hidden h-14 w-14 shrink-0 overflow-hidden rounded-[6px] ring-1 ring-black/5 sm:block">
           {episode.coverImageUrl ? (
-            <Image src={episode.coverImageUrl} alt={showTitle} fill sizes="56px" className="img-cinematic object-cover" />
+            <FeedImage src={episode.coverImageUrl} alt={showTitle} fill sizes="56px" className="img-cinematic object-cover" />
           ) : (
             <span className="img-placeholder block h-full w-full" />
           )}

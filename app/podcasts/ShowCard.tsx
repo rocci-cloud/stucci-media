@@ -1,4 +1,4 @@
-import Image from "next/image";
+import FeedImage from "./FeedImage";
 import Link from "next/link";
 
 /**
@@ -27,7 +27,7 @@ export default function ShowCard({
     >
       <div className="relative aspect-square overflow-hidden rounded-card shadow-card ring-1 ring-black/5 transition group-hover:shadow-card-hover">
         {show.coverImageUrl ? (
-          <Image
+          <FeedImage
             src={show.coverImageUrl}
             alt={show.title}
             fill

@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import Image from "next/image";
+import FeedImage from "../FeedImage";
 import Link from "next/link";
 import { Rss, ExternalLink } from "lucide-react";
 import BreakingBar from "../../components/BreakingBar";
@@ -119,7 +119,7 @@ export default async function PodcastPage({ params }: Props) {
         {/* --- Show hero --- */}
         <section className="relative isolate overflow-hidden border-b-4 border-[var(--color-navy)] bg-[var(--color-navy)] text-white">
           {podcast.coverImageUrl && (
-            <Image
+            <FeedImage
               src={podcast.coverImageUrl}
               alt=""
               fill
@@ -143,7 +143,7 @@ export default async function PodcastPage({ params }: Props) {
             <div className="mt-1 flex flex-col gap-5 sm:flex-row sm:gap-8">
               <div className="relative mx-auto h-[172px] w-[172px] shrink-0 overflow-hidden rounded-card shadow-pop ring-1 ring-white/15 sm:mx-0 sm:h-[210px] sm:w-[210px]">
                 {podcast.coverImageUrl ? (
-                  <Image
+                  <FeedImage
                     src={podcast.coverImageUrl}
                     alt={podcast.title}
                     fill
