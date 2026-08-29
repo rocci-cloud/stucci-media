@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Clock, MessageSquare } from "lucide-react";
 import type { Article } from "../../lib/articles";
+import { imageKenBurns } from "../motion";
 
 // The card used inside a homepage category grid, and only there.
 //
@@ -42,7 +43,7 @@ export default function CategoryCard({
             alt={article.headline}
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 1100px) 50vw, 460px"
-            className="img-cinematic object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+            className={`img-cinematic ${imageKenBurns} object-cover`}
           />
         ) : (
           <div className="img-placeholder absolute inset-0" />

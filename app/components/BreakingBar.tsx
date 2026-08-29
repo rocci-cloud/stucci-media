@@ -2,6 +2,7 @@ import { getBreakingArticles, getPublishedArticles } from "../lib/articles";
 import { getSiteSettings } from "../lib/settings";
 import BreakingTicker from "./BreakingTicker";
 import Badge from "./ui/Badge";
+import { livePipPulse } from "./motion";
 
 export default async function BreakingBar() {
   const [settings, breaking] = await Promise.all([getSiteSettings(), getBreakingArticles(4)]);
@@ -25,7 +26,7 @@ export default async function BreakingBar() {
         {/* The pip is the only thing on the bar that moves. It is a slow
             double-beat rather than a blink, so it reads as "live" from the
             corner of the eye without competing with the headline beside it. */}
-        <span className="inline-flex h-[7px] w-[7px] shrink-0 rounded-full bg-white [animation:livePip_2.4s_ease-in-out_infinite]" />
+        <span className={`inline-flex h-[7px] w-[7px] shrink-0 rounded-full bg-white ${livePipPulse}`} />
         <Badge variant="navy" className="shrink-0">
           {isCurated ? "Breaking" : "Latest"}
         </Badge>

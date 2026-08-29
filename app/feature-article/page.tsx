@@ -190,7 +190,7 @@ export default async function FeatureArticlePage() {
                 "radial-gradient(120% 90% at 12% 0%, rgba(200,16,46,0.32) 0%, transparent 55%), radial-gradient(100% 80% at 100% 100%, rgba(28,90,166,0.24) 0%, transparent 60%), radial-gradient(circle at 50% 50%, transparent 40%, rgba(0,0,0,0.35) 100%)",
             }}
           />
-          <div className="relative mx-auto w-full max-w-[820px] text-center animate-[heroTextReveal_0.9s_cubic-bezier(0.16,1,0.3,1)_both]">
+          <div className="relative mx-auto w-full max-w-[820px] text-center animate-[heroTextReveal_0.7s_cubic-bezier(0.16,1,0.3,1)_both]">
             <p className="font-sans text-[10.5px] font-bold uppercase tracking-[0.2em] text-[var(--color-red-ink)]">
               <span className="mr-2 inline-block h-1 w-1 rounded-full bg-[var(--color-red)] align-middle" />
               Featured coverage · {PRICE} flat · Published in {turnaround}

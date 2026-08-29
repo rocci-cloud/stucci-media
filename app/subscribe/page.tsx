@@ -84,7 +84,7 @@ export default function SubscribePage() {
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(200,16,46,0.18),transparent_55%)]" />
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_40%,rgba(0,0,0,0.35)_100%)]" />
           <div className="relative flex min-h-[440px] h-[56svh] sm:h-[54vh] sm:max-h-[540px] items-center justify-center px-5 py-10">
-            <div className="mx-auto max-w-[820px] text-center [animation:heroTextReveal_0.9s_cubic-bezier(0.16,1,0.3,1)_both]">
+            <div className="mx-auto max-w-[820px] text-center [animation:heroTextReveal_0.7s_cubic-bezier(0.16,1,0.3,1)_both]">
               <Badge variant="red" className="mb-4">
                 Membership · Free
               </Badge>

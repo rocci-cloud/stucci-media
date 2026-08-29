@@ -3831,3 +3831,43 @@ up down the page.
   article. That is the fourth field now waiting on one migration, alongside
   `kicker`, `imageCaption` and `imageCredit`.
 
+## Phase 66 — done: a motion module
+
+Motion had accumulated in three places: keyframes in `globals.css`, an
+inline observer in `Reveal`, and per-component copies of the rotate /
+pause-on-hover / reduced-motion logic. `app/components/motion/` is now the
+one place it lives.
+
+Exports: `usePrefersReducedMotion`, `useHeroCrossfade`, `CardEnter`, and the
+class constants `imageKenBurns`, `livePipPulse`, `stickySectionLabel`,
+`heroCrossfadeSlide`.
+
+- **The 800ms ceiling is a test, not a convention** (`tests/motion.test.ts`).
+  It parses the compiled stagger delays and the transition duration and
+  asserts the last card in a grid still lands inside 800ms. Two documented
+  exceptions: the hover-held Ken Burns push, and the looping live pip, which
+  is a state indicator rather than a transition.
+  - Two stragglers were over the ceiling and were brought down:
+    `heroTextReveal` at 0.9s on the subscribe and feature-article pages, and
+    the hero's 900ms crossfade.
+- **`CardEnter` wraps the grid, not the card.** Per-card animation would
+  turn thirty server components into client components to animate an
+  opacity, shipping their markup twice; and one observer per grid keeps a
+  long page at a handful of observers instead of hundreds. The stagger is
+  CSS `nth-child` delays, capped at the 6th child so a long grid does not
+  accumulate a visible wait.
+- **It fires once.** Scrolling back up does not replay it. Content is
+  visible by default and only arms if the observer confirms the grid is
+  off-screen at mount, so anything above the fold never enters a hidden
+  state — the same rule `Reveal` established, kept deliberately.
+- **`usePrefersReducedMotion` subscribes rather than reading once.** The
+  preference can change while a page is open; a value captured at mount
+  goes stale. It starts `false` so the server and first client paint agree.
+- **`HeroRotator` was refactored onto `useHeroCrossfade`**, removing its
+  private copy of the same logic. Worth knowing: that component is not on
+  the homepage — the Fox-structure pass replaced the rotating hero with the
+  static `LeadPackage`. The hook and the component are coherent and ready if
+  a rotating hero comes back; nothing forces rotation onto the current hero.
+- Wired into `BreakingBar` (pip), `StoryCard` and `CategoryCard` (Ken
+  Burns), `CategoryGrid` (sticky label + card entrance).
+
