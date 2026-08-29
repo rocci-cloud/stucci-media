@@ -11,13 +11,16 @@ export default function SubscribeStrip() {
   return (
     <div
       id="subscribe"
-      className="relative border-y border-[var(--color-hairline)] px-5 py-9 sm:py-16"
+      className="relative border-y border-[var(--color-hairline)] py-6 sm:py-11"
       style={{
         background:
           "linear-gradient(135deg, rgba(10,22,40,0.1), rgba(200,16,46,0.05) 55%, rgba(255,255,255,1) 100%)",
       }}
     >
-      <div className="mx-auto max-w-[1080px] grid grid-cols-1 lg:grid-cols-[1.15fr_1fr] gap-9 lg:gap-14 items-center">
+      {/* `shell` rather than its own 1080 cap: this was the last homepage row
+          that did not reach the container edge, leaving ~164px dead down each
+          side at 1440 while every band above it ran full width. */}
+      <div className="shell grid grid-cols-1 lg:grid-cols-[1.15fr_1fr] gap-6 lg:gap-12 items-center">
         <div className="text-center lg:text-left">
           <Badge variant="red" className="mb-3.5">
             Free Newsletter

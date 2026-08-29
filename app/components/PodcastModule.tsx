@@ -47,8 +47,11 @@ export default function PodcastModule({
         className="absolute inset-0 [background:radial-gradient(circle_at_15%_0%,rgba(200,16,46,0.18)_0%,transparent_55%)]"
       />
 
-      <div className="relative mx-auto max-w-[1280px] px-5 py-8 sm:py-10">
-        <div className="mb-5 flex flex-wrap items-end justify-between gap-x-4 gap-y-2">
+      {/* `shell`, not its own max-width: this module kept a 1280 cap while the
+          homepage moved to a 1440 grid, which left 64px of dead space down each
+          side of the listen desk and nothing else on the page. */}
+      <div className="relative shell py-5 sm:py-7">
+        <div className="mb-3.5 flex flex-wrap items-end justify-between gap-x-4 gap-y-2">
           <div className="flex items-center gap-2.5">
             <Headphones className="h-[18px] w-[18px] text-[var(--color-red-ink)]" />
             <h2 className="font-headline text-[19px] font-bold uppercase tracking-[0.03em] sm:text-[22px]">
@@ -64,7 +67,7 @@ export default function PodcastModule({
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 gap-7 lg:grid-cols-[1.35fr_1fr] lg:items-center lg:gap-10">
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1.35fr_1fr] lg:items-center lg:gap-7">
           {/* --- The newest episode anywhere on the network --- */}
           <div className="flex flex-col gap-4 sm:flex-row sm:gap-5">
             <Link

@@ -12,7 +12,17 @@ import PosterCard from "./ui/PosterCard";
 // On mobile it collapses to exactly what the brief asks for — one large
 // poster, then the rest as a compact list — rather than a scaled-down
 // version of the desktop grid.
-export default function HeadlineMosaic({ articles }: { articles: Article[] }) {
+export default function HeadlineMosaic({
+  articles,
+  title = "Also Making Headlines",
+  id = "mosaic",
+}: {
+  articles: Article[];
+  /** The block is used twice on the homepage — under the hero, and again
+      for the overflow that the shaped blocks did not consume. */
+  title?: string;
+  id?: string;
+}) {
   if (articles.length === 0) return null;
 
   const [lead, ...rest] = articles;
@@ -20,16 +30,16 @@ export default function HeadlineMosaic({ articles }: { articles: Article[] }) {
   const rail = rest.slice(2, 6);
 
   return (
-    <section aria-labelledby="mosaic-heading" className="shell pt-3 sm:pt-4">
-      <div className="mb-2.5 flex items-center gap-2.5 border-b-2 border-[var(--color-hairline-strong)] pb-2">
+    <section aria-labelledby={`${id}-heading`} className="shell pt-2 sm:pt-3">
+      <div className="mb-2 flex items-center gap-2.5 border-b-2 border-[var(--color-hairline-strong)] pb-1.5">
         <span className="relative flex h-2.5 w-2.5 shrink-0">
           <span className="absolute inline-flex h-full w-full rounded-full bg-[var(--color-red)] [animation:livePip_2.4s_ease-in-out_infinite]" />
         </span>
         <h2
-          id="mosaic-heading"
+          id={`${id}-heading`}
           className="font-headline text-[15px] sm:text-[17px] font-bold uppercase leading-none tracking-[0.08em] text-[var(--color-text)]"
         >
-          Also Making Headlines
+          {title}
         </h2>
       </div>
 

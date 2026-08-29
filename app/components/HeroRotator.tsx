@@ -62,7 +62,7 @@ export default function HeroRotator({ articles }: { articles: Article[] }) {
   return (
     <section
       aria-label="Featured stories"
-      className="relative isolate w-full overflow-hidden bg-[var(--color-navy-dark)] h-[78svh] min-h-[520px] max-h-[760px] sm:h-[70vh] sm:max-h-[680px] lg:h-[660px] lg:max-h-[76vh]"
+      className="relative isolate w-full overflow-hidden bg-[var(--color-navy-dark)] h-[70svh] min-h-[460px] sm:h-[70vh] lg:h-[85vh] lg:min-h-[620px] lg:max-h-[900px]"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       onFocusCapture={() => setPaused(true)}
@@ -94,7 +94,7 @@ export default function HeroRotator({ articles }: { articles: Article[] }) {
             <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_42%,rgba(0,0,0,0.3)_100%)]" />
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/95 via-black/50 to-black/5" />
 
-            <div className="absolute inset-x-0 bottom-0 pb-16 sm:pb-20">
+            <div className="absolute inset-x-0 bottom-0 pb-11 sm:pb-14">
               <div className="shell">
                 {/* Keyed on the slide index so the wipe replays on every
                     change rather than only on first mount. */}
@@ -144,7 +144,7 @@ export default function HeroRotator({ articles }: { articles: Article[] }) {
 
       {slides.length > 1 && (
         <div className="absolute inset-x-0 bottom-0 z-10">
-          <div className="shell flex items-center gap-2.5 pb-5">
+          <div className="shell flex items-center gap-2.5 pb-3.5">
             {slides.map((article, i) => (
               <button
                 key={article.slug}

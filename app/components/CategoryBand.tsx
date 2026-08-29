@@ -24,8 +24,8 @@ export default function CategoryBand({
   const isVeterans = category.slug === "veterans";
 
   return (
-    <section aria-labelledby={`band-${category.slug}`} className="shell pt-5 sm:pt-7">
-      <div className="sticky top-[44px] z-20 -mx-[var(--gutter)] mb-2.5 bg-[var(--color-bg)]/95 px-[var(--gutter)] py-2 backdrop-blur-sm">
+    <section aria-labelledby={`band-${category.slug}`} className="shell pt-3.5 sm:pt-5">
+      <div className="sticky top-[44px] z-20 -mx-[var(--gutter)] mb-2 bg-[var(--color-bg)]/95 px-[var(--gutter)] py-1.5 backdrop-blur-sm">
         <div
           className={`flex items-baseline justify-between gap-4 border-b-2 pb-2 ${
             isVeterans ? "border-[var(--color-gold)]" : "border-[var(--color-red)]"
