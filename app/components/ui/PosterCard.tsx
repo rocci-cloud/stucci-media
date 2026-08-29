@@ -16,9 +16,13 @@ type PosterSize = "lead" | "stack" | "rail" | "compact";
 // Every size shares one scrim recipe so a lead and a rail tile read as the
 // same object at different scales, rather than four bespoke treatments.
 
+// Two ratios only, 16:9 and 3:2. The lead was 4:5 on mobile and 16:10 at
+// sm, which put a portrait crop and a third ratio into a page that is
+// otherwise entirely widescreen — it read as a different component rather
+// than the same one at a bigger size.
 const FRAME: Record<PosterSize, string> = {
-  lead: "aspect-[4/5] sm:aspect-[16/10] lg:aspect-[3/2]",
-  stack: "aspect-[16/9] sm:aspect-[2/1] lg:aspect-[16/9]",
+  lead: "aspect-[16/9] sm:aspect-[3/2]",
+  stack: "aspect-[16/9]",
   rail: "aspect-[16/9]",
   compact: "aspect-[16/9]",
 };
@@ -76,7 +80,7 @@ export default function PosterCard({
                 ? "(max-width: 640px) 100vw, 40vw, 560px"
                 : "(max-width: 640px) 50vw, 360px"
           }
-          className="img-cinematic ken-burns transform-gpu object-cover"
+          className="img-cinematic ken-burns transform-gpu object-cover h-full w-full"
         />
       ) : (
         <div className="img-placeholder absolute inset-0" />

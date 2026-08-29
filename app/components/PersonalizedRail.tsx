@@ -1,29 +1,40 @@
 import type { Article } from "../lib/articles";
-import SectionHeader from "./ui/SectionHeader";
-import ArticleCard from "./ui/ArticleCard";
+import PosterCard from "./ui/PosterCard";
 
-// The homepage's "Recommended For You" module — same lead+briefs visual
-// language as TopicRail, but driven by a reader's own reading history
-// (see getTopCategorySlugs in lib/interests.ts) instead of one fixed
-// category. Only ever rendered for a signed-in reader with real reading
-// history; a brand-new reader or a signed-out visitor never sees this
-// module at all rather than a generic "latest" rail pretending to be
-// personalized.
+// The homepage's "Recommended For You" module, driven by a reader's own
+// reading history (see getTopCategorySlugs in lib/interests.ts) rather than
+// one fixed category. Only ever rendered for a signed-in reader with real
+// history; a brand-new reader or a signed-out visitor never sees it at all
+// rather than a generic "latest" rail pretending to be personalized.
+//
+// Moved from ArticleCard to PosterCard in the density pass: it was the last
+// homepage row still built from white cards, which meant a 2:1 mobile crop
+// and a panel inset while every band around it ran full-bleed posters at
+// 16:9 / 3:2. ArticleCard itself is untouched — it still owns the category,
+// article, tag and author pages.
 export default function PersonalizedRail({ articles }: { articles: Article[] }) {
   if (articles.length === 0) return null;
 
   const [lead, ...rest] = articles;
-  const secondary = rest.slice(0, 3);
+  const compact = rest.slice(0, 3);
 
   return (
-    <section className="py-3 sm:py-5 px-4 sm:px-6 rounded-card bg-[var(--color-bg-off)] border border-[var(--color-hairline)]">
-      <SectionHeader title="Recommended For You" compact />
-      <div className="grid grid-cols-1 sm:grid-cols-[1.4fr_1fr] gap-3 sm:gap-5">
-        <ArticleCard article={lead} variant="grid" />
-        {secondary.length > 0 && (
-          <div className="flex flex-col divide-y divide-[var(--color-hairline)] rounded-card border border-[var(--color-hairline)] bg-[var(--color-surface)] shadow-card overflow-hidden">
-            {secondary.map((a) => (
-              <ArticleCard key={a.slug} article={a} variant="list" />
+    <section aria-labelledby="recommended-heading">
+      <div className="mb-2 flex items-center gap-2.5 border-b-2 border-[var(--color-hairline-strong)] pb-1.5">
+        <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-[var(--color-blue)]" />
+        <h2
+          id="recommended-heading"
+          className="font-headline text-[15px] sm:text-[17px] font-bold uppercase leading-none tracking-[0.08em] text-[var(--color-text)]"
+        >
+          Recommended For You
+        </h2>
+      </div>
+      <div className="grid grid-cols-1 gap-2 lg:grid-cols-[3fr_2fr]">
+        <PosterCard article={lead} size="lead" showDek />
+        {compact.length > 0 && (
+          <div className="grid grid-cols-2 gap-2 lg:grid-cols-1">
+            {compact.map((a) => (
+              <PosterCard key={a.slug} article={a} size="compact" />
             ))}
           </div>
         )}

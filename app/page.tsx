@@ -5,7 +5,6 @@ import HeroRotator from "./components/HeroRotator";
 import HeadlineMosaic from "./components/HeadlineMosaic";
 import CategoryBand from "./components/CategoryBand";
 import PersonalizedRail from "./components/PersonalizedRail";
-import LatestModule from "./components/LatestModule";
 import PodcastModule from "./components/PodcastModule";
 import SubscribeStrip from "./components/SubscribeStrip";
 import SiteFooter from "./components/SiteFooter";
@@ -51,7 +50,7 @@ export default async function HomePage() {
     return (
       <>
         <SiteHeader />
-        <main id="main-content" className="shell py-20 text-center font-sans text-[var(--color-gray)]">
+        <main id="main-content" className="shell py-14 text-center font-sans text-[var(--color-gray)]">
           No published stories yet.
         </main>
         <SiteFooter />
@@ -89,9 +88,11 @@ export default async function HomePage() {
     }))
     .filter((band) => band.articles.length > 0);
 
-  // Whatever the shaped blocks did not use runs as a dense wire at the
-  // foot of the page — recency, no hierarchy, no wasted height.
-  const wireItems = articles.filter((a) => !used.has(a.slug)).slice(0, 12);
+  // Whatever the shaped blocks did not use runs through the same mosaic
+  // rather than a row of equal cards. The old wire grid was three
+  // 88x60px thumbnails across, which read as small and left the row
+  // mostly empty at 1440.
+  const overflowItems = articles.filter((a) => !used.has(a.slug)).slice(0, MOSAIC_COUNT);
 
   const [podcastLead] = podcastEpisodes;
 
@@ -105,7 +106,7 @@ export default async function HomePage() {
         <HeadlineMosaic articles={mosaicItems} />
 
         {personalizedForRail.length > 0 && (
-          <div className="shell pt-5">
+          <div className="shell pt-3.5">
             <Reveal>
               <PersonalizedRail articles={personalizedForRail} />
             </Reveal>
@@ -116,7 +117,7 @@ export default async function HomePage() {
             module driven by feeds rather than the newsroom, and burying it
             under seven text modules is how the shows stayed invisible. */}
         {podcastLead && (
-          <div className="pt-5 sm:pt-7">
+          <div className="pt-3.5 sm:pt-5">
             <Reveal>
               <PodcastModule
                 lead={podcastLead}
@@ -133,22 +134,20 @@ export default async function HomePage() {
           </Reveal>
         ))}
 
-        {wireItems.length > 0 && (
-          <div className="shell pt-6 sm:pt-8">
-            <Reveal>
-              <LatestModule articles={wireItems} />
-            </Reveal>
-          </div>
+        {overflowItems.length > 0 && (
+          <Reveal>
+            <HeadlineMosaic articles={overflowItems} title="More Headlines" id="more" />
+          </Reveal>
         )}
 
         {/* Homepage's one fixed banner slot, and the service promo. Both sit
             below the editorial stack rather than interrupting it — BannerSlot
             returns null with zero DOM output when nothing is active, so this
             never leaves an empty box behind. */}
-        <div className="shell my-7 sm:my-9">
+        <div className="shell my-5 sm:my-6">
           <ServicePromo />
         </div>
-        <BannerSlot placement="HOMEPAGE" className="shell py-4" />
+        <BannerSlot placement="HOMEPAGE" className="shell py-3" />
 
         <Reveal>
           <SubscribeStrip />
