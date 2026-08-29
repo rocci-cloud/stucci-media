@@ -60,7 +60,7 @@ export default async function CategoryPage({ params }: Props) {
 
   // The top 4 stories (most recent first, per getArticlesByCategory) get
   // the CategoryLead treatment — one dominant lead + a tight briefs
-  // stack — same as TopicRail on the homepage. Everything after that
+  // stack — see CategoryLead. Everything after that
   // feeds the dense ArticleGrid wire-list below, so nothing shows twice.
   const leadArticles = categoryArticles.slice(0, 4);
   const remainingArticles = categoryArticles.slice(4);

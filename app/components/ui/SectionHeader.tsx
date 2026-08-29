@@ -15,7 +15,7 @@ type SectionHeaderProps = {
 // Keeping both here means every module's heading treatment stays
 // pixel-identical instead of drifting component to component.
 //
-// `compact` is opt-in (default off) so the homepage's stacked TopicRails
+// `compact` is opt-in (default off) so a page stacking several modules
 // can run a tighter kicker without changing RelatedArticles/ArticleGrid's
 // existing spacing on article/category pages.
 export default function SectionHeader({

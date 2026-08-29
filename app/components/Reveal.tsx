@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
-// Wraps a server-rendered module (TopicRail, LatestModule, etc.) and
+// Wraps a server-rendered module (CategoryBand, PodcastModule, etc.) and
 // fades/rises it in the first time it scrolls into view, via a plain
 // IntersectionObserver + CSS transition — no animation library. Restrained
 // on purpose: one reveal per module, not per-card, so the page doesn't

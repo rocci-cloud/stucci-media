@@ -36,8 +36,10 @@ app/
   search/                 client-side filter over the articles array
   about/ contact/ privacy/
   admin/                  article editor + subscriber list (see Phase 2/3)
-  components/             BreakingBar, SiteHeader, Hero, TopicRail, Sidebar,
-                          ArticleGrid, SubscribeStrip/Form, SiteFooter
+  components/             BreakingBar, SiteHeader, HeroRotator,
+                          HeadlineMosaic, CategoryBand, PodcastModule,
+                          Sidebar, ArticleGrid, SubscribeStrip/Form,
+                          SiteFooter
   components/ui/          ArticleCard, SectionHeader, Badge — shared
                           primitives, see Design system below
   lib/articles.ts         Article type + DB reads/writes + lookup helpers
@@ -134,9 +136,12 @@ section-heading, and kicker-label treatment on the site should go through
 these rather than reimplementing markup inline — that's what keeps the
 whole site visually consistent instead of drifting page to page.
 - `ArticleCard` — `variant="grid"` (the shadowed/rounded card used in
-  `ArticleGrid` and `TopicRail`), `variant="list"` (thumbnail + headline,
-  Hero's "Also Developing" rail), `variant="ranked"` (numbered, no image,
-  `Sidebar`'s Trending Now).
+  `ArticleGrid`, `CategoryLead`, `RelatedArticles`), `variant="list"`
+  (thumbnail + headline, `CategoryLead`'s briefs column),
+  `variant="ranked"` (numbered, no image, `Sidebar`'s Trending Now).
+  **The homepage does not use `ArticleCard` at all** — it is built from
+  `PosterCard` (image is the card, copy sits on it). `ArticleCard` owns
+  the reading pages: category, article, tag, author.
 - `SectionHeader` — `variant="underline"` (kicker + red rule + optional
   "More →" link, above grids/rails) or `variant="panel"` (solid navy bar,
   atop sidebar/rail panels).
@@ -3621,3 +3626,45 @@ untouched apart from inheriting the tokens.
   file has documented since Phase 5, affects a template outside this pass,
   and deserves a side-by-side at real reading length rather than a silent
   flip.
+
+## Phase 61 — done: homepage density pass, and removing what it superseded
+
+Feedback on Phase 60's homepage was specific: too much white under the
+hero, an equal-card row that felt small, and sections not reaching the
+1440 grid. Each had one concrete cause rather than a general looseness.
+
+- **Two rows never joined the 1440 grid.** `PodcastModule` still carried
+  `mx-auto max-w-[1280px] px-5` and `SubscribeStrip` capped its content at
+  `max-w-[1080px]` — both predating the `.shell` container. At 1440 that
+  left 64px and 164px of dead space down each side of those rows while
+  every band around them ran to the edge. Both are `.shell` now, so the
+  only unused side space on any homepage row at ≥1280 is the 16px gutter.
+- **The equal-card row was `LatestModule`** — `lg:grid-cols-3` of
+  `ArticleCard variant="list"`, an 88×60px thumbnail. Replaced with the
+  mosaic already sitting under the hero; `HeadlineMosaic` took a
+  `title`/`id` prop so one component serves both slots.
+  `PersonalizedRail` moved from `ArticleCard` to `PosterCard` in the same
+  pass — it was the last homepage row still rendering white cards.
+- **Hero is 70svh mobile / 85vh desktop**, with its caption foot and slide
+  pips tightened; every homepage section's vertical rhythm came down
+  roughly 30%.
+- **Poster frames are 16:9 and 3:2 only.** The lead was `4:5` on mobile
+  and `16:10` at `sm`, which put a portrait crop and a third ratio into a
+  page that is otherwise entirely widescreen.
+- **Four components deleted**, unreferenced once the homepage was rebuilt:
+  `FeaturedSection` (Phase 10/15), `TopicRail` (Phase 5/16),
+  `OpinionModule` (Phase 18), `LatestModule` (Phase 18). Each was checked
+  for real imports first — every remaining mention was a code comment, and
+  those eight comments were rewritten to name what actually exists rather
+  than left pointing at deleted files. `SectionHeader` (5 users), its
+  `compact` prop, and all three `ArticleCard` variants survive on the
+  reading pages, so nothing was orphaned by the removal.
+- **Verified**: 209 tests pass, no new type errors, the compiled CSS was
+  asserted to emit `70svh`/`85vh`/`3:2` and to no longer contain `4:5` or
+  `16:10`, and the live production HTML was checked against all twelve
+  markers after deploy. Still unresolved: a white band below the hero
+  appears in this environment's browser-pane screenshots, but that pane's
+  JS console returns nothing and the sandbox is blocked from reaching the
+  preview host, so it could not be measured either way. Worth a real
+  look — if it is real, suspect the sticky nav's containing block inside
+  the `desk-wide` wrapper rather than spacing.

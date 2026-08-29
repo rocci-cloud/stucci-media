@@ -233,7 +233,7 @@ export default async function ArticlePage({ params }: Props) {
       <SiteHeader />
       <main id="main-content">
         {/* --- Cinematic article hero: same visual language as the
-            homepage's FeaturedSection (vignette + scrim, badge/h1/dek/
+            homepage's HeroRotator (vignette + scrim, badge/h1/dek/
             byline stack), sized down since this is one story, not the
             site's lead. Renders even without a cover image (falls back
             to img-placeholder) so headline/meta always have a hero to

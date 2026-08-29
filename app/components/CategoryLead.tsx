@@ -4,7 +4,7 @@ import ArticleCard from "./ui/ArticleCard";
 // The top of every category page gets an intentional lead + briefs
 // treatment — one dominant story plus a tight stack of the next three —
 // instead of the most recent article just being first-in-line inside a
-// flat grid. Same asymmetric pattern TopicRail established on the
+// flat grid. The same asymmetric lead+briefs pattern used across the
 // homepage, reused verbatim here rather than inventing a second one.
 export default function CategoryLead({ articles }: { articles: Article[] }) {
   if (articles.length === 0) return null;
