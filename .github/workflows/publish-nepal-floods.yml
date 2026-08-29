@@ -29,6 +29,18 @@ name: "Publish: Nepal floods feature"
 
 on:
   workflow_dispatch: {}
+  # Also fires on a push that touches this article. The Run workflow button
+  # was not appearing in the Actions UI; a path-scoped push trigger is
+  # deterministic, and it doubles as the update path - edit the body or the
+  # graphics, push, and the published toll refreshes.
+  push:
+    branches: [main]
+    paths:
+      - scripts/data/nepal-floods-article.json
+      - scripts/data/nepal-floods-body.html
+      - scripts/data/nepal-graphics/**
+      - scripts/publish-nepal-floods.mjs
+      - .github/workflows/publish-nepal-floods.yml
 
 jobs:
   publish:
