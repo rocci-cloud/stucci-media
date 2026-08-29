@@ -15,7 +15,7 @@ import { getSessionCookie } from "better-auth/cookies";
 // of this middleware ever running — so that redirect fought Vercel's,
 // producing an infinite redirect loop that took the whole site down.
 // www is the real canonical host (see PRODUCTION_URL in app/lib/auth.ts
-// and siteUrl in app/layout.tsx, app/robots.ts, app/sitemap.ts — all
+// and siteUrl in app/layout.tsx, app/robots.ts, app/lib/sitemap-xml.ts — all
 // updated to match), so no in-app redirect is needed here at all.
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
