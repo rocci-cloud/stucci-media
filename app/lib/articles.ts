@@ -36,6 +36,12 @@ export type Article = {
   deletedAt: string | null;
   tags: string[];
   bulletPoints: string[];
+  // A short editorial punch phrase shown above the headline on story cards
+  // and, when set, in the lead photo's crimson overlay bar. There is no
+  // column behind it yet — cards fall back to the category label — so this
+  // is always undefined today. Adding the column plus an editor field is a
+  // deliberate follow-up rather than a silent half-feature.
+  kicker?: string | null;
   comparisonTitle: string | null;
   comparisonBody: string | null;
   comparisonSourceLabel: string | null;

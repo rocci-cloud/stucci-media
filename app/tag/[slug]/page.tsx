@@ -69,8 +69,10 @@ export default async function TagPage({ params }: Props) {
   if (articles.length === 0) notFound();
 
   const label = displayTag(tag);
-  const leadArticles = articles.slice(0, 4);
-  const remainingArticles = articles.slice(4);
+  // CategoryLead renders one medium card now, not a lead-plus-three block,
+  // so everything after the first story belongs in the river below it.
+  const leadArticles = articles.slice(0, 1);
+  const remainingArticles = articles.slice(1);
 
   // www, not the apex domain — see the PRODUCTION_URL comment in
   // app/lib/auth.ts.

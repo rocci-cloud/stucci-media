@@ -83,8 +83,10 @@ export default async function AuthorPage({ params }: Props) {
 
   const { articles, profile, name } = data;
   const allArticles = await getPublishedArticles();
-  const leadArticles = articles.slice(0, 4);
-  const remainingArticles = articles.slice(4);
+  // CategoryLead renders one medium card now, not a lead-plus-three block,
+  // so everything after the first story belongs in the river below it.
+  const leadArticles = articles.slice(0, 1);
+  const remainingArticles = articles.slice(1);
 
   const links = [
     profile?.websiteUrl && { label: "Website", href: profile.websiteUrl },

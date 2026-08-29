@@ -62,8 +62,8 @@ export default async function CategoryPage({ params }: Props) {
   // the CategoryLead treatment — one dominant lead + a tight briefs
   // stack — see CategoryLead. Everything after that
   // feeds the dense ArticleGrid wire-list below, so nothing shows twice.
-  const leadArticles = categoryArticles.slice(0, 4);
-  const remainingArticles = categoryArticles.slice(4);
+  const leadArticles = categoryArticles.slice(0, 1);
+  const remainingArticles = categoryArticles.slice(1);
 
   // www, not the apex domain — see the PRODUCTION_URL comment in
   // app/lib/auth.ts.

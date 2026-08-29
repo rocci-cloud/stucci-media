@@ -1,7 +1,7 @@
 import { headers } from "next/headers";
 import BreakingBar from "./components/BreakingBar";
 import SiteHeader from "./components/SiteHeader";
-import HeroRotator from "./components/HeroRotator";
+import LeadPackage from "./components/LeadPackage";
 import HeadlineMosaic from "./components/HeadlineMosaic";
 import CategoryBand from "./components/CategoryBand";
 import PersonalizedRail from "./components/PersonalizedRail";
@@ -27,9 +27,9 @@ export const revalidate = 60;
 // numbers live here rather than inside each component because they only
 // make sense against each other: this is the page's editorial budget, and
 // changing one changes what is left for the next block down.
-const HERO_COUNT = 3;
-const MOSAIC_COUNT = 7; // 1 lead + 2 stacked + a 4-up rail
-const BAND_COUNT = 4; // 1 lead + 3 compact
+const LEAD_COUNT = 1; // the top story, on its own
+const MOSAIC_COUNT = 5; // 1 medium + a 4-up compact rail
+const BAND_COUNT = 4; // 1 medium + 3 compact
 
 export default async function HomePage() {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -62,9 +62,9 @@ export default async function HomePage() {
   // curated it falls back to the most recent, same honest-fallback rule
   // this page has always used. Every block below takes from what is
   // left, so a story never appears twice on the page.
-  const heroSource = featuredArticles.length > 0 ? featuredArticles : articles;
-  const heroItems = heroSource.slice(0, HERO_COUNT);
-  const used = new Set(heroItems.map((a) => a.slug));
+  const leadSource = featuredArticles.length > 0 ? featuredArticles : articles;
+  const leadItems = leadSource.slice(0, LEAD_COUNT);
+  const used = new Set(leadItems.map((a) => a.slug));
 
   const take = (pool: typeof articles, count: number) => {
     const picked = pool.filter((a) => !used.has(a.slug)).slice(0, count);
@@ -101,7 +101,9 @@ export default async function HomePage() {
       <BreakingBar />
       <SiteHeader />
       <main id="main-content">
-        <HeroRotator articles={heroItems} />
+        <div className="shell pt-3 sm:pt-4">
+          {leadItems[0] && <LeadPackage article={leadItems[0]} />}
+        </div>
 
         <HeadlineMosaic articles={mosaicItems} />
 
@@ -136,7 +138,7 @@ export default async function HomePage() {
 
         {overflowItems.length > 0 && (
           <Reveal>
-            <HeadlineMosaic articles={overflowItems} title="More Headlines" id="more" />
+            <HeadlineMosaic articles={overflowItems} title="More Headlines" />
           </Reveal>
         )}
 
