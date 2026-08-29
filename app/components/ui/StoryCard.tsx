@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { Article } from "../../lib/articles";
 import { timeAgo } from "../../lib/time-ago";
+import { imageKenBurns } from "../motion";
 
 export type StoryCardSize = "medium" | "compact" | "relatedText";
 
@@ -73,7 +74,7 @@ export default function StoryCard({
             fill
             priority={priority}
             sizes={size === "medium" ? "(max-width: 768px) 100vw, 720px" : "(max-width: 768px) 50vw, 360px"}
-            className="img-cinematic object-cover transition-opacity duration-200 group-hover:opacity-[0.92]"
+            className={`img-cinematic ${imageKenBurns} object-cover transition-opacity duration-200 group-hover:opacity-[0.92]`}
           />
         ) : (
           <div className="img-placeholder absolute inset-0" />

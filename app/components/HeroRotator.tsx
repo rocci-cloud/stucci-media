@@ -1,11 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import type { Article } from "../lib/articles";
-
-const ROTATE_MS = 8000;
+import { heroCrossfadeSlide, useHeroCrossfade } from "./motion";
 
 // The homepage's rotating lead. Two to three curated stories, crossfading
 // under a lower-third that wipes in the way a broadcast caption does.
@@ -26,36 +24,10 @@ const ROTATE_MS = 8000;
 //    lead story reachable.
 export default function HeroRotator({ articles }: { articles: Article[] }) {
   const slides = articles.slice(0, 3);
-  const [index, setIndex] = useState(0);
-  const [paused, setPaused] = useState(false);
-  const reducedMotion = useRef(false);
-
-  useEffect(() => {
-    const query = window.matchMedia("(prefers-reduced-motion: reduce)");
-    reducedMotion.current = query.matches;
-    const onChange = () => {
-      reducedMotion.current = query.matches;
-    };
-    query.addEventListener("change", onChange);
-    return () => query.removeEventListener("change", onChange);
-  }, []);
-
-  useEffect(() => {
-    if (slides.length <= 1 || paused) return;
-    // A reader who asked for reduced motion gets the lead story and no
-    // rotation at all — an 8-second content swap is exactly the kind of
-    // unrequested movement that preference is about, not just a transition
-    // to shorten.
-    if (reducedMotion.current) return;
-    const id = window.setInterval(() => {
-      setIndex((i) => (i + 1) % slides.length);
-    }, ROTATE_MS);
-    return () => window.clearInterval(id);
-  }, [slides.length, paused, index]);
-
-  const go = useCallback((next: number) => {
-    setIndex(next);
-  }, []);
+  // Rotation, pause-on-hover/focus and the reduced-motion opt-out all live
+  // in useHeroCrossfade now — this component had its own copy of each,
+  // which is exactly the duplication the motion module exists to remove.
+  const { index, goTo, pauseHandlers } = useHeroCrossfade(slides.length);
 
   if (slides.length === 0) return null;
 
@@ -63,10 +35,7 @@ export default function HeroRotator({ articles }: { articles: Article[] }) {
     <section
       aria-label="Featured stories"
       className="relative isolate w-full overflow-hidden bg-[var(--color-navy-dark)] h-[70svh] min-h-[460px] sm:h-[70vh] lg:h-[85vh] lg:min-h-[620px] lg:max-h-[900px]"
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
-      onFocusCapture={() => setPaused(true)}
-      onBlurCapture={() => setPaused(false)}
+      {...pauseHandlers}
     >
       {slides.map((article, i) => {
         const active = i === index;
@@ -75,7 +44,7 @@ export default function HeroRotator({ articles }: { articles: Article[] }) {
           <div
             key={article.slug}
             aria-hidden={!active}
-            className={`absolute inset-0 transition-opacity duration-[900ms] ${
+            className={`absolute inset-0 ${heroCrossfadeSlide} ${
               active ? "opacity-100" : "pointer-events-none opacity-0"
             }`}
           >
@@ -149,7 +118,7 @@ export default function HeroRotator({ articles }: { articles: Article[] }) {
               <button
                 key={article.slug}
                 type="button"
-                onClick={() => go(i)}
+                onClick={() => goTo(i)}
                 aria-label={`Show story ${i + 1}: ${article.headline}`}
                 aria-current={i === index}
                 className="group/pip flex h-11 w-14 items-end pb-4"

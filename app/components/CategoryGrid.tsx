@@ -3,6 +3,7 @@ import type { Article } from "../lib/articles";
 import type { Category } from "../lib/categories";
 import CategoryCard from "./ui/CategoryCard";
 import { ARTICLE_GRID } from "../lib/article-grid";
+import { CardEnter, stickySectionLabel } from "./motion";
 
 // A homepage category band: label, thin crimson rule, then an even grid.
 //
@@ -29,7 +30,7 @@ export default function CategoryGrid({
 
   return (
     <section aria-labelledby={`band-${category.slug}`} className="shell pt-6 sm:pt-7">
-      <div className="mb-3 flex items-baseline justify-between gap-4 border-b border-[var(--color-red)] pb-1.5">
+      <div className={`${stickySectionLabel} mb-3 flex items-baseline justify-between gap-4 border-b border-[var(--color-red)] pt-1.5 pb-1.5`}>
         <h2
           id={`band-${category.slug}`}
           className="font-headline text-[14px] sm:text-[16px] font-bold uppercase leading-none tracking-[0.1em] text-[var(--color-text)]"
@@ -44,16 +45,18 @@ export default function CategoryGrid({
         </Link>
       </div>
 
-      <div className={ARTICLE_GRID}>
-        {articles.map((article) => (
-          <CategoryCard
-            key={article.slug}
-            article={article}
-            commentCount={commentCounts?.get(article.id)}
-            related={relatedBySlug?.get(article.slug)}
-          />
-        ))}
-      </div>
+      <CardEnter>
+        <div className={ARTICLE_GRID}>
+          {articles.map((article) => (
+            <CategoryCard
+              key={article.slug}
+              article={article}
+              commentCount={commentCounts?.get(article.id)}
+              related={relatedBySlug?.get(article.slug)}
+            />
+          ))}
+        </div>
+      </CardEnter>
     </section>
   );
 }
