@@ -126,22 +126,28 @@ export default function PodcastModule({
         {/* --- 2. The Shows --- */}
         {shows.length > 0 && (
           <>
-            <h3 className="mt-8 mb-3 border-b border-white/15 pb-2 font-headline text-[13px] font-bold uppercase tracking-[0.1em] text-white/70">
-              The Shows
-            </h3>
-            <div className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2 min-[1100px]:grid-cols-4">
-              {shows.slice(0, 8).map((show) => (
+            <div className="mt-7 mb-3 flex items-baseline justify-between gap-4 border-b border-white/15 pb-2">
+              <h3 className="font-headline text-[13px] font-bold uppercase tracking-[0.1em] text-white/70">
+                The Shows
+              </h3>
+              <Link
+                href="/podcasts"
+                className="inline-flex min-h-11 items-center font-sans text-[11.5px] font-bold uppercase tracking-[0.08em] text-white/50 transition-colors hover:text-[var(--color-red-ink)]"
+              >
+                Browse all {shows.length} →
+              </Link>
+            </div>
+            {/* A shelf, not a grid. Every show fits one scrolling row, and
+                the negative margin lets the first and last tiles reach the
+                container edge while the row still scrolls past it — the
+                same snap-scroll pattern the site already uses elsewhere.
+                No JS carousel: native scroll-snap keeps keyboard, trackpad
+                and touch behaviour correct for free. */}
+            <div className="-mx-[var(--gutter)] flex snap-x snap-mandatory gap-3 overflow-x-auto px-[var(--gutter)] pb-1 scrollbar-none sm:gap-4">
+              {shows.map((show) => (
                 <ShowCard key={show.id} show={show} latestEpisodeAt={latestByShow?.get(show.id)} />
               ))}
             </div>
-            {shows.length > 8 && (
-              <Link
-                href="/podcasts"
-                className="mt-4 inline-flex min-h-11 items-center font-sans text-[12px] font-bold uppercase tracking-[0.08em] text-[var(--color-red-ink)] transition-colors hover:text-white"
-              >
-                Browse all {shows.length} shows →
-              </Link>
-            )}
           </>
         )}
 

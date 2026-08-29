@@ -3771,8 +3771,13 @@ posters, and an episode grid with the same anatomy as the article cards
 above it. Scoped to this module — hero, nav, ticker, article cards, category
 grids and the article page are untouched.
 
-- **`ShowCard`** — cover art is the card. Square poster, NEW badge, title,
-  host, then "Latest: 2d ago" or an episode count.
+- **`ShowCard`** — cover art is the card, sized for a horizontal shelf
+  (~142/164px) rather than a grid. At four across a 1440 container these
+  were ~340px squares, which gave eleven shows more vertical space than the
+  entire episode grid below them. Native `snap-x` scroll, no carousel
+  library — keyboard, trackpad and touch behaviour come free, and the
+  negative gutter margin lets the row bleed to the container edge while
+  still scrolling past it.
 - **`EpisodeCard`** — the audio twin of `CategoryCard`: 16:9, crimson show
   kicker, three-line title clamp, clock + duration · date.
 - **`getLatestEpisodeDateByShow()`** is one `groupBy`, not a query per show.
@@ -3792,4 +3797,3 @@ grids and the article page are untouched.
   place this module departs from the site's square-corner card language,
   because podcast cover art is authored as a rounded tile everywhere else a
   listener sees it.
-
