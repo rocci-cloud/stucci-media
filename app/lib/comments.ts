@@ -83,6 +83,35 @@ export async function getCommentCount(articleId: number): Promise<number> {
   return prisma.comment.count({ where: { articleId, isApproved: true } });
 }
 
+/**
+ * Approved-comment counts for many articles in one query.
+ *
+ * The homepage renders up to ~30 cards; calling getCommentCount per card
+ * would be ~30 round trips to fill a meta row. This is one groupBy, and
+ * articles with no comments are simply absent from the map rather than
+ * carrying a zero.
+ */
+export async function getCommentCountsForArticles(
+  articleIds: number[],
+): Promise<Map<number, number>> {
+  if (articleIds.length === 0) return new Map();
+  // Annotated explicitly rather than inferred: groupBy's return type is
+  // generated, and this file already cannot resolve it in environments
+  // where `prisma generate` has not run. The shape is stable and narrow.
+  type CountRow = { articleId: number | null; _count: { _all: number } };
+  const rows = (await prisma.comment.groupBy({
+    by: ["articleId"],
+    where: { articleId: { in: articleIds }, isApproved: true },
+    _count: { _all: true },
+  })) as unknown as CountRow[];
+
+  const counts = new Map<number, number>();
+  for (const row of rows) {
+    if (row.articleId !== null) counts.set(row.articleId, row._count._all);
+  }
+  return counts;
+}
+
 export async function createComment(input: {
   articleId: number;
   userId: string;

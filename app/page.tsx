@@ -3,7 +3,7 @@ import BreakingBar from "./components/BreakingBar";
 import SiteHeader from "./components/SiteHeader";
 import LeadPackage from "./components/LeadPackage";
 import HeadlineMosaic from "./components/HeadlineMosaic";
-import CategoryBand from "./components/CategoryBand";
+import CategoryGrid from "./components/CategoryGrid";
 import PersonalizedRail from "./components/PersonalizedRail";
 import PodcastModule from "./components/PodcastModule";
 import SubscribeStrip from "./components/SubscribeStrip";
@@ -15,6 +15,7 @@ import { getPublishedArticles, getFeaturedArticles, getPersonalizedArticles } fr
 import { getCategories } from "./lib/categories";
 import { getActivePodcasts, getLatestEpisodes } from "./lib/podcasts";
 import { getTopCategorySlugs } from "./lib/interests";
+import { getCommentCountsForArticles } from "./lib/comments";
 import { auth } from "./lib/auth";
 
 // A signed-in reader's session gates the personalized rail below, which
@@ -29,7 +30,7 @@ export const revalidate = 60;
 // changing one changes what is left for the next block down.
 const LEAD_COUNT = 1; // the top story, on its own
 const MOSAIC_COUNT = 5; // 1 medium + a 4-up compact rail
-const BAND_COUNT = 4; // 1 medium + 3 compact
+const BAND_COUNT = 6; // two full rows at three columns
 
 export default async function HomePage() {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -88,6 +89,13 @@ export default async function HomePage() {
     }))
     .filter((band) => band.articles.length > 0);
 
+  // Comment counts for the band cards' meta rows. One groupBy for every
+  // card on the page rather than a count per card, and only for the
+  // articles actually rendered in a band.
+  const commentCounts = await getCommentCountsForArticles(
+    bands.flatMap((band) => band.articles.map((a) => a.id)),
+  );
+
   // Whatever the shaped blocks did not use runs through the same mosaic
   // rather than a row of equal cards. The old wire grid was three
   // 88x60px thumbnails across, which read as small and left the row
@@ -132,7 +140,11 @@ export default async function HomePage() {
 
         {bands.map((band) => (
           <Reveal key={band.category.slug}>
-            <CategoryBand category={band.category} articles={band.articles} />
+            <CategoryGrid
+              category={band.category}
+              articles={band.articles}
+              commentCounts={commentCounts}
+            />
           </Reveal>
         ))}
 
