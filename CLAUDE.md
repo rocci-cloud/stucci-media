@@ -3668,3 +3668,61 @@ hero, an equal-card row that felt small, and sections not reaching the
   preview host, so it could not be measured either way. Worth a real
   look — if it is real, suspect the sticky nav's containing block inside
   the `desk-wide` wrapper rather than spacing.
+
+## Phase 62 — done: news-structure card system and article template
+
+Two passes against one brief: adopt a mainstream news site's *structure*
+while keeping Stucci's brand entirely. No borrowed colours, logo, fonts or
+branding — Oswald, Archivo, crimson and navy are untouched throughout.
+
+**The card system** (`StoryCard`, `LeadPackage`, `SectionLabel`) replaced
+the poster system on the homepage and every listing page. One flat stack —
+16:9 image, crimson kicker, headline, `Category · timeAgo · readTime` — at
+three sizes plus a text-only variant. Deliberately flat where `ArticleCard`
+is rounded and elevated: a river wants its photos on a grid, and card chrome
+is what stops a page of them reading as one page. `ArticleCard` still owns
+the account pages and the admin-adjacent surfaces.
+
+**The article template** dropped its full-bleed hero. The headline now sits
+on the page background at full contrast with the photo under the byline,
+rather than white-on-photo over a scrim. Order is eyebrow → h1 → dek →
+byline → share → image → body, in a 720px column with a 320px rail.
+
+- `app/lib/time-ago.ts` backs every meta row. Relative under a week, a short
+  date past it, and the year only when it differs — "14d ago" is worse than
+  a date. Timezone-explicit so a story does not appear a day older in
+  California.
+- **Prev/next and the rail cost no extra queries.** Both derive from the
+  published list the article page already fetches for its sidebar. The
+  On Air box is a static link for the same reason — a second query on the
+  highest-traffic template to fill a box saying "we have a show" is not
+  worth it.
+- **`ShareRow` reads its URL from the browser**, not from a server-built
+  absolute URL: this page is ISR-cached, so a baked-in host would ship in
+  the cached HTML and every share would carry whichever host rendered it.
+  lucide 1.x has dropped its brand icons, so both social marks are inline
+  paths rather than a dependency that no longer ships them.
+- **Drop cap is `float` + `::first-letter`, not `initial-letter`**, which
+  still has partial support and fails silently. Scoped to the opening body
+  half only — the body splits around a mid-article banner and the second
+  half must not start with a capital.
+- **Real bug caught mid-change**: `CategoryLead` went from lead-plus-three
+  to a single card, and the tag and author pages both sliced `(0,4)`/`(4)`
+  against it. Left alone, three stories would have silently vanished from
+  every tag and author page. Corrected to `(0,1)`/`(1)`.
+- **Three fields are type-only**: `kicker`, `imageCaption`, `imageCredit`.
+  No columns behind them, so kickers fall back to the category label and the
+  caption block does not render. One migration plus three editor inputs
+  makes all three real — deliberately a follow-up rather than shipping
+  columns nothing can set.
+- **Preserved**: slugs, SEO/OG metadata, NewsArticle and BreadcrumbList
+  schema, auth, analytics and the bot filter, live blog, Bottom Line,
+  the comparison box, tags, like/save, comments, and the mid-article banner
+  slot. Exactly one `<h1>` per template still holds.
+- **Verified**: 215 tests (6 new for `timeAgo`), no new type errors, CSS
+  compiles clean, and the live homepage and category pages were checked
+  against their markers after deploy. Two assertion false alarms are worth
+  remembering — arbitrary Tailwind classes are escaped in the compiled
+  output (`\[minmax\(0\,720px\)_320px\]`), so a naive `includes()` check
+  reports a failure that is not there.
+
