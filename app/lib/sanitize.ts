@@ -50,7 +50,7 @@ const ALLOWED_CLASSES = {
 // Our own origin, matched so an editor who pastes a full absolute URL to a
 // Stucci Media page gets the same treatment as one who writes a relative
 // path. Same env-var-with-hardcoded-fallback pattern used across the app
-// (robots.ts, sitemap.ts, the article and category pages).
+// (robots.ts, lib/sitemap-xml.ts, the article and category pages).
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.stuccimedia.com";
 const INTERNAL_HOSTNAMES = (() => {
   try {
