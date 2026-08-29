@@ -1,13 +1,12 @@
 import { headers } from "next/headers";
 import BreakingBar from "./components/BreakingBar";
 import SiteHeader from "./components/SiteHeader";
-import FeaturedSection from "./components/FeaturedSection";
+import HeroRotator from "./components/HeroRotator";
+import HeadlineMosaic from "./components/HeadlineMosaic";
+import CategoryBand from "./components/CategoryBand";
 import PersonalizedRail from "./components/PersonalizedRail";
 import LatestModule from "./components/LatestModule";
-import TopicRail from "./components/TopicRail";
-import OpinionModule from "./components/OpinionModule";
 import PodcastModule from "./components/PodcastModule";
-import Sidebar from "./components/Sidebar";
 import SubscribeStrip from "./components/SubscribeStrip";
 import SiteFooter from "./components/SiteFooter";
 import Reveal from "./components/Reveal";
@@ -24,6 +23,14 @@ import { auth } from "./lib/auth";
 // page already made in Phase 12) — `revalidate` still applies to the
 // underlying data fetches, just not the page shell itself.
 export const revalidate = 60;
+
+// How many stories each block consumes, in the order they take them. The
+// numbers live here rather than inside each component because they only
+// make sense against each other: this is the page's editorial budget, and
+// changing one changes what is left for the next block down.
+const HERO_COUNT = 3;
+const MOSAIC_COUNT = 7; // 1 lead + 2 stacked + a 4-up rail
+const BAND_COUNT = 4; // 1 lead + 3 compact
 
 export default async function HomePage() {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -44,7 +51,7 @@ export default async function HomePage() {
     return (
       <>
         <SiteHeader />
-        <main id="main-content" className="mx-auto max-w-[1280px] px-5 py-20 text-center font-sans text-[var(--color-gray)]">
+        <main id="main-content" className="shell py-20 text-center font-sans text-[var(--color-gray)]">
           No published stories yet.
         </main>
         <SiteFooter />
@@ -52,118 +59,102 @@ export default async function HomePage() {
     );
   }
 
-  // The Featured section shows up to 4 stories (curated, or — if nothing's
-  // marked Featured yet — the most recent as a graceful fallback; see
-  // FeaturedSection). Whichever it ends up showing gets excluded below so
-  // the same story doesn't appear twice in a row.
-  const featuredForSection = featuredArticles.length > 0 ? featuredArticles : articles;
-  const shownSlugs = new Set(featuredForSection.slice(0, 4).map((a) => a.slug));
-  const afterFeatured = articles.filter((a) => !shownSlugs.has(a.slug));
+  // The hero shows what an editor actually marked Featured; with nothing
+  // curated it falls back to the most recent, same honest-fallback rule
+  // the old FeaturedSection used. Every block below takes from what is
+  // left, so a story never appears twice on the page.
+  const heroSource = featuredArticles.length > 0 ? featuredArticles : articles;
+  const heroItems = heroSource.slice(0, HERO_COUNT);
+  const used = new Set(heroItems.map((a) => a.slug));
 
-  // "Latest" is its own recency-first wire desk above the category
-  // modules — same exclusion pattern as Featured, so nothing shows twice.
-  const latestItems = afterFeatured.slice(0, 6);
-  latestItems.forEach((a) => shownSlugs.add(a.slug));
+  const take = (pool: typeof articles, count: number) => {
+    const picked = pool.filter((a) => !used.has(a.slug)).slice(0, count);
+    picked.forEach((a) => used.add(a.slug));
+    return picked;
+  };
 
-  // Personalized picks are already excluded from being re-shown further
-  // down — same exclusion pattern, applied before the category rails are
-  // built so a recommended story never doubles up in its own TopicRail.
-  const personalizedForRail = personalizedArticles.filter((a) => !shownSlugs.has(a.slug)).slice(0, 4);
-  personalizedForRail.forEach((a) => shownSlugs.add(a.slug));
+  const mosaicItems = take(articles, MOSAIC_COUNT);
+  const personalizedForRail = take(personalizedArticles, 4);
 
-  const railItems = afterFeatured.filter((a) => !shownSlugs.has(a.slug));
+  // Bands are built in the admin's own category order, each taking the
+  // freshest unused stories in its section. A category with nothing left
+  // renders nothing at all rather than a half-empty band.
+  const bands = categories
+    .map((category) => ({
+      category,
+      articles: take(
+        articles.filter((a) => a.categorySlug === category.slug),
+        BAND_COUNT,
+      ),
+    }))
+    .filter((band) => band.articles.length > 0);
 
-  // Opinion & Analysis and Podcasts get their own distinct module layouts
-  // (OpinionModule) instead of the standard TopicRail
-  // lead+briefs treatment — see those components for why. `topicRailIndex`
-  // tracks position only among the standard TopicRail modules, so the
-  // alternating background rhythm stays clean between same-type modules
-  // instead of skipping a beat whenever a specialty module sits between them.
+  // Whatever the shaped blocks did not use runs as a dense wire at the
+  // foot of the page — recency, no hierarchy, no wasted height.
+  const wireItems = articles.filter((a) => !used.has(a.slug)).slice(0, 12);
+
   const [podcastLead] = podcastEpisodes;
 
-  let topicRailIndex = 0;
-
   return (
-    <>
+    <div className="desk-wide">
       <BreakingBar />
       <SiteHeader />
       <main id="main-content">
-        <FeaturedSection featured={featuredArticles.slice(0, 4)} fallback={articles.slice(0, 4)} />
+        <HeroRotator articles={heroItems} />
 
-        <div className="mx-auto max-w-[1280px] px-5">
-          <Reveal>
-            <LatestModule articles={latestItems} />
-          </Reveal>
-        </div>
+        <HeadlineMosaic articles={mosaicItems} />
 
         {personalizedForRail.length > 0 && (
-          <div className="mx-auto max-w-[1280px] px-5 pt-3 sm:pt-5">
+          <div className="shell pt-5">
             <Reveal>
               <PersonalizedRail articles={personalizedForRail} />
             </Reveal>
           </div>
         )}
 
-        {/* Homepage's one fixed banner slot — mid-content, between the
-            top wire desk and the category rail stack. BannerSlot returns
-            null with zero DOM output when there's no active banner, so
-            this never leaves an empty box behind. */}
-        {/* Wrapper carries the page gutter; the promo itself is the card,
-            so padding on it would pad the inside, not the outside. */}
-        <div className="mx-auto my-6 max-w-[1280px] px-5 sm:my-8">
-          <ServicePromo />
-        </div>
-        <BannerSlot placement="HOMEPAGE" className="mx-auto max-w-[1280px] px-5 py-4" />
-
-        {/* The listen desk sits above the category rails: it is the one
+        {/* The listen desk sits above the category bands: it is the one
             module driven by feeds rather than the newsroom, and burying it
             under seven text modules is how the shows stayed invisible. */}
         {podcastLead && (
-          <Reveal>
-            <PodcastModule
-              lead={podcastLead}
-              shows={podcastShows}
-              recent={podcastEpisodes.slice(1, 5)}
-            />
-          </Reveal>
-        )}
-
-        <div className="mx-auto max-w-[1280px] px-5 grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-x-10">
-          <div className="flex flex-col">
-            {categories.map((category) => {
-              if (category.slug === "opinion-analysis") {
-                const categoryArticles = railItems.filter((a) => a.categorySlug === category.slug).slice(0, 6);
-                return (
-                  <Reveal key={category.slug}>
-                    <OpinionModule category={category} articles={categoryArticles} />
-                  </Reveal>
-                );
-              }
-              const alternate = topicRailIndex % 2 === 1;
-              topicRailIndex += 1;
-              return (
-                <Reveal key={category.slug}>
-                  <TopicRail
-                    category={category}
-                    alternate={alternate}
-                    articles={railItems.filter((a) => a.categorySlug === category.slug).slice(0, 4)}
-                  />
-                </Reveal>
-              );
-            })}
-          </div>
-          <div className="pt-3 lg:pt-4">
+          <div className="pt-5 sm:pt-7">
             <Reveal>
-              <Sidebar articles={railItems} />
+              <PodcastModule
+                lead={podcastLead}
+                shows={podcastShows}
+                recent={podcastEpisodes.slice(1, 5)}
+              />
             </Reveal>
           </div>
+        )}
+
+        {bands.map((band) => (
+          <Reveal key={band.category.slug}>
+            <CategoryBand category={band.category} articles={band.articles} />
+          </Reveal>
+        ))}
+
+        {wireItems.length > 0 && (
+          <div className="shell pt-6 sm:pt-8">
+            <Reveal>
+              <LatestModule articles={wireItems} />
+            </Reveal>
+          </div>
+        )}
+
+        {/* Homepage's one fixed banner slot, and the service promo. Both sit
+            below the editorial stack rather than interrupting it — BannerSlot
+            returns null with zero DOM output when nothing is active, so this
+            never leaves an empty box behind. */}
+        <div className="shell my-7 sm:my-9">
+          <ServicePromo />
         </div>
+        <BannerSlot placement="HOMEPAGE" className="shell py-4" />
 
         <Reveal>
           <SubscribeStrip />
         </Reveal>
       </main>
       <SiteFooter />
-    </>
+    </div>
   );
 }

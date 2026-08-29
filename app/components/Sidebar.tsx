@@ -23,7 +23,7 @@ export default async function Sidebar({
   return (
     <aside className="flex flex-col gap-4 sm:gap-5">
       {trending.length > 0 && (
-        <div className="rounded-card overflow-hidden border border-[var(--color-hairline)] shadow-card bg-white">
+        <div className="rounded-card overflow-hidden border border-[var(--color-hairline)] shadow-card bg-[var(--color-surface)]">
           <SectionHeader title="Trending Now" variant="panel" />
           <ol className="divide-y divide-[var(--color-hairline)]">
             {trending.map((a, i) => (
@@ -35,7 +35,7 @@ export default async function Sidebar({
         </div>
       )}
 
-      <div className="rounded-card border border-[var(--color-hairline)] shadow-card px-5 py-4 sm:py-5 bg-white">
+      <div className="rounded-card border border-[var(--color-hairline)] shadow-card px-5 py-4 sm:py-5 bg-[var(--color-surface)]">
         <h3 className="font-headline uppercase font-bold text-[18px] tracking-[-0.01em] mb-1.5">Get The Real Story</h3>
         <p className="font-sans text-[13px] text-[var(--color-gray)] mb-4">
           Independent reporting, straight to your inbox.

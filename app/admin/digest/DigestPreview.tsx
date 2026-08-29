@@ -15,7 +15,7 @@ export default function DigestPreview({
     <div className="mx-auto max-w-[560px] overflow-hidden rounded-md border border-[var(--admin-border)] bg-white">
       <div className="bg-[var(--color-navy)] px-6 py-5 text-center">
         <div className="font-headline text-[20px] font-bold uppercase tracking-[-0.015em] text-white">
-          Stucci<span className="text-[var(--color-red)]">Media</span>
+          Stucci<span className="text-[var(--color-red-ink)]">Media</span>
         </div>
         <p className="mt-1 text-[11px] uppercase tracking-[0.08em] text-white/60">Your Weekly Brief</p>
       </div>
@@ -36,7 +36,7 @@ export default function DigestPreview({
                 {i + 1}
               </div>
               <div className="min-w-0">
-                <span className="text-[10.5px] font-bold uppercase tracking-[0.06em] text-[var(--color-red)]">
+                <span className="text-[10.5px] font-bold uppercase tracking-[0.06em] text-[var(--color-red-ink)]">
                   {article.category}
                 </span>
                 <h3 className="mt-0.5 font-headline text-[16px] font-bold uppercase leading-[1.2] tracking-[-0.005em] text-[var(--color-text)]">

@@ -31,7 +31,7 @@ export default async function DailyBriefPage() {
       <SiteHeader />
       <main id="main-content" className="mx-auto max-w-[640px] px-5 pt-10 sm:pt-14 pb-20">
         <div className="mb-8 text-center">
-          <span className="mb-2 inline-block font-sans text-[11px] font-bold uppercase tracking-[0.1em] text-[var(--color-red)]">
+          <span className="mb-2 inline-block font-sans text-[11px] font-bold uppercase tracking-[0.1em] text-[var(--color-red-ink)]">
             New Every Day
           </span>
           <h1 className="font-headline text-[34px] sm:text-[42px] font-bold uppercase leading-[0.98] tracking-[-0.015em]">

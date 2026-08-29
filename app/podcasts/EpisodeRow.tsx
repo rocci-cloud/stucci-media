@@ -52,7 +52,7 @@ export default function EpisodeRow({
   const teaser = episodeTeaser(episode.description, 180);
 
   return (
-    <article className="flex items-start gap-3 bg-white px-4 py-4 transition-colors hover:bg-[var(--color-bg-off)] sm:gap-4 sm:px-5">
+    <article className="flex items-start gap-3 bg-[var(--color-surface)] px-4 py-4 transition-colors hover:bg-[var(--color-bg-off)] sm:gap-4 sm:px-5">
       <div className="pt-0.5">
         <PlayButton episode={playable} variant="row" />
       </div>
@@ -71,7 +71,7 @@ export default function EpisodeRow({
         {withShowName && (
           <Link
             href={`/podcasts/${showSlug}`}
-            className="font-sans text-[11px] font-bold uppercase tracking-[0.06em] text-[var(--color-red)] hover:underline"
+            className="font-sans text-[11px] font-bold uppercase tracking-[0.06em] text-[var(--color-red-ink)] hover:underline"
           >
             {showTitle}
           </Link>
@@ -80,7 +80,7 @@ export default function EpisodeRow({
         <h3 className={withShowName ? "mt-1" : ""}>
           <Link
             href={href}
-            className="font-headline text-[16px] font-bold leading-[1.2] tracking-[-0.01em] transition-colors hover:text-[var(--color-red)] sm:text-[18px]"
+            className="font-headline text-[16px] font-bold leading-[1.2] tracking-[-0.01em] transition-colors hover:text-[var(--color-red-ink)] sm:text-[18px]"
           >
             {episode.title}
           </Link>

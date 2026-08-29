@@ -7,7 +7,7 @@ import { submitToInboxAction, type SubmissionFormState } from "../lib/submission
 const initialState: SubmissionFormState = {};
 
 const FIELD =
-  "w-full px-3.5 py-3 min-h-11 border border-[#B9B9B9] rounded-control bg-white text-[15px] text-[var(--color-text)] focus:border-[var(--color-navy)] outline-none transition-colors";
+  "w-full px-3.5 py-3 min-h-11 border border-[var(--color-field-border)] rounded-control bg-[var(--color-surface)] text-[15px] text-[var(--color-text)] focus:border-[var(--color-navy)] outline-none transition-colors";
 const LABEL = "block text-[12.5px] font-bold uppercase tracking-[0.04em] mb-1.5";
 
 export default function ContactForm() {
@@ -16,7 +16,7 @@ export default function ContactForm() {
   if (state.success) {
     return (
       <div className="rounded-card border border-[var(--color-hairline)] bg-[var(--color-bg-off)] px-6 py-9 text-center">
-        <CheckCircle2 className="mx-auto h-8 w-8 text-[var(--color-red)]" />
+        <CheckCircle2 className="mx-auto h-8 w-8 text-[var(--color-red-ink)]" />
         <h2 className="mt-3 font-headline text-[21px] font-bold uppercase tracking-[-0.015em]">
           Message sent
         </h2>

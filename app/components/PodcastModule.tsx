@@ -50,14 +50,14 @@ export default function PodcastModule({
       <div className="relative mx-auto max-w-[1280px] px-5 py-8 sm:py-10">
         <div className="mb-5 flex flex-wrap items-end justify-between gap-x-4 gap-y-2">
           <div className="flex items-center gap-2.5">
-            <Headphones className="h-[18px] w-[18px] text-[var(--color-red)]" />
+            <Headphones className="h-[18px] w-[18px] text-[var(--color-red-ink)]" />
             <h2 className="font-headline text-[19px] font-bold uppercase tracking-[0.03em] sm:text-[22px]">
               Listen
             </h2>
           </div>
           <Link
             href="/podcasts"
-            className="inline-flex min-h-11 items-center gap-1 font-sans text-[12px] font-bold uppercase tracking-[0.06em] text-[var(--color-red)] transition-colors hover:text-white"
+            className="inline-flex min-h-11 items-center gap-1 font-sans text-[12px] font-bold uppercase tracking-[0.06em] text-[var(--color-red-ink)] transition-colors hover:text-white"
           >
             All shows
             <ChevronRight className="h-3.5 w-3.5" />
@@ -92,7 +92,7 @@ export default function PodcastModule({
             <div className="min-w-0 flex-1">
               <Link
                 href={`/podcasts/${lead.show.slug}`}
-                className="font-sans text-[11px] font-bold uppercase tracking-[0.07em] text-[var(--color-red)] hover:underline"
+                className="font-sans text-[11px] font-bold uppercase tracking-[0.07em] text-[var(--color-red-ink)] hover:underline"
               >
                 {lead.show.title}
               </Link>
@@ -100,7 +100,7 @@ export default function PodcastModule({
               <h3 className="mt-1.5">
                 <Link
                   href={`/podcasts/${lead.show.slug}/${lead.slug}`}
-                  className="font-headline text-[21px] font-bold uppercase leading-[1.05] tracking-[-0.015em] transition-colors hover:text-[var(--color-red)] sm:text-[26px]"
+                  className="font-headline text-[21px] font-bold uppercase leading-[1.05] tracking-[-0.015em] transition-colors hover:text-[var(--color-red-ink)] sm:text-[26px]"
                 >
                   {lead.title}
                 </Link>
@@ -139,7 +139,7 @@ export default function PodcastModule({
                         <span className="block font-sans text-[10.5px] font-bold uppercase tracking-[0.06em] text-white/45">
                           {episode.show.title}
                         </span>
-                        <span className="mt-0.5 block font-headline text-[14.5px] font-bold leading-[1.2] tracking-[-0.01em] transition-colors group-hover:text-[var(--color-red)]">
+                        <span className="mt-0.5 block font-headline text-[14.5px] font-bold leading-[1.2] tracking-[-0.01em] transition-colors group-hover:text-[var(--color-red-ink)]">
                           {episode.title}
                         </span>
                       </span>

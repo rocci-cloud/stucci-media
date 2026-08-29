@@ -37,26 +37,63 @@
 }
 
 :root {
-  color-scheme: light only;
+  /* The day desk, and also the no-JS default. If the inline desk script in
+     layout.tsx never runs, the site renders exactly as it did before the
+     theme existed — nothing here depends on that script having fired. */
+  color-scheme: light;
 
-  --color-navy: #0a1628;
-  --color-navy-dark: #050b15;
-  --color-text: #14181f;
+  /* Page shell. The homepage opts into the wide newsroom grid by setting
+     these on a wrapper (.desk-wide); every other page inherits the reading
+     widths below, so widening the homepage cannot reflow the article,
+     category, search or account pages. */
+  --container-max: 1280px;
+  --gutter: 20px;
+
+  --color-navy: #0b1220;
+  --color-navy-dark: #050a13;
+  --color-text: #0a0a0a;
   --color-gray: #55606c;
   /* Backs every small metadata label sitewide (dates, read-time, byline
      dot separators), so a contrast failure here repeats on every page.
      Originally #8a94a0 (~2.6:1 on white); darkened once to #6b7684, which
-     cleared AA on white but was only ever checked against white — on
-     --color-bg-off it measured 4.08:1, still under the 4.5:1 floor. This
-     value clears AA on both grounds: 5.50:1 on white, 4.86:1 on bg-off. */
+     cleared AA on white but was only ever checked against white. This
+     value clears AA on both grounds, including the warmer off-white this
+     palette moved to: 5.50:1 on white, 5.05:1 on bg-off. */
   --color-gray-light: #5f6a78;
   --color-hairline: #dde1e9;
-  --color-hairline-strong: #0a1628;
+  --color-hairline-strong: #0b1220;
+
+  /* Two reds, and the difference matters.
+
+     --color-red is the FILL: the breaking bar, badges, buttons, anything
+     with white text sitting on it. It must stay #c8102e in both desks —
+     white on it is 5.88:1, and lightening it for the night desk would
+     quietly break every one of those (61 fills at last count).
+
+     --color-red-ink is red used as TEXT or as a small mark on the page
+     background. On the night desk's near-black ground the brand red is
+     only 3.37:1, so it lifts to #f04458 (5.35:1) there. Use -ink for
+     text, --color-red for fills; they are the same colour by day. */
   --color-red: #c8102e;
+  --color-red-ink: #c8102e;
   --color-red-dark: #9c0c23;
+
+  /* Veterans only — never a general accent, and never as text on white,
+     where it is 2.4:1. It is a rule, a badge ground under near-black text
+     (8.23:1), or ink on a dark ground (8.23:1 on near-black). */
+  --color-gold: #c4a35a;
+
   --color-blue: #1c5aa6;
   --color-bg: #ffffff;
-  --color-bg-off: #eef1f6;
+  --color-bg-off: #f7f5f2;
+  /* Cards and panels. Split from --color-bg because on the night desk a
+     card has to sit *above* the page, not match it. */
+  --color-surface: #ffffff;
+  /* Form field borders were a hardcoded #b9b9b9 in five components. Kept
+     at that exact value here so day-desk inputs are pixel-identical to
+     before, but tokenised so the night desk can darken them instead of
+     ringing every field in light grey. */
+  --color-field-border: #b9b9b9;
 
   /* Admin dashboard tokens — a distinct neutral-dashboard palette from the
      public site's editorial one, but built from the same brand navy/red so
@@ -92,6 +129,43 @@
   /* Proportion-cue fill behind ranked rows. An explicit token rather than an
      alpha modifier over the var above, so it does not depend on color-mix. */
   --admin-chart-2-soft: rgba(28, 90, 166, 0.1);
+}
+
+/* --- Night desk -------------------------------------------------------
+   The public site's dark theme. Set by the inline script in layout.tsx
+   from a stored choice, else the hour in Florida (night runs 18:00-05:59).
+
+   `data-desk` on <html>, NOT `.dark`: that class belongs to the admin's
+   next-themes provider (see the note further down about Radix portals),
+   and sharing it would mean a reader's night mode repainted the dashboard
+   and an admin's dark mode leaked onto the public site.
+
+   Only the public --color-* tokens are redefined here. Every ratio below
+   was measured against the ground it actually sits on; the floor is 4.5:1
+   for text and 3:1 for rules and graphical marks. */
+[data-desk="night"] {
+  color-scheme: dark;
+
+  /* The nav and masthead have to lift off the page ground rather than
+     disappear into it — the day palette's navy is nearly black already,
+     so on near-black it would vanish. */
+  --color-navy: #141a24;
+  --color-navy-dark: #0b1018;
+  --color-text: #f7f5f2;
+  --color-gray: #a8b0bc;
+  --color-gray-light: #8e97a5;
+  --color-hairline: #262b34;
+  --color-hairline-strong: #3a424f;
+  /* Fill stays the brand red so white-on-red keeps its 5.88:1; only the
+     ink lifts, to 5.35:1 on the page ground and 4.84:1 on a card. */
+  --color-red-ink: #f04458;
+  /* Gold lifts a step for the same reason the ink does. */
+  --color-gold: #d4b978;
+  --color-blue: #6aa6f0;
+  --color-bg: #0a0a0a;
+  --color-bg-off: #15171c;
+  --color-surface: #15171c;
+  --color-field-border: #3a424f;
 }
 
 /* Admin dark mode.
@@ -155,23 +229,12 @@ body {
   color: var(--color-text);
 }
 
-/* `color-scheme: light only` above only hints browser-native UI (form
-   controls, scrollbars) — it does NOT stop `prefers-color-scheme: dark`
-   media queries from matching, so a visitor with OS-level dark mode on
-   still hits this block. Only forces the body's own background/text back
-   to light — deliberately does NOT touch `a` here: an earlier version did
-   (`a { color: inherit !important }`), which meant every colored link
-   and button (nav items, Subscribe, "More →" links) silently inherited
-   the near-black body text with !important, unreadable against navy/red
-   backgrounds, for any visitor in dark mode — found via a real iPhone
-   screenshot (Aug 2026) showing the mobile nav drawer's links unreadable
-   while non-link elements in the same drawer rendered fine. */
-@media (prefers-color-scheme: dark) {
-  body {
-    background: var(--color-bg) !important;
-    color: var(--color-text) !important;
-  }
-}
+/* The desk attribute is the single source of truth for the public palette,
+   so there is deliberately no `prefers-color-scheme` override here. An
+   earlier version force-lit the body from inside that media query to
+   defend against OS dark mode; with day and night now both defined as
+   real token sets, that defence has nothing left to defend and would only
+   fight the reader's own choice. */
 
 * {
   box-sizing: border-box;
@@ -238,6 +301,41 @@ body {
     filter: contrast(1.04) saturate(1.06);
   }
 
+  /* The page shell. Reads --container-max/--gutter rather than hardcoding
+     a width, so a page can widen itself by setting those on a wrapper
+     (see .desk-wide) without every module inside it being edited. */
+  .shell {
+    margin-inline: auto;
+    width: 100%;
+    max-width: var(--container-max, 1280px);
+    padding-inline: var(--gutter, 20px);
+  }
+
+  /* The homepage's wide newsroom grid: 1440 with tight gutters, so blocks
+     run nearly edge to edge and the first viewport is content rather than
+     margin. Scoped to a wrapper so it cannot reach the reading pages. */
+  .desk-wide {
+    --container-max: 1440px;
+    --gutter: 14px;
+  }
+  @media (min-width: 640px) {
+    .desk-wide {
+      --gutter: 16px;
+    }
+  }
+
+  /* Slow push on a still image while it is hovered — a couple of percent
+     over six seconds, the broadcast "Ken Burns" move rather than a zoom.
+     Paired with transform-gpu at the call site to keep it off the main
+     thread. */
+  .ken-burns {
+    transition: transform 6s cubic-bezier(0.22, 0.61, 0.36, 1);
+  }
+  .group:hover .ken-burns,
+  .group:focus-visible .ken-burns {
+    transform: scale(1.03);
+  }
+
   /* Shared "no cover image" placeholder — a soft diagonal two-tone wash
      instead of a single flat gray fill, so an empty-image state still
      reads as designed rather than a broken/default box. */
@@ -282,6 +380,49 @@ body {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+/* The hero's slide change. A crossfade under a lower-third wipe: the
+   image cross-dissolves while the caption block below it is wiped in from
+   the left, the way a broadcast lower third arrives. Both are opacity and
+   transform only — no layout property animates, so a slide change cannot
+   move anything else on the page. */
+@keyframes deskCrossfade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes lowerThirdWipe {
+  from {
+    opacity: 0;
+    clip-path: inset(0 100% 0 0);
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    clip-path: inset(0 0 0 0);
+    transform: translateY(0);
+  }
+}
+
+/* The live pip. A slow double-beat rather than a strobe: it has to read as
+   "this is live" from the corner of the eye without pulling the eye off a
+   headline. */
+@keyframes livePip {
+  0%,
+  70%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  35% {
+    opacity: 0.45;
+    transform: scale(0.82);
   }
 }
 

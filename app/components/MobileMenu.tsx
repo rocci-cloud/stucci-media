@@ -58,7 +58,7 @@ export default function MobileMenu({
 
   function navLinkClass(active: boolean) {
     return `min-h-12 flex items-center px-3.5 font-headline text-[20px] font-bold uppercase tracking-[-0.015em] leading-[1.1] border-b border-white/10 transition-colors ${
-      active ? "text-[var(--color-red)]" : "text-white hover:text-[var(--color-red)]"
+      active ? "text-[var(--color-red-ink)]" : "text-white hover:text-[var(--color-red-ink)]"
     }`;
   }
 
@@ -71,7 +71,7 @@ export default function MobileMenu({
     >
       <div className="flex items-center justify-between px-5 pt-3 pb-3 border-b border-white/10 shrink-0">
         <span className="font-headline text-[22px] font-bold uppercase tracking-[-0.02em] text-white leading-none">
-          Stucci<span className="text-[var(--color-red)]">Media</span>
+          Stucci<span className="text-[var(--color-red-ink)]">Media</span>
         </span>
         <button
           aria-label="Close menu"
@@ -157,7 +157,7 @@ export default function MobileMenu({
                 <div className="flex items-center gap-1.5">
                   <div className="text-[13px] font-bold text-white truncate">{session.user.name}</div>
                   {streak !== null && streak >= 2 && (
-                    <span className="inline-flex items-center gap-0.5 text-[11px] font-bold text-[var(--color-red)]">
+                    <span className="inline-flex items-center gap-0.5 text-[11px] font-bold text-[var(--color-red-ink)]">
                       <Flame className="h-3 w-3" fill="currentColor" />
                       {streak}
                     </span>

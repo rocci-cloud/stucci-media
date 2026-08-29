@@ -27,7 +27,7 @@ export default function OpinionModule({
         }`}
       >
         {items.map((a, i) => (
-          <div key={a.slug} className="bg-white">
+          <div key={a.slug} className="bg-[var(--color-surface)]">
             <ArticleCard article={a} variant="ranked" rank={i + 1} />
           </div>
         ))}

@@ -87,7 +87,7 @@ export default async function ArticlePreviewPage({ params }: Props) {
               className="prose prose-neutral max-w-none text-[17px] sm:text-[19px] leading-[1.75]
                 prose-headings:font-headline prose-headings:font-bold prose-headings:uppercase prose-headings:tracking-[-0.01em] prose-headings:leading-[1.1]
                 prose-h2:text-[25px] prose-h2:mt-10 prose-h3:text-[21px] prose-h3:mt-8
-                prose-p:mb-5 prose-a:text-[var(--color-red)] prose-a:no-underline hover:prose-a:underline
+                prose-p:mb-5 prose-a:text-[var(--color-red-ink)] prose-a:no-underline hover:prose-a:underline
                 prose-strong:text-[var(--color-text)] prose-blockquote:border-l-[var(--color-red)]
                 prose-blockquote:font-headline prose-blockquote:text-[22px] prose-blockquote:leading-[1.3] prose-blockquote:not-italic
                 prose-img:rounded-control prose-img:border prose-img:border-[var(--color-hairline)]

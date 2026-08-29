@@ -55,7 +55,7 @@ export default function TopicRail({
       {header}
       <div className="grid grid-cols-1 sm:grid-cols-[1.4fr_1fr] gap-3 sm:gap-5">
         <ArticleCard article={lead} variant="grid" />
-        <div className="flex flex-col divide-y divide-[var(--color-hairline)] rounded-card border border-[var(--color-hairline)] bg-white shadow-card overflow-hidden">
+        <div className="flex flex-col divide-y divide-[var(--color-hairline)] rounded-card border border-[var(--color-hairline)] bg-[var(--color-surface)] shadow-card overflow-hidden">
           {secondary.map((a) => (
             <ArticleCard key={a.slug} article={a} variant="list" />
           ))}

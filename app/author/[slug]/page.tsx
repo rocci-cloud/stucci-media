@@ -150,7 +150,7 @@ export default async function AuthorPage({ params }: Props) {
                 </div>
 
                 {profile?.title && (
-                  <p className="font-sans text-[13px] font-bold uppercase tracking-[0.05em] text-[var(--color-red)] mt-1.5">
+                  <p className="font-sans text-[13px] font-bold uppercase tracking-[0.05em] text-[var(--color-red-ink)] mt-1.5">
                     {profile.title}
                   </p>
                 )}
@@ -167,7 +167,7 @@ export default async function AuthorPage({ params }: Props) {
                         href={l.href}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex min-h-11 items-center font-sans text-[13px] font-bold uppercase tracking-[0.05em] text-[var(--color-red)] hover:underline"
+                        className="inline-flex min-h-11 items-center font-sans text-[13px] font-bold uppercase tracking-[0.05em] text-[var(--color-red-ink)] hover:underline"
                       >
                         {l.label}
                       </a>

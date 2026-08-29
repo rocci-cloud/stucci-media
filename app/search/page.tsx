@@ -52,7 +52,7 @@ export default async function SearchPage({ searchParams }: Props) {
         {query && results.length === 0 ? (
           <p className="font-sans text-[15px] text-[var(--color-gray)] leading-[1.6]">
             Nothing matched that. Try a different word, or browse the{" "}
-            <Link href="/" className="font-bold text-[var(--color-red)] hover:underline">
+            <Link href="/" className="font-bold text-[var(--color-red-ink)] hover:underline">
               latest stories
             </Link>
             .
@@ -68,7 +68,7 @@ export default async function SearchPage({ searchParams }: Props) {
                 <Badge variant="text" className="mb-1.5">
                   {a.category}
                 </Badge>
-                <div className="font-headline text-[20px] font-bold leading-[1.3] mb-1.5 group-hover:text-[var(--color-red)] transition-colors">
+                <div className="font-headline text-[20px] font-bold leading-[1.3] mb-1.5 group-hover:text-[var(--color-red-ink)] transition-colors">
                   {a.headline}
                 </div>
                 <p className="text-sm text-[var(--color-gray)] leading-[1.5]">{a.dek}</p>

@@ -120,10 +120,10 @@ export default function SubscribePage() {
               {BENEFITS.map((b) => (
                 <div
                   key={b.title}
-                  className="rounded-card border border-[var(--color-hairline)] shadow-card hover:shadow-card-hover bg-white p-[18px] sm:p-5 transition"
+                  className="rounded-card border border-[var(--color-hairline)] shadow-card hover:shadow-card-hover bg-[var(--color-surface)] p-[18px] sm:p-5 transition"
                 >
                   <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--color-red)]/10 mb-3">
-                    <b.icon className="h-[18px] w-[18px] text-[var(--color-red)]" />
+                    <b.icon className="h-[18px] w-[18px] text-[var(--color-red-ink)]" />
                   </div>
                   <h3 className="font-headline uppercase font-bold text-[15px] tracking-[-0.01em] mb-1.5">
                     {b.title}
@@ -166,7 +166,7 @@ export default function SubscribePage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-[1.15fr_1fr] gap-5 sm:gap-6 items-start">
               {/* Free — active, dominant */}
-              <div className="rounded-card border border-[var(--color-hairline)] shadow-card-hover bg-white overflow-hidden">
+              <div className="rounded-card border border-[var(--color-hairline)] shadow-card-hover bg-[var(--color-surface)] overflow-hidden">
                 <div className="bg-gradient-to-b from-[var(--color-navy)] to-[var(--color-navy-dark)] px-6 py-6 sm:py-7 text-center">
                   <Badge variant="red" className="mb-3">
                     Available Now

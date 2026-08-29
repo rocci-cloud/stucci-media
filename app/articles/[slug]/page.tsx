@@ -315,7 +315,7 @@ export default async function ArticlePage({ params }: Props) {
 
             {article.bulletPoints.length > 0 && (
               <div className="mb-7 rounded-card border-l-4 border-[var(--color-red)] bg-[var(--color-bg-off)] px-5 py-4">
-                <span className="mb-2 block font-sans text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--color-red)]">
+                <span className="mb-2 block font-sans text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--color-red-ink)]">
                   Bottom Line
                 </span>
                 <ul className="flex flex-col gap-2">
@@ -343,7 +343,7 @@ export default async function ArticlePage({ params }: Props) {
                     href={article.comparisonSourceUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="mt-3 inline-flex min-h-11 items-center font-sans text-[12.5px] font-bold text-[var(--color-red)] hover:underline"
+                    className="mt-3 inline-flex min-h-11 items-center font-sans text-[12.5px] font-bold text-[var(--color-red-ink)] hover:underline"
                   >
                     See how {article.comparisonSourceLabel || "mainstream coverage"} framed it →
                   </a>
@@ -357,7 +357,7 @@ export default async function ArticlePage({ params }: Props) {
               className="prose prose-neutral max-w-none text-[17px] sm:text-[19px] leading-[1.75]
                 prose-headings:font-headline prose-headings:font-bold prose-headings:uppercase prose-headings:tracking-[-0.01em] prose-headings:leading-[1.1]
                 prose-h2:text-[25px] prose-h2:mt-10 prose-h3:text-[21px] prose-h3:mt-8
-                prose-p:mb-5 prose-a:text-[var(--color-red)] prose-a:no-underline hover:prose-a:underline
+                prose-p:mb-5 prose-a:text-[var(--color-red-ink)] prose-a:no-underline hover:prose-a:underline
                 prose-strong:text-[var(--color-text)] prose-blockquote:border-l-[var(--color-red)]
                 prose-blockquote:font-headline prose-blockquote:text-[22px] prose-blockquote:leading-[1.3] prose-blockquote:not-italic
                 prose-img:rounded-control prose-img:border prose-img:border-[var(--color-hairline)]
@@ -376,7 +376,7 @@ export default async function ArticlePage({ params }: Props) {
                   className="prose prose-neutral max-w-none text-[17px] sm:text-[19px] leading-[1.75]
                     prose-headings:font-headline prose-headings:font-bold prose-headings:uppercase prose-headings:tracking-[-0.01em] prose-headings:leading-[1.1]
                     prose-h2:text-[25px] prose-h2:mt-10 prose-h3:text-[21px] prose-h3:mt-8
-                    prose-p:mb-5 prose-a:text-[var(--color-red)] prose-a:no-underline hover:prose-a:underline
+                    prose-p:mb-5 prose-a:text-[var(--color-red-ink)] prose-a:no-underline hover:prose-a:underline
                     prose-strong:text-[var(--color-text)] prose-blockquote:border-l-[var(--color-red)]
                     prose-blockquote:font-headline prose-blockquote:text-[22px] prose-blockquote:leading-[1.3] prose-blockquote:not-italic
                     prose-img:rounded-control prose-img:border prose-img:border-[var(--color-hairline)]

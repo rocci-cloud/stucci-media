@@ -62,25 +62,46 @@ must stay in sync.
 Premium independent-media look as of Phase 6 (Free Press / Semafor / Axios
 polish, Stucci's navy/red/white identity underneath): soft card shadows +
 radius, a real spacing/radius/shadow scale, mobile-first throughout, 44px
-minimum touch targets on every interactive element. No dark mode
-(`color-scheme: light only` — there are `!important` overrides in
-`globals.css` guarding against browser dark mode).
+minimum touch targets on every interactive element.
+
+**The public site has two themes as of Phase 60** — a day desk and a night
+desk, on `data-desk` on `<html>`, defaulting to the hour in Florida. The
+old `color-scheme: light only` and the `prefers-color-scheme: dark`
+force-light override are gone. Two rules matter when touching colour now:
+never use `.dark` for the public site (that class belongs to the admin's
+next-themes provider), and never hardcode `#fff` or `bg-white` for a
+surface — use `--color-surface`, which is white by day and a lifted
+near-black panel at night.
 
 Colors (CSS vars on `:root`, used as `text-[var(--color-red)]` etc.):
 
 | Token | Value | Use |
 |---|---|---|
-| `--color-navy` | `#0a1628` | masthead accent, nav bar, sidebar/card panel headers |
-| `--color-text` | `#14181f` | body text |
-| `--color-gray` | `#55606c` | deks, bylines, metadata |
-| `--color-gray-light` | `#8a94a0` | footer, timestamps |
-| `--color-hairline` | `#e5e7eb` | light rules and borders |
-| `--color-hairline-strong` | `#0a1628` | heavy section rules (navy) |
-| `--color-red` | `#c8102e` | breaking bar, kickers, links, Subscribe button |
-| `--color-red-dark` | `#9c0c23` | red hover/active state |
-| `--color-blue` | `#1c5aa6` | secondary accent, used sparingly |
-| `--color-bg` | `#ffffff` | page background |
-| `--color-bg-off` | `#f7f8fa` | sidebar/module panel background |
+| Token | Day | Night | Use |
+|---|---|---|---|
+| `--color-navy` | `#0b1220` | `#141a24` | masthead accent, nav bar, panel headers |
+| `--color-text` | `#0a0a0a` | `#f7f5f2` | body text |
+| `--color-gray` | `#55606c` | `#a8b0bc` | deks, bylines, metadata |
+| `--color-gray-light` | `#5f6a78` | `#8e97a5` | footer, timestamps |
+| `--color-hairline` | `#dde1e9` | `#262b34` | light rules and borders |
+| `--color-red` | `#c8102e` | `#c8102e` | **fills only** — anything with white text on it |
+| `--color-red-ink` | `#c8102e` | `#f04458` | **text only** — red type and small marks |
+| `--color-red-dark` | `#9c0c23` | `#9c0c23` | red hover/active state |
+| `--color-gold` | `#c4a35a` | `#d4b978` | **Veterans only**; never as text on white (2.4:1) |
+| `--color-bg` | `#ffffff` | `#0a0a0a` | page background |
+| `--color-bg-off` | `#f7f5f2` | `#15171c` | module/panel background |
+| `--color-surface` | `#ffffff` | `#15171c` | cards — use instead of `bg-white` |
+| `--color-field-border` | `#b9b9b9` | `#3a424f` | form input borders |
+
+The red split is the one that bites: `--color-red` as text on the night
+desk's near-black ground is 3.37:1 and fails AA, but lightening the fill
+would break the ~65 places white sits on red. Two tokens, same colour by
+day. `text-[var(--color-red-ink)]`, `bg-[var(--color-red)]`.
+
+Layout containers read `--container-max`/`--gutter` through the `.shell`
+utility. The default is 1280/20px; the homepage wraps itself in
+`.desk-wide` for 1440/14–16px, so widening it cannot reflow any other
+page.
 
 Radius/shadow scale lives in `@theme` in `globals.css` (Tailwind v4's
 `--radius-*`/`--shadow-*` theme namespace generates real utilities from
@@ -3503,3 +3524,100 @@ the sidebar and the `/subscribe` page.
   (Phase 3) and was not rebuilt. It gained total / last-7 / last-30 /
   capture-point stat cards, a "where signups came from" breakdown, and a
   Source column; the CSV gained a `source` column.
+
+## Phase 60 — done: night desk theme + high-density homepage
+
+A design-lead brief: outcompete CNN/Fox/NYT homepage density without
+becoming a clone of any of them, add a broadcast motion language, and give
+the site a night desk. Scoped deliberately to the homepage and the shared
+token layer — article, category, subscribe and account templates are
+untouched apart from inheriting the tokens.
+
+- **Day/night desk** on `data-desk` on `<html>`, resolved by an inline
+  pre-paint script (`app/lib/desk.ts`, mounted in `layout.tsx`). Night runs
+  18:00–05:59 Florida time; an explicit toggle beats the clock and is
+  remembered in `localStorage`.
+  - **Resolved on the client, and that is a correctness requirement, not a
+    preference.** The homepage is ISR-cached (`revalidate = 60`) and served
+    from Vercel's edge, so HTML rendered at 5:59pm is handed to readers well
+    into the evening. Any server-side decision would be cached and wrong.
+  - **`data-desk`, never `.dark`.** The admin owns `.dark` via next-themes
+    (see the Radix-portal note in `globals.css`). Sharing it would mean a
+    reader's night mode repainting the dashboard and an admin's dark mode
+    leaking onto the public site. The init script also returns early on
+    `/admin` — otherwise a light dashboard would get a night `color-scheme`
+    and therefore dark scrollbars and dark native form controls.
+  - The Phase 22-era `color-scheme: light only` and the
+    `prefers-color-scheme: dark` force-light override are **removed**. That
+    override existed to defend against OS dark mode; with both desks now
+    defined as real token sets it had nothing left to defend and would only
+    have fought the reader's own choice.
+  - **Every pair was measured, not eyeballed** — the floor is 4.5:1 for
+    text, 3:1 for rules. That is what produced the `--color-red` /
+    `--color-red-ink` split documented in the Design system table above,
+    and what set the night greys and the gold's night value.
+  - **40 hardcoded `bg-white` surfaces across 27 files** moved to
+    `--color-surface`, and five components' hardcoded `#B9B9B9` field
+    borders moved to `--color-field-border`. **Real bug caught mid-change**:
+    the same pass rewrote nine *alpha-modified* whites (`bg-white/5`,
+    `bg-white/35` — hover states and the hero's slide pips, all sitting on
+    dark grounds) which would have turned invisible on the night desk.
+    Reverted; alpha-modified white on a scrim is not a surface.
+- **`.shell` container** reads `--container-max`/`--gutter` so the homepage
+  can run 1440/14–16px via a `.desk-wide` wrapper while every other page
+  keeps 1280/20px. The alternative — editing ten page files — would have
+  widened the article reading measure as a side effect.
+- **`HeroRotator`**: two to three curated stories, 8s crossfade under a
+  lower-third wipe. Every slide is mounted from first paint inside a
+  fixed-height frame, so a rotation cannot shift the page; only slide 0 gets
+  `priority` (marking all three makes them compete for the same early
+  bandwidth). The active slide's headline renders as `<h1>` and the others
+  as `<p>`, so the count stays exactly one — Phase 31 verified that
+  invariant and it still holds. `prefers-reduced-motion` disables rotation
+  entirely, not just the transition: an 8-second content swap is exactly the
+  unrequested movement that preference is about.
+- **`PosterCard`** (`components/ui/`) is the new density primitive — image
+  as the block, copy on it, four sizes sharing one scrim recipe.
+  `ArticleCard` is unchanged and still owns the reading pages; the homepage
+  is the only surface using posters.
+- **`HeadlineMosaic`** (1 lead ≈60% + 2 stacked ≈40%, then a 4-up rail) and
+  **`CategoryBand`** (1 lead + 3 compact, with a section label that sticks
+  within its own band). Veterans is the one section with its own accent —
+  gold, on the band rule and the kicker, nowhere else.
+- **Masthead**: a live Florida clock and the desk toggle. The date shown
+  there was previously `new Date()` inside a client component — the
+  server's day, formatted in the *visitor's* timezone. `LiveClock` owns
+  both date and time in the newsroom's zone and renders nothing until it
+  has mounted, since a clock is the textbook hydration mismatch.
+- **Motion**: `deskCrossfade`, `lowerThirdWipe`, `livePip` and a `.ken-burns`
+  hover push (3% over 6s). The existing global `prefers-reduced-motion`
+  rule already blankets all of it.
+- **Homepage structure** is now hero → mosaic → personalized rail →
+  podcasts → category bands → dense wire → promo/banner → subscribe.
+  `Sidebar` is gone *from the homepage* (still used by category, article,
+  tag and author pages) — the brief's structure is full-width bands, and a
+  320px rail fights that.
+- **Verification, and its limits.** 200 tests pass (11 new, covering the
+  desk rules — including running the real inline script text in a `vm`
+  against a fake document, so the script and the module cannot silently
+  drift apart). `globals.css` compiles through Tailwind v4 with zero
+  warnings, asserted against 14 structural checks. **A real silent failure
+  was caught this way**: `text-[clamp(2.5rem,6vw,5.5rem)]` on the hero
+  headline generated no CSS at all — Tailwind v4 could not infer the type
+  through the commas — so the headline would have fallen back to inherited
+  size. Fixed with the explicit `text-[length:...]` hint and re-verified.
+  **What was NOT done**: no `next build`, and no browser. This session had
+  no database and Prisma's engine download is blocked by the sandbox's
+  egress policy, so the client cannot be generated and the app cannot be
+  compiled or rendered here. A preview deploy is the first time this
+  renders — check the night desk at both hours, the hero rotation, and the
+  bands at 390px before merging.
+- **Now unreferenced**, left in place rather than deleted so the diff stays
+  reviewable: `FeaturedSection`, `TopicRail`, `OpinionModule`. The homepage
+  was their only call site. Worth removing in a follow-up once the new
+  layout is accepted.
+- **Deliberately not done, and why**: article body type stays Georgia serif.
+  The brief asked for Archivo at 18–20px, but that reverses a decision this
+  file has documented since Phase 5, affects a template outside this pass,
+  and deserves a side-by-side at real reading length rather than a silent
+  flip.

@@ -38,7 +38,7 @@ export default function ContactPage() {
         <p className="font-sans text-[15px] sm:text-[16px] text-[var(--color-gray)] leading-[1.5] mb-7 max-w-[52ch]">
           Tips, corrections, questions, or media inquiries — we read every message. Pitching a
           podcast?{" "}
-          <Link href="/podcasts/submit" className="font-bold text-[var(--color-red)] hover:underline">
+          <Link href="/podcasts/submit" className="font-bold text-[var(--color-red-ink)] hover:underline">
             Use the show submission form
           </Link>{" "}
           instead — it asks for the details we actually need.
@@ -47,16 +47,16 @@ export default function ContactPage() {
         {/* Prominent, tap-friendly direct-email card */}
         <a
           href="mailto:rocci@stuccimedia.com"
-          className="group flex items-center gap-3.5 min-h-11 rounded-card border border-[var(--color-hairline)] shadow-card hover:shadow-card-hover bg-white px-5 py-4 mb-8 sm:mb-9 transition active:scale-[0.99]"
+          className="group flex items-center gap-3.5 min-h-11 rounded-card border border-[var(--color-hairline)] shadow-card hover:shadow-card-hover bg-[var(--color-surface)] px-5 py-4 mb-8 sm:mb-9 transition active:scale-[0.99]"
         >
           <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--color-red)]/10">
-            <Mail className="h-5 w-5 text-[var(--color-red)]" />
+            <Mail className="h-5 w-5 text-[var(--color-red-ink)]" />
           </div>
           <div className="min-w-0">
             <div className="font-sans text-[11px] font-bold uppercase tracking-[0.05em] text-[var(--color-gray-light)] mb-0.5">
               Email Us Directly
             </div>
-            <div className="font-headline text-[17px] sm:text-[20px] font-bold tracking-[-0.01em] text-[var(--color-navy)] group-hover:text-[var(--color-red)] transition-colors truncate">
+            <div className="font-headline text-[17px] sm:text-[20px] font-bold tracking-[-0.01em] text-[var(--color-navy)] group-hover:text-[var(--color-red-ink)] transition-colors truncate">
               rocci@stuccimedia.com
             </div>
           </div>

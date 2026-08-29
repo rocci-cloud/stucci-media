@@ -39,7 +39,7 @@ export default function SearchOverlay({ open, onClose }: { open: boolean; onClos
       onClick={onClose}
     >
       <div
-        className="w-full max-w-[560px] bg-white rounded-card shadow-card-hover p-2 [animation:overlayPop_0.25s_cubic-bezier(0.16,1,0.3,1)_both]"
+        className="w-full max-w-[560px] bg-[var(--color-surface)] rounded-card shadow-card-hover p-2 [animation:overlayPop_0.25s_cubic-bezier(0.16,1,0.3,1)_both]"
         onClick={(e) => e.stopPropagation()}
       >
         <form onSubmit={handleSubmit} className="flex items-center gap-2">

@@ -46,10 +46,10 @@ export default async function SiteFooter() {
 
   return (
     <footer className="font-sans bg-gradient-to-b from-[var(--color-navy)] to-[var(--color-navy-dark)] text-white">
-      <div className="mx-auto max-w-[1280px] px-5 py-7 sm:py-10 grid grid-cols-1 sm:grid-cols-[1.1fr_1fr] gap-7 sm:gap-10">
+      <div className="shell py-7 sm:py-10 grid grid-cols-1 sm:grid-cols-[1.1fr_1fr] gap-7 sm:gap-10">
         <div>
           <div className="font-headline text-[21px] font-bold uppercase tracking-[-0.015em] mb-2">
-            Stucci<span className="text-[var(--color-red)]">Media</span>
+            Stucci<span className="text-[var(--color-red-ink)]">Media</span>
           </div>
           <p className="text-[13px] text-white/60 leading-[1.55] mb-4 max-w-[36ch]">
             Independent news from Florida — the stories mainstream media won&apos;t run.
@@ -122,7 +122,7 @@ export default async function SiteFooter() {
       </div>
 
       <div className="bg-[var(--color-navy-dark)] border-t border-white/10">
-        <div className="mx-auto max-w-[1280px] px-5 py-3.5 sm:py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+        <div className="shell py-3.5 sm:py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
           <div className="font-headline text-[12.5px] font-bold uppercase tracking-[0.02em] text-white/90">
             Stucci Media · Independent News That Matters
           </div>

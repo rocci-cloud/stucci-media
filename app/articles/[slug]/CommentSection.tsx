@@ -71,7 +71,7 @@ export default function CommentSection({
   return (
     <section className="mt-14 pt-10 border-t-4 border-[var(--color-navy)]">
       <div className="flex items-center gap-2.5 mb-6">
-        <MessageCircle className="h-5 w-5 text-[var(--color-red)]" />
+        <MessageCircle className="h-5 w-5 text-[var(--color-red-ink)]" />
         <h2 className="font-headline uppercase font-bold text-[20px] sm:text-[24px] tracking-[-0.015em]">
           {total > 0 ? `${total} Comment${total === 1 ? "" : "s"}` : "Comments"}
         </h2>
@@ -89,7 +89,7 @@ export default function CommentSection({
         <div className="rounded-card border border-[var(--color-hairline)] bg-[var(--color-bg-off)] px-5 py-4 mb-8 font-sans text-[14px] text-[var(--color-gray)]">
           <Link
             href={`/login?from=${encodeURIComponent(signInRedirect)}`}
-            className="inline-flex min-h-11 items-center font-bold text-[var(--color-red)] hover:underline"
+            className="inline-flex min-h-11 items-center font-bold text-[var(--color-red-ink)] hover:underline"
           >
             Sign in
           </Link>{" "}
@@ -173,7 +173,7 @@ function CommentItem({
             <button
               type="button"
               onClick={() => setReplying((v) => !v)}
-              className="mt-1.5 font-sans text-[12.5px] font-bold text-[var(--color-gray)] hover:text-[var(--color-red)] min-h-11 sm:min-h-0"
+              className="mt-1.5 font-sans text-[12.5px] font-bold text-[var(--color-gray)] hover:text-[var(--color-red-ink)] min-h-11 sm:min-h-0"
             >
               {replying ? "Cancel" : "Reply"}
             </button>
@@ -283,7 +283,7 @@ function CommentForm({
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-2">
-      {error && <p className="text-[12px] text-[var(--color-red)]">{error}</p>}
+      {error && <p className="text-[12px] text-[var(--color-red-ink)]">{error}</p>}
       <textarea
         value={content}
         onChange={(e) => setContent(e.target.value)}

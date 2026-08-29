@@ -18,7 +18,7 @@ export default function SubmitForm() {
   if (state.success) {
     return (
       <div className="rounded-card border border-[var(--color-hairline)] bg-[var(--color-bg-off)] px-6 py-10 text-center shadow-card">
-        <CheckCircle2 className="mx-auto h-9 w-9 text-[var(--color-red)]" />
+        <CheckCircle2 className="mx-auto h-9 w-9 text-[var(--color-red-ink)]" />
         <h2 className="mt-3 font-headline text-[24px] font-bold uppercase tracking-[-0.015em]">
           Submission received
         </h2>

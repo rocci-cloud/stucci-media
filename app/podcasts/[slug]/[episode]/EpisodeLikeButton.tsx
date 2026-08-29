@@ -66,7 +66,7 @@ export default function EpisodeLikeButton({
         {optimistic.liked ? "Liked" : "Like"}
         {optimistic.count > 0 && <span className="opacity-75">· {optimistic.count}</span>}
       </button>
-      {error && <p className="font-sans text-[12px] text-[var(--color-red)]">{error}</p>}
+      {error && <p className="font-sans text-[12px] text-[var(--color-red-ink)]">{error}</p>}
     </div>
   );
 }

@@ -8,6 +8,8 @@ import AccountMenu from "./AccountMenu";
 import MobileMenu from "./MobileMenu";
 import SearchOverlay from "./SearchOverlay";
 import PushOptIn from "./PushOptIn";
+import LiveClock from "./LiveClock";
+import DeskToggle from "./DeskToggle";
 
 type NavCategory = { slug: string; label: string };
 
@@ -45,18 +47,28 @@ export default function SiteHeaderClient({
   return (
     <>
       <header className="border-b-[3px] border-[var(--color-red)]">
-        <div className="mx-auto max-w-[1280px] px-5 py-1.5 sm:py-2.5 flex items-center justify-between">
+        <div className="shell py-1.5 sm:py-2.5 flex items-center justify-between">
           <Link
             href="/"
             className="inline-flex min-h-11 items-center font-headline text-[20px] sm:text-[30px] font-bold uppercase tracking-[-0.02em] text-[var(--color-navy)] leading-none"
           >
-            Stucci<span className="text-[var(--color-red)]">Media</span>
+            Stucci<span className="text-[var(--color-red-ink)]">Media</span>
           </Link>
-          <div className="hidden sm:flex flex-col items-end font-sans text-[11px] tracking-[0.01em] text-[var(--color-gray)] leading-tight">
-            <span className="font-bold uppercase tracking-[0.04em] text-[var(--color-red)]">Live · Florida</span>
-            <span>
-              {new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
-            </span>
+          <div className="flex items-center gap-1 sm:gap-3">
+            {/* The date used to be rendered here from `new Date()` inside this
+                client component — which meant the server's day and the
+                visitor's own timezone, not Florida's. LiveClock owns both the
+                date and the time now, in the newsroom's timezone, and renders
+                nothing until it has mounted so there is no wrong value on the
+                first paint. */}
+            <div className="hidden sm:flex flex-col items-end font-sans text-[11px] tracking-[0.01em] text-[var(--color-gray)] leading-tight">
+              <span className="inline-flex items-center gap-1.5 font-bold uppercase tracking-[0.06em] text-[var(--color-red-ink)]">
+                <span className="inline-flex h-[7px] w-[7px] rounded-full bg-[var(--color-red)] [animation:livePip_2.4s_ease-in-out_infinite]" />
+                Live · Florida
+              </span>
+              <LiveClock />
+            </div>
+            <DeskToggle />
           </div>
         </div>
       </header>
@@ -67,7 +79,7 @@ export default function SiteHeaderClient({
           scrolled ? "shadow-pop" : "shadow-none"
         }`}
       >
-        <div className="mx-auto max-w-[1280px] px-5 flex items-center">
+        <div className="shell flex items-center">
           <button
             aria-label="Open menu"
             aria-expanded={menuOpen}
@@ -82,7 +94,7 @@ export default function SiteHeaderClient({
               href="/"
               className={`min-h-11 flex items-center text-[12px] font-bold uppercase tracking-[0.03em] whitespace-nowrap px-3 border-b-[3px] transition-colors ${
                 isFeaturedActive
-                  ? "text-[var(--color-red)] border-b-[var(--color-red)]"
+                  ? "text-[var(--color-red-ink)] border-b-[var(--color-red)]"
                   : "text-white border-b-transparent hover:border-b-white/40 hover:text-white/90"
               }`}
             >
@@ -92,7 +104,7 @@ export default function SiteHeaderClient({
               href="/podcasts"
               className={`min-h-11 flex items-center text-[12px] font-bold uppercase tracking-[0.03em] whitespace-nowrap px-3 border-l border-l-white/10 border-b-[3px] transition-colors ${
                 isPodcastsActive
-                  ? "text-[var(--color-red)] border-b-[var(--color-red)]"
+                  ? "text-[var(--color-red-ink)] border-b-[var(--color-red)]"
                   : "text-white border-b-transparent hover:border-b-white/40 hover:text-white/90"
               }`}
             >
@@ -107,7 +119,7 @@ export default function SiteHeaderClient({
                   href={href}
                   className={`min-h-11 flex items-center text-[12px] font-bold uppercase tracking-[0.03em] whitespace-nowrap px-3 border-l border-l-white/10 border-b-[3px] transition-colors ${
                     active
-                      ? "text-[var(--color-red)] border-b-[var(--color-red)]"
+                      ? "text-[var(--color-red-ink)] border-b-[var(--color-red)]"
                       : "text-white border-b-transparent hover:border-b-white/40 hover:text-white/90"
                   }`}
                 >
@@ -189,7 +201,7 @@ function MoreNavDropdown({
         aria-expanded={open}
         className={`min-h-11 flex items-center gap-1 text-[12px] font-bold uppercase tracking-[0.03em] whitespace-nowrap px-3 border-b-[3px] transition-colors ${
           active || open
-            ? "text-[var(--color-red)] border-b-[var(--color-red)]"
+            ? "text-[var(--color-red-ink)] border-b-[var(--color-red)]"
             : "text-white border-b-transparent hover:border-b-white/40 hover:text-white/90"
         }`}
       >
@@ -212,7 +224,7 @@ function MoreNavDropdown({
                 role="menuitem"
                 onClick={() => setOpen(false)}
                 className={`min-h-11 flex items-center px-4 text-[12px] font-bold uppercase tracking-[0.03em] transition-colors ${
-                  isActive ? "text-[var(--color-red)] bg-white/5" : "text-white hover:bg-white/5 hover:text-white/90"
+                  isActive ? "text-[var(--color-red-ink)] bg-white/5" : "text-white hover:bg-white/5 hover:text-white/90"
                 }`}
               >
                 {category.label}

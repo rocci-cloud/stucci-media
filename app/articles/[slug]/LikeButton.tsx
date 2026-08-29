@@ -30,7 +30,7 @@ export default function LikeButton({
     return (
       <Link
         href={`/login?from=${encodeURIComponent(signInRedirect)}`}
-        className="inline-flex min-h-11 items-center gap-2 rounded-full border border-[var(--color-hairline-strong)] px-4 font-sans text-[13.5px] font-bold text-[var(--color-gray)] transition-colors hover:border-[var(--color-red)] hover:text-[var(--color-red)]"
+        className="inline-flex min-h-11 items-center gap-2 rounded-full border border-[var(--color-hairline-strong)] px-4 font-sans text-[13.5px] font-bold text-[var(--color-gray)] transition-colors hover:border-[var(--color-red)] hover:text-[var(--color-red-ink)]"
       >
         <Heart className="h-[18px] w-[18px]" />
         {state.count > 0 ? `${state.count} Like${state.count === 1 ? "" : "s"}` : "Like"}
@@ -62,7 +62,7 @@ export default function LikeButton({
         className={`inline-flex min-h-11 items-center gap-2 rounded-full border px-4 font-sans text-[13.5px] font-bold transition disabled:opacity-60 ${
           optimisticState.liked
             ? "border-[var(--color-red)] bg-[var(--color-red)] text-white"
-            : "border-[var(--color-hairline-strong)] text-[var(--color-gray)] hover:border-[var(--color-red)] hover:text-[var(--color-red)]"
+            : "border-[var(--color-hairline-strong)] text-[var(--color-gray)] hover:border-[var(--color-red)] hover:text-[var(--color-red-ink)]"
         }`}
       >
         <Heart
@@ -73,7 +73,7 @@ export default function LikeButton({
           ? `${optimisticState.count} Like${optimisticState.count === 1 ? "" : "s"}`
           : "Like"}
       </button>
-      {error && <p className="text-[12px] text-[var(--color-red)]">{error}</p>}
+      {error && <p className="text-[12px] text-[var(--color-red-ink)]">{error}</p>}
     </div>
   );
 }

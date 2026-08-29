@@ -26,10 +26,10 @@ export default function ArticleCard({ article, variant = "grid", rank }: Article
         href={`/articles/${article.slug}`}
         className="flex px-4 py-3 sm:py-3.5 min-h-11 group active:bg-[var(--color-bg-off)] transition-colors"
       >
-        <span className="flex items-center shrink-0 w-[26px] pr-3 border-r border-[var(--color-hairline)] font-headline text-[27px] font-bold tracking-[-0.01em] leading-none text-[var(--color-red)]/30 transition-colors group-hover:text-[var(--color-red)]/60">
+        <span className="flex items-center shrink-0 w-[26px] pr-3 border-r border-[var(--color-hairline)] font-headline text-[27px] font-bold tracking-[-0.01em] leading-none text-[var(--color-red-ink)]/30 transition-colors group-hover:text-[var(--color-red-ink)]/60">
           {rank}
         </span>
-        <span className="flex items-center pl-3 font-sans text-[13.5px] font-bold leading-[1.3] tracking-[-0.005em] group-hover:text-[var(--color-red)] transition-colors">
+        <span className="flex items-center pl-3 font-sans text-[13.5px] font-bold leading-[1.3] tracking-[-0.005em] group-hover:text-[var(--color-red-ink)] transition-colors">
           {article.headline}
         </span>
       </Link>
@@ -56,7 +56,7 @@ export default function ArticleCard({ article, variant = "grid", rank }: Article
           <div className="img-placeholder w-[88px] h-[60px] rounded-control shrink-0" />
         )}
         <div className="min-w-0 flex flex-col justify-center">
-          <div className="font-headline text-[15px] font-bold leading-[1.2] tracking-[-0.01em] group-hover:text-[var(--color-red)] transition-colors line-clamp-3">
+          <div className="font-headline text-[15px] font-bold leading-[1.2] tracking-[-0.01em] group-hover:text-[var(--color-red-ink)] transition-colors line-clamp-3">
             {article.headline}
           </div>
           <div className="font-sans text-[10.5px] font-bold text-[var(--color-gray-light)] mt-1.5 uppercase tracking-[0.04em]">
@@ -72,7 +72,7 @@ export default function ArticleCard({ article, variant = "grid", rank }: Article
   return (
     <Link
       href={`/articles/${article.slug}`}
-      className={`min-h-11 group rounded-card overflow-hidden bg-white border border-[var(--color-hairline)] shadow-card hover:shadow-card-hover active:shadow-card-hover transition hover:-translate-y-[3px] active:translate-y-0 active:scale-[0.99] ${
+      className={`min-h-11 group rounded-card overflow-hidden bg-[var(--color-surface)] border border-[var(--color-hairline)] shadow-card hover:shadow-card-hover active:shadow-card-hover transition hover:-translate-y-[3px] active:translate-y-0 active:scale-[0.99] ${
         wide ? "grid grid-cols-1 sm:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]" : "block"
       }`}
     >
@@ -113,7 +113,7 @@ export default function ArticleCard({ article, variant = "grid", rank }: Article
           {article.category}
         </Badge>
         <div
-          className={`font-headline font-bold leading-[1.15] tracking-[-0.01em] mb-2 line-clamp-2 group-hover:text-[var(--color-red)] transition-colors ${
+          className={`font-headline font-bold leading-[1.15] tracking-[-0.01em] mb-2 line-clamp-2 group-hover:text-[var(--color-red-ink)] transition-colors ${
             wide ? "text-[19px] sm:text-[24px]" : "text-[17px] sm:text-[18px]"
           }`}
         >

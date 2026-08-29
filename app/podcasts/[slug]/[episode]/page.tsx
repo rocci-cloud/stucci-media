@@ -261,7 +261,7 @@ export default async function EpisodePage({ params }: Props) {
                     <span className="block font-sans text-[10.5px] font-bold uppercase tracking-[0.06em] text-[var(--color-gray-light)]">
                       Newer episode
                     </span>
-                    <span className="mt-0.5 block font-headline text-[15px] font-bold leading-[1.2] tracking-[-0.01em] transition-colors group-hover:text-[var(--color-red)]">
+                    <span className="mt-0.5 block font-headline text-[15px] font-bold leading-[1.2] tracking-[-0.01em] transition-colors group-hover:text-[var(--color-red-ink)]">
                       {newer.title}
                     </span>
                   </span>
@@ -279,7 +279,7 @@ export default async function EpisodePage({ params }: Props) {
                     <span className="block font-sans text-[10.5px] font-bold uppercase tracking-[0.06em] text-[var(--color-gray-light)]">
                       Older episode
                     </span>
-                    <span className="mt-0.5 block font-headline text-[15px] font-bold leading-[1.2] tracking-[-0.01em] transition-colors group-hover:text-[var(--color-red)]">
+                    <span className="mt-0.5 block font-headline text-[15px] font-bold leading-[1.2] tracking-[-0.01em] transition-colors group-hover:text-[var(--color-red-ink)]">
                       {older.title}
                     </span>
                   </span>
