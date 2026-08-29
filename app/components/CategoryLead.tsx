@@ -1,27 +1,19 @@
 import type { Article } from "../lib/articles";
-import ArticleCard from "./ui/ArticleCard";
+import StoryCard from "./ui/StoryCard";
 
-// The top of every category page gets an intentional lead + briefs
-// treatment — one dominant story plus a tight stack of the next three —
-// instead of the most recent article just being first-in-line inside a
-// flat grid. The same asymmetric lead+briefs pattern used across the
-// homepage, reused verbatim here rather than inventing a second one.
+// The top of a listing page: one medium card at the full content width.
+//
+// Previously a lead-plus-briefs split. The river below it already carries
+// the "here is everything else" job, and running a second arrangement
+// above it meant a category page opened with a layout that appears nowhere
+// else on the site.
 export default function CategoryLead({ articles }: { articles: Article[] }) {
-  if (articles.length === 0) return null;
-
-  const [lead, ...rest] = articles;
-  const briefs = rest.slice(0, 3);
+  const [lead] = articles;
+  if (!lead) return null;
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-[1.4fr_1fr] gap-4 sm:gap-6">
-      <ArticleCard article={lead} variant="grid" />
-      {briefs.length > 0 && (
-        <div className="flex flex-col divide-y divide-[var(--color-hairline)] rounded-card border border-[var(--color-hairline)] bg-[var(--color-surface)] shadow-card overflow-hidden">
-          {briefs.map((a) => (
-            <ArticleCard key={a.slug} article={a} variant="list" />
-          ))}
-        </div>
-      )}
+    <div className="border-b border-[var(--color-hairline)] pb-5">
+      <StoryCard article={lead} size="medium" priority />
     </div>
   );
 }
