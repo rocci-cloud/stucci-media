@@ -1,22 +1,30 @@
 import type { Article } from "../lib/articles";
-import SectionHeader from "./ui/SectionHeader";
-import ArticleCard from "./ui/ArticleCard";
+import StoryCard from "./ui/StoryCard";
+import SectionLabel from "./ui/SectionLabel";
 
-// Sits at the bottom of every article, right where a reader has just
-// finished and is deciding whether to leave — a plain heading + grid
-// blended into the page's white background read as an afterthought. A
-// tinted panel (the same bg-off surface treatment used for the
-// homepage's differentiated desks) gives it its own visual weight, so
-// it reads as "here's what to read next," not a trailing widget.
-export default function RelatedArticles({ articles }: { articles: Article[] }) {
+// The end-of-article rail: three compact cards, titled by section rather
+// than a generic "Keep Reading", so a reader who finished a Veterans piece
+// is offered more Veterans rather than more site.
+export default function RelatedArticles({
+  articles,
+  category,
+  categorySlug,
+}: {
+  articles: Article[];
+  category?: string;
+  categorySlug?: string;
+}) {
   if (articles.length === 0) return null;
 
   return (
-    <section className="mt-14 px-5 py-8 sm:py-10 rounded-card bg-[var(--color-bg-off)]">
-      <SectionHeader title="Keep Reading" />
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
-        {articles.map((article) => (
-          <ArticleCard key={article.slug} article={article} variant="grid" />
+    <section className="mt-12">
+      <SectionLabel
+        title={category ? `More in ${category}` : "More Stories"}
+        href={categorySlug ? `/category/${categorySlug}` : undefined}
+      />
+      <div className="grid grid-cols-2 gap-x-4 gap-y-6 lg:grid-cols-3">
+        {articles.slice(0, 3).map((article) => (
+          <StoryCard key={article.slug} article={article} size="compact" />
         ))}
       </div>
     </section>

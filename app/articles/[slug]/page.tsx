@@ -7,7 +7,8 @@ import type { Metadata } from "next";
 import BreakingBar from "../../components/BreakingBar";
 import SiteHeader from "../../components/SiteHeader";
 import SiteFooter from "../../components/SiteFooter";
-import Sidebar from "../../components/Sidebar";
+import ArticleRail from "../../components/ArticleRail";
+import PrevNextCards from "../../components/PrevNextCards";
 import RelatedArticles from "../../components/RelatedArticles";
 import Reveal from "../../components/Reveal";
 import Badge from "../../components/ui/Badge";
@@ -20,6 +21,7 @@ import { createCommentAction } from "./actions";
 import ArticleSubscribeCta from "../../components/ArticleSubscribeCta";
 import ServicePromo from "../../components/ServicePromo";
 import LiveBlogTimeline from "./LiveBlogTimeline";
+import ShareRow from "./ShareRow";
 import {
   getArticleBySlug,
   getPublishedArticles,
@@ -153,6 +155,32 @@ export default async function ArticlePage({ params }: Props) {
     : null;
   const pagePath = `/articles/${article.slug}`;
 
+  // "Published August 21, 2026 at 4:37 PM EDT" — the newsroom's clock, not
+  // the reader's. `article.date` is a pre-formatted display date with no
+  // time in it, so this formats the raw ISO timestamp instead.
+  const publishedStamp = article.publishedAt
+    ? new Intl.DateTimeFormat("en-US", {
+        timeZone: "America/New_York",
+        month: "long",
+        day: "numeric",
+        year: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+        timeZoneName: "short",
+      })
+        .format(new Date(article.publishedAt))
+        .replace(" at ", " at ")
+    : article.date;
+
+  // Previous/next by position in the published list the page already
+  // fetched for the rail — newest first, so "previous" is the newer story.
+  const currentIndex = allArticles.findIndex((a) => a.slug === article.slug);
+  const previousArticle = currentIndex > 0 ? allArticles[currentIndex - 1] : undefined;
+  const nextArticle =
+    currentIndex >= 0 && currentIndex < allArticles.length - 1
+      ? allArticles[currentIndex + 1]
+      : undefined;
+
   // Mid-article banner slot: split the sanitized body at the nearest
   // top-level block boundary to its midpoint (see splitHtmlAtMidpoint) so
   // the banner renders between two real paragraphs/blocks, never inside
@@ -232,45 +260,49 @@ export default async function ArticlePage({ params }: Props) {
       <BreakingBar />
       <SiteHeader />
       <main id="main-content">
-        {/* --- Cinematic article hero: same visual language as the
-            homepage's HeroRotator (vignette + scrim, badge/h1/dek/
-            byline stack), sized down since this is one story, not the
-            site's lead. Renders even without a cover image (falls back
-            to img-placeholder) so headline/meta always have a hero to
-            sit on, never a layout that shifts based on whether a photo
-            exists. --- */}
-        <section className="relative border-b-4 border-[var(--color-navy)]">
-          <Link
-            href="/"
-            className="absolute left-4 top-4 sm:left-6 sm:top-6 z-10 min-h-11 inline-flex items-center gap-1.5 rounded-full bg-black/40 px-4 font-sans text-[12.5px] font-bold text-white backdrop-blur-sm transition hover:bg-black/55 active:scale-[0.97]"
-          >
-            ← Back to Home
-          </Link>
+        {/* The headline sits on the page, not on the photo. A scrim-and-
+            overlay hero looks like a magazine cover and costs a news story
+            the two things it actually needs above the fold: a headline at
+            full contrast on the page background, and the byline that tells
+            a reader who filed it and when. The photo runs under the byline
+            instead, at the column width. */}
+        <div className="mx-auto max-w-[1200px] px-5 pt-5 sm:pt-7 pb-16 grid grid-cols-1 lg:grid-cols-[minmax(0,720px)_320px] lg:justify-center gap-x-10">
+          <article className="max-w-[720px]">
+            <Link
+              href={`/category/${article.categorySlug}`}
+              className="inline-flex min-h-11 items-center font-sans text-[12px] font-bold uppercase tracking-[0.1em] text-[var(--color-red-ink)] transition-colors hover:text-[var(--color-red-dark)]"
+            >
+              {article.category}
+            </Link>
 
-          <div className="relative w-full h-[52svh] min-h-[380px] max-h-[520px] sm:h-[56vh] sm:max-h-[560px] overflow-hidden">
-            {article.coverImageUrl ? (
-              <Image
-                src={article.coverImageUrl}
-                alt={article.headline}
-                fill
-                priority
-                sizes="100vw"
-                className="img-cinematic object-cover"
-              />
-            ) : (
-              <div className="img-placeholder absolute inset-0" />
+            <h1 className="mt-1 font-headline font-bold uppercase text-[var(--color-text)] text-[length:clamp(2.25rem,4vw,3.25rem)] leading-[0.98] tracking-[-0.02em]">
+              {article.headline}
+            </h1>
+
+            {article.dek && (
+              <p className="mt-3 font-sans text-[1.125rem] sm:text-[1.25rem] font-normal leading-[1.5] text-[var(--color-gray)] max-w-[62ch]">
+                {article.dek}
+              </p>
             )}
 
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_45%,rgba(0,0,0,0.22)_100%)]" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/50 to-black/5" />
-
-            <div className="absolute inset-x-0 bottom-0 px-5 pb-6 sm:px-8 sm:pb-9">
-              <div className="mx-auto max-w-[820px] [animation:heroTextReveal_0.9s_cubic-bezier(0.16,1,0.3,1)_0.15s_both]">
-                <div className="flex flex-wrap items-center gap-2 mb-3">
-                  <Badge variant="red">{article.category}</Badge>
-                  {article.isExclusive && <Badge variant="onDark">Exclusive</Badge>}
+            <div className="mt-4 flex flex-wrap items-center gap-x-2 gap-y-1 font-sans text-[13px] text-[var(--color-gray)]">
+              <span>
+                By{" "}
+                <Link
+                  href={`/author/${slugify(article.author)}`}
+                  className="font-bold text-[var(--color-text)] hover:text-[var(--color-red-ink)] transition-colors"
+                >
+                  {article.author}
+                </Link>
+              </span>
+              <span className="text-[var(--color-gray-light)]">Stucci Media</span>
+              <span aria-hidden className="text-[var(--color-gray-light)]">•</span>
+              <span className="text-[var(--color-gray-light)]">Published {publishedStamp}</span>
+              {(article.isExclusive || article.isLiveBlog) && (
+                <span className="flex items-center gap-1.5">
+                  {article.isExclusive && <Badge variant="navy">Exclusive</Badge>}
                   {article.isLiveBlog && (
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--color-red)] px-2.5 py-1 font-sans text-[10.5px] font-bold uppercase tracking-[0.05em] text-white">
+                    <span className="inline-flex items-center gap-1.5 bg-[var(--color-red)] px-2 py-[3px] font-sans text-[10.5px] font-bold uppercase tracking-[0.05em] text-white">
                       <span className="relative flex h-2 w-2">
                         <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-75" />
                         <span className="relative inline-flex h-2 w-2 rounded-full bg-white" />
@@ -278,38 +310,41 @@ export default async function ArticlePage({ params }: Props) {
                       Live
                     </span>
                   )}
-                </div>
-                <h1 className="font-headline text-white text-[30px] sm:text-[42px] lg:text-[48px] font-bold uppercase leading-[0.98] tracking-[-0.015em] mb-3">
-                  {article.headline}
-                </h1>
-                {article.dek && (
-                  <p className="text-white/85 text-[14.5px] sm:text-[17px] leading-[1.5] max-w-[64ch] mb-4 line-clamp-2">
-                    {article.dek}
-                  </p>
-                )}
-                <div className="flex items-center gap-2.5 font-sans text-[12px] sm:text-[13px] tracking-[0.01em] text-white/90">
-                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--color-red)] text-[11px] font-bold text-white">
-                    {getInitials(article.author)}
-                  </span>
-                  <Link
-                    href={`/author/${slugify(article.author)}`}
-                    className="inline-flex min-h-11 items-center font-bold text-white hover:underline"
-                  >
-                    {article.author}
-                  </Link>
-                  <span className="opacity-50">·</span>
-                  <span className="uppercase tracking-[0.04em]">{article.date}</span>
-                  <span className="opacity-50">·</span>
-                  <span className="uppercase tracking-[0.04em]">{article.readTime}</span>
-                </div>
-              </div>
+                </span>
+              )}
             </div>
-          </div>
-        </section>
 
-        <div className="mx-auto max-w-[1280px] px-5 pt-8 sm:pt-10 pb-18 grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-x-10">
-          <article className="max-w-[720px]">
-            <div className="mb-6">
+            <div className="mt-3">
+              <ShareRow title={article.headline} />
+            </div>
+
+            <figure className="mt-5">
+              <div className="relative aspect-[16/9] w-full overflow-hidden bg-[var(--color-bg-off)]">
+                {article.coverImageUrl ? (
+                  <Image
+                    src={article.coverImageUrl}
+                    alt={article.headline}
+                    fill
+                    priority
+                    sizes="(max-width: 1024px) 100vw, 720px"
+                    className="img-cinematic object-cover"
+                  />
+                ) : (
+                  <div className="img-placeholder absolute inset-0" />
+                )}
+              </div>
+              {(article.imageCaption || article.imageCredit) && (
+                <figcaption className="mt-2 font-sans text-[13px] leading-[1.45] text-[var(--color-gray-light)]">
+                  {article.imageCaption}
+                  {article.imageCaption && article.imageCredit ? " " : ""}
+                  {article.imageCredit && (
+                    <span className="uppercase tracking-[0.04em]">({article.imageCredit})</span>
+                  )}
+                </figcaption>
+              )}
+            </figure>
+
+            <div className="mt-6">
               <ListenButton text={plainText} />
             </div>
 
@@ -354,7 +389,7 @@ export default async function ArticlePage({ params }: Props) {
             {article.isLiveBlog && <LiveBlogTimeline entries={liveBlogEntries} />}
 
             <div
-              className="prose prose-neutral max-w-none text-[17px] sm:text-[19px] leading-[1.75]
+              className="article-dropcap prose prose-neutral max-w-none text-[18px] sm:text-[20px] leading-[1.7]
                 prose-headings:font-headline prose-headings:font-bold prose-headings:uppercase prose-headings:tracking-[-0.01em] prose-headings:leading-[1.1]
                 prose-h2:text-[25px] prose-h2:mt-10 prose-h3:text-[21px] prose-h3:mt-8
                 prose-p:mb-5 prose-a:text-[var(--color-red-ink)] prose-a:no-underline hover:prose-a:underline
@@ -373,7 +408,7 @@ export default async function ArticlePage({ params }: Props) {
                 <ServicePromo className="my-8" />
                 <BannerSlot placement="ARTICLE" className="my-6" />
                 <div
-                  className="prose prose-neutral max-w-none text-[17px] sm:text-[19px] leading-[1.75]
+                  className="prose prose-neutral max-w-none text-[18px] sm:text-[20px] leading-[1.7]
                     prose-headings:font-headline prose-headings:font-bold prose-headings:uppercase prose-headings:tracking-[-0.01em] prose-headings:leading-[1.1]
                     prose-h2:text-[25px] prose-h2:mt-10 prose-h3:text-[21px] prose-h3:mt-8
                     prose-p:mb-5 prose-a:text-[var(--color-red-ink)] prose-a:no-underline hover:prose-a:underline
@@ -433,8 +468,14 @@ export default async function ArticlePage({ params }: Props) {
             </Reveal>
 
             <Reveal>
-              <RelatedArticles articles={relatedArticles} />
+              <RelatedArticles
+                articles={relatedArticles}
+                category={article.category}
+                categorySlug={article.categorySlug}
+              />
             </Reveal>
+
+            <PrevNextCards previous={previousArticle} next={nextArticle} />
 
             {settings.featureComments && (
               <Reveal>
@@ -447,8 +488,11 @@ export default async function ArticlePage({ params }: Props) {
               </Reveal>
             )}
           </article>
+          {/* Below lg the rail moves under the article, after the related
+              cards — a reader on a phone should reach the end of the story
+              before a list of other stories. */}
           <div className="mt-10 lg:mt-0">
-            <Sidebar articles={allArticles} excludeSlug={article.slug} />
+            <ArticleRail articles={allArticles} excludeSlug={article.slug} />
           </div>
         </div>
       </main>

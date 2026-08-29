@@ -484,6 +484,25 @@ body {
     background: #f0fdf4;
   }
 
+  /* Three-line crimson drop cap on the opening paragraph.
+     `float` + a tuned line-height is the only technique that actually
+     spans three lines across browsers; `initial-letter` still has partial
+     support and silently does nothing where it is missing.
+
+     Scoped to `> p:first-of-type` so it lands on the first paragraph and
+     not on the first paragraph of the second body half — the article body
+     is split around a mid-article banner, and only the opening half
+     carries this class. */
+  .article-dropcap > p:first-of-type::first-letter {
+    float: left;
+    margin: 0.06em 0.08em 0 0;
+    font-family: var(--font-headline), sans-serif;
+    font-weight: 700;
+    font-size: 3.5em;
+    line-height: 0.82;
+    color: var(--color-red-ink);
+  }
+
   .prose figure.article-figure {
     margin: 2rem 0;
   }

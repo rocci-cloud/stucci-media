@@ -42,6 +42,12 @@ export type Article = {
   // is always undefined today. Adding the column plus an editor field is a
   // deliberate follow-up rather than a silent half-feature.
   kicker?: string | null;
+  // Caption and photo credit shown under the article's featured image.
+  // Same situation as `kicker`: no column behind either yet, so both are
+  // undefined today and the caption block simply does not render. One
+  // migration plus three editor inputs makes all three real.
+  imageCaption?: string | null;
+  imageCredit?: string | null;
   comparisonTitle: string | null;
   comparisonBody: string | null;
   comparisonSourceLabel: string | null;
