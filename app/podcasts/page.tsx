@@ -120,7 +120,7 @@ export default async function PodcastsPage() {
                 <div className="min-w-0">
                   <Link
                     href={`/podcasts/${lead.show.slug}`}
-                    className="font-sans text-[12px] font-bold uppercase tracking-[0.07em] text-[var(--color-red)] hover:underline"
+                    className="font-sans text-[12px] font-bold uppercase tracking-[0.07em] text-[var(--color-red-ink)] hover:underline"
                   >
                     {lead.show.title}
                   </Link>

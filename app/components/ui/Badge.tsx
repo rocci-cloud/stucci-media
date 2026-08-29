@@ -19,7 +19,7 @@ const VARIANT_CLASSES: Record<NonNullable<BadgeProps["variant"]>, string> = {
   red: "bg-[var(--color-red)] text-white text-[11px] px-2.5 py-1 rounded-[4px]",
   navy: "bg-[var(--color-navy)] text-white text-[11px] px-2.5 py-1 rounded-[4px]",
   onDark: "bg-white text-[var(--color-navy)] text-[11px] px-2.5 py-1 rounded-[4px]",
-  text: "text-[var(--color-red)] text-[10.5px] px-0 py-0",
+  text: "text-[var(--color-red-ink)] text-[10.5px] px-0 py-0",
 };
 
 export default function Badge({ children, variant = "text", className = "" }: BadgeProps) {

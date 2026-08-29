@@ -27,7 +27,7 @@ export default function FeatureArticleForm({
 
   if (state.success) {
     return (
-      <div className="rounded-card border border-[var(--color-hairline)] bg-white p-7 text-center shadow-card">
+      <div className="rounded-card border border-[var(--color-hairline)] bg-[var(--color-surface)] p-7 text-center shadow-card">
         <p className="font-headline text-[24px] font-bold uppercase leading-[1.05] tracking-[-0.015em] text-[var(--color-text)]">
           Got it. Check your inbox.
         </p>
@@ -40,7 +40,7 @@ export default function FeatureArticleForm({
   }
 
   const field =
-    "min-h-11 w-full rounded-control border border-[#B9B9B9] bg-white px-4 py-2.5 font-sans text-[15px] text-[var(--color-text)] transition-colors focus:border-[var(--color-navy)]";
+    "min-h-11 w-full rounded-control border border-[var(--color-field-border)] bg-[var(--color-surface)] px-4 py-2.5 font-sans text-[15px] text-[var(--color-text)] transition-colors focus:border-[var(--color-navy)]";
   const label =
     "font-sans text-[11.5px] font-bold uppercase tracking-[0.04em] text-[var(--color-gray)]";
 
@@ -119,7 +119,7 @@ export default function FeatureArticleForm({
         />
       </div>
 
-      {state.error && <p className="font-sans text-[14px] text-[var(--color-red)]">{state.error}</p>}
+      {state.error && <p className="font-sans text-[14px] text-[var(--color-red-ink)]">{state.error}</p>}
 
       <button
         type="submit"

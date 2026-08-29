@@ -26,7 +26,7 @@ export default function SaveButton({
       <Link
         href={`/login?from=${encodeURIComponent(signInRedirect)}`}
         aria-label="Sign in to save this article"
-        className="inline-flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-full border border-[var(--color-hairline-strong)] px-4 font-sans text-[13.5px] font-bold text-[var(--color-gray)] transition-colors hover:border-[var(--color-red)] hover:text-[var(--color-red)]"
+        className="inline-flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-full border border-[var(--color-hairline-strong)] px-4 font-sans text-[13.5px] font-bold text-[var(--color-gray)] transition-colors hover:border-[var(--color-red)] hover:text-[var(--color-red-ink)]"
       >
         <Bookmark className="h-[18px] w-[18px]" />
       </Link>
@@ -67,7 +67,7 @@ export default function SaveButton({
         />
         {optimisticSaved ? "Saved" : "Save"}
       </button>
-      {error && <p className="text-[12px] text-[var(--color-red)]">{error}</p>}
+      {error && <p className="text-[12px] text-[var(--color-red-ink)]">{error}</p>}
     </div>
   );
 }

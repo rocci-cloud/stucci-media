@@ -103,7 +103,7 @@ export default function AccountMenu() {
             <div className="text-[13px] font-bold text-white truncate">{user.name}</div>
             <div className="text-[11.5px] text-white/50 truncate">{user.email}</div>
             {streak !== null && streak >= 2 && (
-              <div className="mt-1.5 inline-flex items-center gap-1 text-[11.5px] font-bold text-[var(--color-red)]">
+              <div className="mt-1.5 inline-flex items-center gap-1 text-[11.5px] font-bold text-[var(--color-red-ink)]">
                 <Flame className="h-3.5 w-3.5" fill="currentColor" />
                 {streak}-day streak
               </div>

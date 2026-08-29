@@ -21,7 +21,11 @@ export default async function BreakingBar() {
 
   return (
     <div className="bg-gradient-to-r from-[var(--color-red)] to-[var(--color-red-dark)]">
-      <div className="mx-auto max-w-[1280px] px-5 py-2 flex items-center gap-2.5 text-[13px] font-sans font-medium tracking-[0.005em] min-h-11">
+      <div className="shell py-2 flex items-center gap-2.5 text-[13px] font-sans font-medium tracking-[0.005em] min-h-11">
+        {/* The pip is the only thing on the bar that moves. It is a slow
+            double-beat rather than a blink, so it reads as "live" from the
+            corner of the eye without competing with the headline beside it. */}
+        <span className="inline-flex h-[7px] w-[7px] shrink-0 rounded-full bg-white [animation:livePip_2.4s_ease-in-out_infinite]" />
         <Badge variant="navy" className="shrink-0">
           {isCurated ? "Breaking" : "Latest"}
         </Badge>

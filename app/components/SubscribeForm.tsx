@@ -77,7 +77,7 @@ export default function SubscribeForm({
           type="email"
           required
           placeholder="you@email.com"
-          className={`flex-1 min-h-11 border border-[#B9B9B9] rounded-control bg-white text-[var(--color-text)] focus:border-[var(--color-navy)] transition-colors ${
+          className={`flex-1 min-h-11 border border-[var(--color-field-border)] rounded-control bg-[var(--color-surface)] text-[var(--color-text)] focus:border-[var(--color-navy)] transition-colors ${
             compact ? "px-3 text-[13px]" : "px-4 text-[15px]"
           }`}
         />
@@ -93,7 +93,7 @@ export default function SubscribeForm({
       </form>
       {state.error && (
         <p
-          className={`font-sans mt-3 ${onDark ? "text-white" : "text-[var(--color-red)]"} ${
+          className={`font-sans mt-3 ${onDark ? "text-white" : "text-[var(--color-red-ink)]"} ${
             compact ? "text-xs" : "text-sm"
           }`}
         >

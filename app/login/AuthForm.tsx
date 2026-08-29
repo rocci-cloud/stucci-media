@@ -83,7 +83,7 @@ export default function AuthForm({
   return (
     <form onSubmit={handleSubmit} className="font-sans flex flex-col gap-4">
       {error && (
-        <p className="text-[13px] text-[var(--color-red)] border border-[var(--color-red)] rounded-control px-3.5 py-2.5">
+        <p className="text-[13px] text-[var(--color-red-ink)] border border-[var(--color-red)] rounded-control px-3.5 py-2.5">
           {error}
         </p>
       )}
@@ -100,7 +100,7 @@ export default function AuthForm({
             required
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full px-3.5 py-3 border border-[#B9B9B9] rounded-control text-sm min-h-11 focus:border-[var(--color-red)] transition-colors"
+            className="w-full px-3.5 py-3 border border-[var(--color-field-border)] rounded-control text-sm min-h-11 focus:border-[var(--color-red)] transition-colors"
           />
         </div>
       )}
@@ -116,7 +116,7 @@ export default function AuthForm({
           required
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full px-3.5 py-3 border border-[#B9B9B9] rounded-control text-sm min-h-11 focus:border-[var(--color-red)] transition-colors"
+          className="w-full px-3.5 py-3 border border-[var(--color-field-border)] rounded-control text-sm min-h-11 focus:border-[var(--color-red)] transition-colors"
         />
       </div>
 
@@ -132,7 +132,7 @@ export default function AuthForm({
           minLength={8}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full px-3.5 py-3 border border-[#B9B9B9] rounded-control text-sm min-h-11 focus:border-[var(--color-red)] transition-colors"
+          className="w-full px-3.5 py-3 border border-[var(--color-field-border)] rounded-control text-sm min-h-11 focus:border-[var(--color-red)] transition-colors"
         />
       </div>
 
@@ -148,14 +148,14 @@ export default function AuthForm({
         {mode === "login" ? (
           <>
             Don&rsquo;t have an account?{" "}
-            <Link href="/register" className="text-[var(--color-red)] font-bold hover:underline">
+            <Link href="/register" className="text-[var(--color-red-ink)] font-bold hover:underline">
               Create one
             </Link>
           </>
         ) : (
           <>
             Already have an account?{" "}
-            <Link href="/login" className="text-[var(--color-red)] font-bold hover:underline">
+            <Link href="/login" className="text-[var(--color-red-ink)] font-bold hover:underline">
               Sign in
             </Link>
           </>

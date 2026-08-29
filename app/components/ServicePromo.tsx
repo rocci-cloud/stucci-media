@@ -77,7 +77,7 @@ export default function ServicePromo({
           <ul className="mt-4 flex flex-wrap gap-x-5 gap-y-2">
             {["Written by our staff", "Built for Google", "Never expires"].map((point) => (
               <li key={point} className="flex items-center gap-1.5 text-[13px] text-white/75">
-                <Check className="h-3.5 w-3.5 shrink-0 text-[var(--color-red)]" />
+                <Check className="h-3.5 w-3.5 shrink-0 text-[var(--color-red-ink)]" />
                 {point}
               </li>
             ))}
@@ -106,7 +106,7 @@ export default function ServicePromo({
 
 function Kicker() {
   return (
-    <p className="font-sans text-[10.5px] font-bold uppercase tracking-[0.18em] text-[var(--color-red)]">
+    <p className="font-sans text-[10.5px] font-bold uppercase tracking-[0.18em] text-[var(--color-red-ink)]">
       <span className="mr-2 inline-block h-1 w-1 rounded-full bg-[var(--color-red)] align-middle" />
       Featured coverage
     </p>

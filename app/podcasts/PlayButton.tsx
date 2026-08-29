@@ -71,7 +71,7 @@ export default function PlayButton({
       className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full border transition active:scale-[0.94] ${
         isCurrent
           ? "border-[var(--color-red)] bg-[var(--color-red)] text-white"
-          : "border-[var(--color-hairline)] bg-white text-[var(--color-navy)] hover:border-[var(--color-navy)] hover:bg-[var(--color-navy)] hover:text-white"
+          : "border-[var(--color-hairline)] bg-[var(--color-surface)] text-[var(--color-navy)] hover:border-[var(--color-navy)] hover:bg-[var(--color-navy)] hover:text-white"
       }`}
     >
       {isPlaying ? (

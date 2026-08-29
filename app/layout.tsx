@@ -17,6 +17,7 @@ import { Analytics } from "@vercel/analytics/next";
 import AnalyticsTracker from "./components/AnalyticsTracker";
 import NewsletterModal from "./components/NewsletterModal";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { DESK_INIT_SCRIPT } from "./lib/desk";
 
 // www, not the apex domain — see the PRODUCTION_URL comment in
 // app/lib/auth.ts for why: Vercel's own domain config redirects the
@@ -165,6 +166,13 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}>
+        {/* Sets data-desk before the first paint. It has to be inline and
+            synchronous: anything deferred, including a normal component
+            effect, paints the day palette first and then flips, which is
+            the white flash every dark-mode implementation is judged on.
+            See app/lib/desk.ts for why this is resolved on the client at
+            all rather than on the server. */}
+        <script dangerouslySetInnerHTML={{ __html: DESK_INIT_SCRIPT }} />
         {/* First focusable element on every page. Without it a keyboard or
             screen-reader user tabs through the breaking ticker, the wordmark,
             every nav item, the More dropdown, search, sign-in, register and

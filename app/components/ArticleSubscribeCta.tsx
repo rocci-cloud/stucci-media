@@ -23,7 +23,7 @@ export default function ArticleSubscribeCta() {
         }}
       />
       <div className="relative">
-        <p className="font-sans text-[10.5px] font-bold uppercase tracking-[0.18em] text-[var(--color-red)]">
+        <p className="font-sans text-[10.5px] font-bold uppercase tracking-[0.18em] text-[var(--color-red-ink)]">
           <span className="mr-2 inline-block h-1 w-1 rounded-full bg-[var(--color-red)] align-middle" />
           Don&apos;t miss the next one
         </p>

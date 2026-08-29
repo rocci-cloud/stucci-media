@@ -39,8 +39,8 @@ export default function DailyBriefQuiz({ questions }: { questions: QuizQuestion[
 
   if (finished) {
     return (
-      <div className="flex flex-col items-center gap-4 rounded-card border border-[var(--color-hairline)] bg-white px-6 py-12 text-center shadow-card">
-        <Flame className="h-10 w-10 text-[var(--color-red)]" fill="currentColor" />
+      <div className="flex flex-col items-center gap-4 rounded-card border border-[var(--color-hairline)] bg-[var(--color-surface)] px-6 py-12 text-center shadow-card">
+        <Flame className="h-10 w-10 text-[var(--color-red-ink)]" fill="currentColor" />
         <div>
           <p className="font-headline text-[40px] font-bold leading-none">
             {score}/{questions.length}
@@ -62,7 +62,7 @@ export default function DailyBriefQuiz({ questions }: { questions: QuizQuestion[
         </button>
         <Link
           href="/"
-          className="min-h-11 inline-flex items-center font-sans text-[13px] font-bold text-[var(--color-red)] hover:underline"
+          className="min-h-11 inline-flex items-center font-sans text-[13px] font-bold text-[var(--color-red-ink)] hover:underline"
         >
           Back to the homepage
         </Link>
@@ -71,9 +71,9 @@ export default function DailyBriefQuiz({ questions }: { questions: QuizQuestion[
   }
 
   return (
-    <div className="rounded-card border border-[var(--color-hairline)] bg-white p-6 sm:p-8 shadow-card">
+    <div className="rounded-card border border-[var(--color-hairline)] bg-[var(--color-surface)] p-6 sm:p-8 shadow-card">
       <div className="mb-5 flex items-center justify-between">
-        <span className="flex items-center gap-2 font-sans text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--color-red)]">
+        <span className="flex items-center gap-2 font-sans text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--color-red-ink)]">
           <Newspaper className="h-4 w-4" />
           Question {index + 1} of {questions.length}
         </span>
@@ -102,7 +102,7 @@ export default function DailyBriefQuiz({ questions }: { questions: QuizQuestion[
                 showResult && isCorrect
                   ? "border-green-600 bg-green-50 text-green-800"
                   : showResult && isSelected
-                    ? "border-[var(--color-red)] bg-[var(--color-red)]/5 text-[var(--color-red)]"
+                    ? "border-[var(--color-red)] bg-[var(--color-red)]/5 text-[var(--color-red-ink)]"
                     : "border-[var(--color-hairline-strong)] text-[var(--color-text)] hover:border-[var(--color-navy)]"
               } ${showResult ? "cursor-default" : "active:scale-[0.99]"}`}
             >

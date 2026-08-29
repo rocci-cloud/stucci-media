@@ -18,7 +18,7 @@ export default function PushOptInRow() {
       aria-pressed={subscribed}
       className={`min-h-11 flex items-center justify-center gap-2 rounded-control border font-bold uppercase tracking-wide text-[13px] transition active:scale-[0.98] ${
         subscribed
-          ? "border-[var(--color-red)] bg-[var(--color-red)]/10 text-[var(--color-red)]"
+          ? "border-[var(--color-red)] bg-[var(--color-red)]/10 text-[var(--color-red-ink)]"
           : "border-white/20 text-white/80 hover:text-white"
       }`}
     >

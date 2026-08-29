@@ -47,7 +47,7 @@ export default function ShowCard({
         />
       </div>
 
-      <h3 className="mt-2.5 font-headline text-[15px] font-bold uppercase leading-[1.15] tracking-[-0.01em] transition-colors group-hover:text-[var(--color-red)] sm:text-[16px]">
+      <h3 className="mt-2.5 font-headline text-[15px] font-bold uppercase leading-[1.15] tracking-[-0.01em] transition-colors group-hover:text-[var(--color-red-ink)] sm:text-[16px]">
         {show.title}
       </h3>
       <p className="mt-1 font-sans text-[11.5px] uppercase tracking-[0.05em] text-[var(--color-gray-light)]">

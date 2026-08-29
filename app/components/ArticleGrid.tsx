@@ -25,7 +25,7 @@ export default function ArticleGrid({
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px bg-[var(--color-hairline)] rounded-card border border-[var(--color-hairline)] shadow-card overflow-hidden">
           {articles.map((a) => (
-            <div key={a.slug} className="bg-white">
+            <div key={a.slug} className="bg-[var(--color-surface)]">
               <ArticleCard article={a} variant="list" />
             </div>
           ))}

@@ -33,7 +33,7 @@ export default function AboutPage() {
           </p>
           <p>
             Have a tip, a story, or feedback? Get in touch through our{" "}
-            <a href="/contact" className="text-[var(--color-red)] underline">
+            <a href="/contact" className="text-[var(--color-red-ink)] underline">
               contact page
             </a>
             .

@@ -191,7 +191,7 @@ export default async function FeatureArticlePage() {
             }}
           />
           <div className="relative mx-auto w-full max-w-[820px] text-center animate-[heroTextReveal_0.9s_cubic-bezier(0.16,1,0.3,1)_both]">
-            <p className="font-sans text-[10.5px] font-bold uppercase tracking-[0.2em] text-[var(--color-red)]">
+            <p className="font-sans text-[10.5px] font-bold uppercase tracking-[0.2em] text-[var(--color-red-ink)]">
               <span className="mr-2 inline-block h-1 w-1 rounded-full bg-[var(--color-red)] align-middle" />
               Featured coverage · {PRICE} flat · Published in {turnaround}
             </p>
@@ -241,9 +241,9 @@ export default async function FeatureArticlePage() {
               {BENEFITS.map((b) => (
                 <div
                   key={b.title}
-                  className="rounded-card border border-[var(--color-hairline)] bg-white p-5 shadow-card transition hover:shadow-card-hover"
+                  className="rounded-card border border-[var(--color-hairline)] bg-[var(--color-surface)] p-5 shadow-card transition hover:shadow-card-hover"
                 >
-                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--color-red)]/10 text-[var(--color-red)]">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--color-red)]/10 text-[var(--color-red-ink)]">
                     <b.icon className="h-4.5 w-4.5" />
                   </div>
                   <h3 className="font-headline mt-3.5 text-[18px] font-bold uppercase leading-[1.1] tracking-[-0.01em] text-[var(--color-text)]">
@@ -279,7 +279,7 @@ export default async function FeatureArticlePage() {
           <section className="mx-auto max-w-[1080px] px-5 py-12 sm:py-16">
             <div className="grid gap-6 lg:grid-cols-[1.15fr_1fr] lg:gap-10">
               <div>
-                <p className="font-sans text-[10.5px] font-bold uppercase tracking-[0.18em] text-[var(--color-red)]">
+                <p className="font-sans text-[10.5px] font-bold uppercase tracking-[0.18em] text-[var(--color-red-ink)]">
                   <span className="mr-2 inline-block h-1 w-1 rounded-full bg-[var(--color-red)] align-middle" />
                   What you get
                 </p>
@@ -289,7 +289,7 @@ export default async function FeatureArticlePage() {
                 <ul className="mt-5 flex flex-col gap-2.5">
                   {INCLUDED.map((item) => (
                     <li key={item} className="flex items-start gap-2.5">
-                      <Check className="mt-0.5 h-4 w-4 shrink-0 text-[var(--color-red)]" />
+                      <Check className="mt-0.5 h-4 w-4 shrink-0 text-[var(--color-red-ink)]" />
                       <span className="text-[15px] leading-[1.55] text-[var(--color-text)]">{item}</span>
                     </li>
                   ))}
@@ -316,7 +316,7 @@ export default async function FeatureArticlePage() {
                     <p className="mt-1.5 text-[13px] text-white/60">One time. Not a subscription.</p>
                   </div>
                 </div>
-                <div className="bg-white px-6 py-6 text-center">
+                <div className="bg-[var(--color-surface)] px-6 py-6 text-center">
                   <p className="text-[14.5px] leading-[1.6] text-[var(--color-gray)]">
                     No retainer, no monthly fee, and no upsell waiting on the other side. You fill in a
                     questionnaire, we do the rest.
@@ -365,8 +365,8 @@ export default async function FeatureArticlePage() {
               </div>
               <div className="mt-8 grid gap-4 sm:grid-cols-3">
                 {STEPS.map((step) => (
-                  <div key={step.n} className="rounded-card border border-[var(--color-hairline)] bg-white p-5 shadow-card">
-                    <span className="font-headline text-[34px] font-bold leading-none text-[var(--color-red)]/30">
+                  <div key={step.n} className="rounded-card border border-[var(--color-hairline)] bg-[var(--color-surface)] p-5 shadow-card">
+                    <span className="font-headline text-[34px] font-bold leading-none text-[var(--color-red-ink)]/30">
                       {step.n}
                     </span>
                     <h3 className="font-headline mt-2 text-[18px] font-bold uppercase leading-[1.1] tracking-[-0.01em] text-[var(--color-text)]">
@@ -385,7 +385,7 @@ export default async function FeatureArticlePage() {
           <section id="start" className="scroll-mt-20 px-5 py-12 sm:py-16">
             <div className="mx-auto max-w-[720px]">
               <div className="text-center">
-                <p className="font-sans text-[10.5px] font-bold uppercase tracking-[0.18em] text-[var(--color-red)]">
+                <p className="font-sans text-[10.5px] font-bold uppercase tracking-[0.18em] text-[var(--color-red-ink)]">
                   <span className="mr-2 inline-block h-1 w-1 rounded-full bg-[var(--color-red)] align-middle" />
                   Step one
                 </p>
@@ -404,12 +404,12 @@ export default async function FeatureArticlePage() {
                 Prefer to just talk to a person? Email{" "}
                 <a
                   href={`mailto:${CONTACT_EMAIL}?subject=Feature%20article%20enquiry`}
-                  className="font-semibold text-[var(--color-red)] hover:underline"
+                  className="font-semibold text-[var(--color-red-ink)] hover:underline"
                 >
                   {CONTACT_EMAIL}
                 </a>{" "}
                 or use the{" "}
-                <Link href="/contact" className="font-semibold text-[var(--color-red)] hover:underline">
+                <Link href="/contact" className="font-semibold text-[var(--color-red-ink)] hover:underline">
                   contact page
                 </Link>
                 .

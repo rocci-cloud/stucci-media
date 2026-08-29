@@ -31,7 +31,7 @@ export default function LiveBlogTimeline({ entries }: { entries: LiveBlogEntry[]
       <div className="divide-y divide-[var(--color-hairline)]">
         {entries.map((entry) => (
           <div key={entry.id} className="px-5 py-4">
-            <p className="mb-1.5 font-sans text-[11px] font-bold uppercase tracking-[0.06em] text-[var(--color-red)]">
+            <p className="mb-1.5 font-sans text-[11px] font-bold uppercase tracking-[0.06em] text-[var(--color-red-ink)]">
               {formatEntryTime(entry.createdAt)}
             </p>
             {entry.headline && (

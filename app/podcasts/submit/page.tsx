@@ -27,7 +27,7 @@ export default function SubmitPodcastPage() {
       <main id="main-content" className="mx-auto max-w-[720px] px-5 pt-8 sm:pt-10 pb-16 sm:pb-20">
         <Link
           href="/podcasts"
-          className="inline-flex min-h-11 items-center font-sans text-[12px] font-bold uppercase tracking-[0.06em] text-[var(--color-gray)] hover:text-[var(--color-red)] transition-colors"
+          className="inline-flex min-h-11 items-center font-sans text-[12px] font-bold uppercase tracking-[0.06em] text-[var(--color-gray)] hover:text-[var(--color-red-ink)] transition-colors"
         >
           ← All podcasts
         </Link>

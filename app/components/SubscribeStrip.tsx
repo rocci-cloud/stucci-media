@@ -40,7 +40,7 @@ export default function SubscribeStrip() {
           </ul>
         </div>
 
-        <div className="bg-white rounded-card shadow-card-hover border border-[var(--color-hairline)] p-6 sm:p-8">
+        <div className="bg-[var(--color-surface)] rounded-card shadow-card-hover border border-[var(--color-hairline)] p-6 sm:p-8">
           <SubscribeForm stacked source="homepage-strip" />
           <p className="font-sans text-[11.5px] text-[var(--color-gray-light)] text-center mt-3.5">
             No spam, ever. Unsubscribe anytime.

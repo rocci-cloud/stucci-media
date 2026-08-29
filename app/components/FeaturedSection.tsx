@@ -129,7 +129,7 @@ export default function FeaturedSection({
                 <Badge variant="text" className="mb-1.5">
                   {item.category}
                 </Badge>
-                <div className="font-headline text-[17px] sm:text-[18px] font-bold leading-[1.15] tracking-[-0.01em] mb-1.5 line-clamp-2 group-hover:text-[var(--color-red)] transition-colors">
+                <div className="font-headline text-[17px] sm:text-[18px] font-bold leading-[1.15] tracking-[-0.01em] mb-1.5 line-clamp-2 group-hover:text-[var(--color-red-ink)] transition-colors">
                   {item.headline}
                 </div>
                 <div className="flex flex-wrap items-center gap-x-1.5 font-sans text-[11px] tracking-[0.01em] text-[var(--color-gray-light)]">

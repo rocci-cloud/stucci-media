@@ -20,7 +20,7 @@ export default function PushOptIn() {
       aria-pressed={subscribed}
       title={subscribed ? "Breaking news alerts on" : "Get breaking news alerts"}
       className={`min-w-11 min-h-11 flex items-center justify-center transition-colors ${
-        subscribed ? "text-[var(--color-red)]" : "text-white hover:text-white/80"
+        subscribed ? "text-[var(--color-red-ink)]" : "text-white hover:text-white/80"
       }`}
     >
       {subscribed ? <BellRing className="h-[18px] w-[18px]" /> : <Bell className="h-[18px] w-[18px]" />}
