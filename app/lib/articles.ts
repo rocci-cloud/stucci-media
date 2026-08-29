@@ -11,6 +11,13 @@ import { ARTICLE_STATUS_LABELS, type ArticleStatusValue } from "./article-status
 export { ARTICLE_STATUS_LABELS };
 export type { ArticleStatusValue };
 
+/** A primary source cited by an article — see components/Receipts. */
+export type ArticleDocument = {
+  label: string;
+  url: string;
+  source?: string | null;
+};
+
 export type Article = {
   id: number;
   slug: string;
@@ -48,6 +55,10 @@ export type Article = {
   // migration plus three editor inputs makes all three real.
   imageCaption?: string | null;
   imageCredit?: string | null;
+  // Primary sources behind the story, for the Receipts block. No column
+  // behind it yet — the block renders nothing until one exists, same as
+  // kicker/imageCaption/imageCredit above. One migration covers all four.
+  documents?: ArticleDocument[] | null;
   comparisonTitle: string | null;
   comparisonBody: string | null;
   comparisonSourceLabel: string | null;

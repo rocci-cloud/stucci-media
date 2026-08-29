@@ -9,6 +9,8 @@ import SiteHeader from "../../components/SiteHeader";
 import SiteFooter from "../../components/SiteFooter";
 import ArticleRail from "../../components/ArticleRail";
 import PrevNextCards from "../../components/PrevNextCards";
+import AuthorCard from "../../components/AuthorCard";
+import Receipts from "../../components/Receipts";
 import RelatedArticles from "../../components/RelatedArticles";
 import Reveal from "../../components/Reveal";
 import Badge from "../../components/ui/Badge";
@@ -22,6 +24,8 @@ import ArticleSubscribeCta from "../../components/ArticleSubscribeCta";
 import ServicePromo from "../../components/ServicePromo";
 import LiveBlogTimeline from "./LiveBlogTimeline";
 import ShareRow from "./ShareRow";
+import ReadingProgress from "./ReadingProgress";
+import StickyActionBar from "./StickyActionBar";
 import {
   getArticleBySlug,
   getPublishedArticles,
@@ -37,6 +41,7 @@ import { recordCategoryInterest } from "../../lib/interests";
 import { auth } from "../../lib/auth";
 import { getSiteSettings } from "../../lib/settings";
 import { slugify } from "../../lib/slugify";
+import { getAuthorBySlug } from "../../lib/authors";
 import { splitHtmlAtMidpoint } from "../../lib/split-html-midpoint";
 
 function getInitials(name: string) {
@@ -174,6 +179,14 @@ export default async function ArticlePage({ params }: Props) {
 
   // Previous/next by position in the published list the page already
   // fetched for the rail — newest first, so "previous" is the newer story.
+  const authorSlug = slugify(article.author);
+  // One small lookup for the byline's profile. "More from" is filtered from
+  // the list already fetched for the rail, so it costs nothing.
+  const authorProfile = await getAuthorBySlug(authorSlug);
+  const moreFromAuthor = allArticles.filter(
+    (a) => a.author === article.author && a.slug !== article.slug,
+  );
+
   const currentIndex = allArticles.findIndex((a) => a.slug === article.slug);
   const previousArticle = currentIndex > 0 ? allArticles[currentIndex - 1] : undefined;
   const nextArticle =
@@ -259,6 +272,7 @@ export default async function ArticlePage({ params }: Props) {
       />
       <BreakingBar />
       <SiteHeader />
+      <ReadingProgress targetId="article-body" />
       <main id="main-content">
         {/* The headline sits on the page, not on the photo. A scrim-and-
             overlay hero looks like a magazine cover and costs a news story
@@ -266,8 +280,8 @@ export default async function ArticlePage({ params }: Props) {
             full contrast on the page background, and the byline that tells
             a reader who filed it and when. The photo runs under the byline
             instead, at the column width. */}
-        <div className="mx-auto max-w-[1200px] px-5 pt-5 sm:pt-7 pb-16 grid grid-cols-1 lg:grid-cols-[minmax(0,720px)_320px] lg:justify-center gap-x-10">
-          <article className="max-w-[720px]">
+        <div className="mx-auto max-w-[1200px] px-5 pt-5 sm:pt-7 pb-24 lg:pb-16 grid grid-cols-1 lg:grid-cols-[minmax(0,760px)_320px] lg:justify-center gap-x-10">
+          <article id="article-body" className="max-w-[760px]">
             <Link
               href={`/category/${article.categorySlug}`}
               className="inline-flex min-h-11 items-center font-sans text-[12px] font-bold uppercase tracking-[0.1em] text-[var(--color-red-ink)] transition-colors hover:text-[var(--color-red-dark)]"
@@ -334,7 +348,7 @@ export default async function ArticlePage({ params }: Props) {
                 )}
               </div>
               {(article.imageCaption || article.imageCredit) && (
-                <figcaption className="mt-2 font-sans text-[13px] leading-[1.45] text-[var(--color-gray-light)]">
+                <figcaption className="mt-1.5 font-sans text-[12px] leading-[1.35] text-[var(--color-gray-light)]">
                   {article.imageCaption}
                   {article.imageCaption && article.imageCredit ? " " : ""}
                   {article.imageCredit && (
@@ -350,8 +364,8 @@ export default async function ArticlePage({ params }: Props) {
 
             {article.bulletPoints.length > 0 && (
               <div className="mb-7 rounded-card border-l-4 border-[var(--color-red)] bg-[var(--color-bg-off)] px-5 py-4">
-                <span className="mb-2 block font-sans text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--color-red-ink)]">
-                  Bottom Line
+                <span className="mb-2 block font-sans text-[11px] font-bold uppercase tracking-[0.09em] text-[var(--color-red-ink)]">
+                  The Gist
                 </span>
                 <ul className="flex flex-col gap-2">
                   {article.bulletPoints.map((point, i) => (
@@ -389,7 +403,7 @@ export default async function ArticlePage({ params }: Props) {
             {article.isLiveBlog && <LiveBlogTimeline entries={liveBlogEntries} />}
 
             <div
-              className="article-dropcap prose prose-neutral max-w-none text-[18px] sm:text-[20px] leading-[1.7]
+              className="article-dropcap prose prose-neutral max-w-[68ch] text-[18px] sm:text-[20px] leading-[1.7]
                 prose-headings:font-headline prose-headings:font-bold prose-headings:uppercase prose-headings:tracking-[-0.01em] prose-headings:leading-[1.1]
                 prose-h2:text-[25px] prose-h2:mt-10 prose-h3:text-[21px] prose-h3:mt-8
                 prose-p:mb-5 prose-a:text-[var(--color-red-ink)] prose-a:no-underline hover:prose-a:underline
@@ -408,7 +422,7 @@ export default async function ArticlePage({ params }: Props) {
                 <ServicePromo className="my-8" />
                 <BannerSlot placement="ARTICLE" className="my-6" />
                 <div
-                  className="prose prose-neutral max-w-none text-[18px] sm:text-[20px] leading-[1.7]
+                  className="prose prose-neutral max-w-[68ch] text-[18px] sm:text-[20px] leading-[1.7]
                     prose-headings:font-headline prose-headings:font-bold prose-headings:uppercase prose-headings:tracking-[-0.01em] prose-headings:leading-[1.1]
                     prose-h2:text-[25px] prose-h2:mt-10 prose-h3:text-[21px] prose-h3:mt-8
                     prose-p:mb-5 prose-a:text-[var(--color-red-ink)] prose-a:no-underline hover:prose-a:underline
@@ -420,6 +434,8 @@ export default async function ArticlePage({ params }: Props) {
                 />
               </>
             )}
+
+            <Receipts documents={article.documents} />
 
             {article.tags.length > 0 && (
               <div className="mt-8 flex flex-wrap gap-2">
@@ -477,6 +493,13 @@ export default async function ArticlePage({ params }: Props) {
 
             <PrevNextCards previous={previousArticle} next={nextArticle} />
 
+            <AuthorCard
+              authorName={article.author}
+              authorSlug={authorSlug}
+              profile={authorProfile}
+              more={moreFromAuthor}
+            />
+
             {settings.featureComments && (
               <Reveal>
                 <CommentSection
@@ -495,6 +518,16 @@ export default async function ArticlePage({ params }: Props) {
             <ArticleRail articles={allArticles} excludeSlug={article.slug} />
           </div>
         </div>
+        <StickyActionBar>
+          <div className="flex items-center gap-3">
+            <div className="min-w-0 flex-1">
+              <ListenButton text={plainText} />
+            </div>
+            <div className="shrink-0">
+              <ShareRow title={article.headline} compact />
+            </div>
+          </div>
+        </StickyActionBar>
       </main>
       <SiteFooter />
     </>
