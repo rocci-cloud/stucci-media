@@ -10,7 +10,15 @@ import { Check, Link2, Mail } from "lucide-react";
 // renders inside an ISR-cached page, so a server-built absolute URL would
 // be baked into the cached HTML and every share would carry whichever host
 // rendered it.
-export default function ShareRow({ title }: { title: string }) {
+export default function ShareRow({
+  title,
+  compact = false,
+}: {
+  title: string;
+  /** Drops the rules and the "Share" label for the mobile sticky bar,
+      where the row sits inside its own chrome and the word is redundant. */
+  compact?: boolean;
+}) {
   const [url, setUrl] = useState("");
   const [copied, setCopied] = useState(false);
 
@@ -42,10 +50,18 @@ export default function ShareRow({ title }: { title: string }) {
     "inline-flex h-9 w-9 items-center justify-center rounded-[2px] border border-[var(--color-hairline)] text-[var(--color-gray)] transition-colors hover:border-[var(--color-red)] hover:text-[var(--color-red-ink)]";
 
   return (
-    <div className="flex items-center gap-2 border-y border-[var(--color-hairline)] py-2.5">
-      <span className="mr-1 font-sans text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--color-gray-light)]">
-        Share
-      </span>
+    <div
+      className={
+        compact
+          ? "flex items-center gap-1.5"
+          : "flex items-center gap-2 border-y border-[var(--color-hairline)] py-2.5"
+      }
+    >
+      {!compact && (
+        <span className="mr-1 font-sans text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--color-gray-light)]">
+          Share
+        </span>
+      )}
 
       <a
         className={link}

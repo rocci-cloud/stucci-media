@@ -3871,3 +3871,42 @@ class constants `imageKenBurns`, `livePipPulse`, `stickySectionLabel`,
 - Wired into `BreakingBar` (pip), `StoryCard` and `CategoryCard` (Ken
   Burns), `CategoryGrid` (sticky label + card entrance).
 
+## Phase 67 — done: article page upgrades
+
+Seven additions to `/articles/[slug]`. **No schema change**: six of the
+seven run entirely on data that already exists.
+
+- **Smart Brevity is the existing `bulletPoints` field**, relabelled "The
+  Gist". Phase 53 already built it as an editor-authored 2-4 bullet box, so
+  no `keyTakeaways[]` was needed. It stays hidden when empty — deliberately
+  **not** auto-split from the dek, which would present sentence fragments as
+  editorial takeaways.
+- **`ReadingProgress` measures the article element, not the document**, so
+  the bar reads 100% when the story ends rather than when the comments,
+  related rail and footer have also scrolled past. rAF-throttled: scroll
+  fires far more often than the browser paints.
+- **`StickyActionBar`** appears only after ~600px of scroll and hides again
+  near the end, so it is never a toolbar sitting over an unread page or over
+  the comment box. `lg:hidden`; the column gained `pb-24` so it covers
+  nothing on phones. `ShareRow` gained a `compact` variant for it.
+- **Column 720 → 760 with the prose capped at 68ch.** That is what makes the
+  hero image wider than the text without negative-margin gymnastics inside a
+  centred grid. Caption tightened to 12px.
+- **`AuthorCard` uses the real `Author` table** — avatar, title, bio, all
+  editable from /admin, nothing hardcoded to one byline. A byline with no
+  profile row still renders with initials rather than vanishing. "More from"
+  filters the list the page already fetched, so it costs no query; the
+  profile itself is one small lookup.
+- **`Receipts` renders nothing today.** `Article.documents` has no column,
+  so this is the fifth type-only field. It is deliberately **not** populated
+  from the body's outbound links — a link inside a paragraph is a citation,
+  not a receipt, and promoting all of them would fill the block with
+  whatever the writer referenced in passing.
+- **Prev/next gained 96×64 thumbnails**, still derived from the list the
+  page already has.
+
+**Five fields now wait on one migration**: `kicker`, `imageCaption`,
+`imageCredit`, `documents`, and a video flag. That single migration plus
+five editor inputs would light up the card kickers, the photo credit line,
+the Receipts block and the WATCH pill — all of which are built and inert.
+
