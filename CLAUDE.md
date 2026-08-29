@@ -3726,3 +3726,36 @@ byline → share → image → body, in a 720px column with a 320px rail.
   output (`\[minmax\(0\,720px\)_320px\]`), so a naive `includes()` check
   reports a failure that is not there.
 
+## Phase 63 — done: even category grids on the homepage
+
+The homepage category bands ran a lead-plus-three split (58/42, one tall
+card beside a short stack). Replaced with an even three-column grid of six.
+
+- **`CategoryGrid` + `CategoryCard`** replace `CategoryBand`. Six cards fill
+  two clean rows at three columns where the asymmetric split left a ragged
+  bottom edge; with fewer than six the cards keep their column width rather
+  than stretching one across the row.
+- **Three columns start at 1100px, not Tailwind's 1024 `lg`.** At 1024 a
+  third column squeezes each card under ~320px, which is where the
+  three-line headline clamp starts wrapping badly. `min-[1100px]:` is an
+  arbitrary breakpoint; it was checked in the compiled output, since a
+  Tailwind class that fails to generate fails silently.
+- **`CategoryCard` carries no kicker and no category chip** — the band
+  header already names the section, and repeating it on six cards under
+  that header is noise. Meta is read time and comments only.
+- **Comment counts are one `groupBy`, not one count per card**
+  (`getCommentCountsForArticles`). ~30 cards render on the homepage; the
+  per-article `getCommentCount` would have been ~30 round trips to fill a
+  meta row. Articles with no approved comments are absent from the map, so
+  the row shows read time alone rather than a zero.
+  - That query's return type is generated, and this file already cannot
+    resolve Prisma types where `prisma generate` has not run, so the rows
+    are annotated explicitly. Without that the new code added two
+    implicit-any errors on top of the existing baseline; the branch is back
+    to exactly the baseline count.
+- **No WATCH pill.** There is no video flag on an article, so only LISTEN
+  renders, keyed off the podcasts section. A WATCH label would have marked
+  stories as video that are not.
+- Scoped strictly to the bands: hero, nav, ticker, mosaic, listing pages and
+  the article template are untouched.
+
