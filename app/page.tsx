@@ -29,7 +29,7 @@ export const revalidate = 60;
 // make sense against each other: this is the page's editorial budget, and
 // changing one changes what is left for the next block down.
 const LEAD_COUNT = 1; // the top story, on its own
-const MOSAIC_COUNT = 5; // 1 medium + a 4-up compact rail
+const MOSAIC_COUNT = 6; // two full rows at three columns
 const BAND_COUNT = 6; // two full rows at three columns
 
 export default async function HomePage() {
@@ -90,18 +90,40 @@ export default async function HomePage() {
     }))
     .filter((band) => band.articles.length > 0);
 
-  // Comment counts for the band cards' meta rows. One groupBy for every
-  // card on the page rather than a count per card, and only for the
-  // articles actually rendered in a band.
-  const commentCounts = await getCommentCountsForArticles(
-    bands.flatMap((band) => band.articles.map((a) => a.id)),
-  );
-
   // Whatever the shaped blocks did not use runs through the same mosaic
   // rather than a row of equal cards. The old wire grid was three
   // 88x60px thumbnails across, which read as small and left the row
   // mostly empty at 1440.
   const overflowItems = articles.filter((a) => !used.has(a.slug)).slice(0, MOSAIC_COUNT);
+  overflowItems.forEach((a) => used.add(a.slug));
+
+  // Comment counts for the card meta rows. One groupBy for every card on
+  // the page rather than a count per card.
+  const rendered = [...mosaicItems, ...overflowItems, ...bands.flatMap((b) => b.articles)];
+  const commentCounts = await getCommentCountsForArticles(rendered.map((a) => a.id));
+
+  // Up to two real follow-ups per card, taken from the same section and
+  // only from stories this page has not already placed somewhere else.
+  // Nothing is invented: a card with no genuine sibling left simply shows
+  // no follow-up list.
+  const relatedBySlug = new Map<string, typeof articles>();
+  const claimed = new Set<string>();
+  for (const card of rendered) {
+    const follows = articles
+      .filter(
+        (a) =>
+          a.categorySlug === card.categorySlug &&
+          a.slug !== card.slug &&
+          !used.has(a.slug) &&
+          !claimed.has(a.slug),
+      )
+      .slice(0, 2);
+    if (follows.length > 0) {
+      follows.forEach((a) => claimed.add(a.slug));
+      relatedBySlug.set(card.slug, follows);
+    }
+  }
+
 
   const [podcastLead] = podcastEpisodes;
 
@@ -114,7 +136,7 @@ export default async function HomePage() {
           {leadItems[0] && <LeadPackage article={leadItems[0]} />}
         </div>
 
-        <HeadlineMosaic articles={mosaicItems} />
+        <HeadlineMosaic articles={mosaicItems} relatedBySlug={relatedBySlug} />
 
         {personalizedForRail.length > 0 && (
           <div className="shell pt-3.5">
@@ -146,13 +168,14 @@ export default async function HomePage() {
               category={band.category}
               articles={band.articles}
               commentCounts={commentCounts}
+              relatedBySlug={relatedBySlug}
             />
           </Reveal>
         ))}
 
         {overflowItems.length > 0 && (
           <Reveal>
-            <HeadlineMosaic articles={overflowItems} title="More Headlines" />
+            <HeadlineMosaic articles={overflowItems} title="More Headlines" relatedBySlug={relatedBySlug} />
           </Reveal>
         )}
 

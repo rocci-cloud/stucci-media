@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Article } from "../lib/articles";
 import type { Category } from "../lib/categories";
 import CategoryCard from "./ui/CategoryCard";
+import { ARTICLE_GRID } from "../lib/article-grid";
 
 // A homepage category band: label, thin crimson rule, then an even grid.
 //
@@ -9,17 +10,20 @@ import CategoryCard from "./ui/CategoryCard";
 // fill two clean rows at three columns, where the asymmetric version left a
 // tall lead beside a short stack and a ragged bottom edge.
 //
-// Three columns start at 1100px rather than Tailwind's 1024px `lg`: at 1024
-// a third column squeezes each card under ~320px, which is where the
-// three-line headline clamp starts wrapping badly.
+// Columns come from ARTICLE_GRID so every article grid on the homepage
+// shares one rule — see the note there on why the breakpoints are explicit
+// pixel values rather than Tailwind's sm/lg.
 export default function CategoryGrid({
   category,
   articles,
   commentCounts,
+  relatedBySlug,
 }: {
   category: Category;
   articles: Article[];
   commentCounts?: Map<number, number>;
+  /** Real same-section follow-ups, keyed by the card's slug. */
+  relatedBySlug?: Map<string, Article[]>;
 }) {
   if (articles.length === 0) return null;
 
@@ -40,12 +44,13 @@ export default function CategoryGrid({
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2 min-[1100px]:grid-cols-3">
+      <div className={ARTICLE_GRID}>
         {articles.map((article) => (
           <CategoryCard
             key={article.slug}
             article={article}
             commentCount={commentCounts?.get(article.id)}
+            related={relatedBySlug?.get(article.slug)}
           />
         ))}
       </div>

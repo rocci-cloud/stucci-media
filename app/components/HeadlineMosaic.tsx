@@ -1,38 +1,40 @@
 import type { Article } from "../lib/articles";
-import StoryCard from "./ui/StoryCard";
+import CategoryCard from "./ui/CategoryCard";
 import SectionLabel from "./ui/SectionLabel";
+import { ARTICLE_GRID } from "../lib/article-grid";
 
-// A block of the river: one medium card carrying the section, then a
-// compact 4-up rail underneath.
+// A block of the homepage river: label, then an even three-across grid.
 //
-// Not a mosaic of overlaid posters any more — the cards are the flat
-// image/kicker/headline/meta stack, so a reader scanning down the page
-// gets the same shape at two sizes instead of two different treatments.
+// Was a 60/40 medium lead beside a four-up rail. Two arrangements in one
+// module meant the row under the hero never lined up with the category
+// bands below it; every article grid on the page is the same three-column
+// shape now.
 export default function HeadlineMosaic({
   articles,
   title = "Also Making Headlines",
   href,
+  relatedBySlug,
 }: {
   articles: Article[];
   title?: string;
   href?: string;
+  /** Real same-section follow-ups, keyed by the card's slug. */
+  relatedBySlug?: Map<string, Article[]>;
 }) {
   if (articles.length === 0) return null;
-
-  const [lead, ...rest] = articles;
-  const rail = rest.slice(0, 4);
 
   return (
     <section className="shell pt-4 sm:pt-5">
       <SectionLabel title={title} href={href} />
-      <StoryCard article={lead} size="medium" className="mb-4" />
-      {rail.length > 0 && (
-        <div className="grid grid-cols-2 gap-x-4 gap-y-5 lg:grid-cols-4">
-          {rail.map((a) => (
-            <StoryCard key={a.slug} article={a} size="compact" />
-          ))}
-        </div>
-      )}
+      <div className={ARTICLE_GRID}>
+        {articles.map((article) => (
+          <CategoryCard
+            key={article.slug}
+            article={article}
+            related={relatedBySlug?.get(article.slug)}
+          />
+        ))}
+      </div>
     </section>
   );
 }
