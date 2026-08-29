@@ -13,7 +13,7 @@ import BannerSlot from "./components/BannerSlot";
 import ServicePromo from "./components/ServicePromo";
 import { getPublishedArticles, getFeaturedArticles, getPersonalizedArticles } from "./lib/articles";
 import { getCategories } from "./lib/categories";
-import { getActivePodcasts, getLatestEpisodes } from "./lib/podcasts";
+import { getActivePodcasts, getLatestEpisodes, getLatestEpisodeDateByShow } from "./lib/podcasts";
 import { getTopCategorySlugs } from "./lib/interests";
 import { getCommentCountsForArticles } from "./lib/comments";
 import { auth } from "./lib/auth";
@@ -35,7 +35,7 @@ const BAND_COUNT = 6; // two full rows at three columns
 export default async function HomePage() {
   const session = await auth.api.getSession({ headers: await headers() });
 
-  const [articles, featuredArticles, categories, personalizedArticles, podcastShows, podcastEpisodes] =
+  const [articles, featuredArticles, categories, personalizedArticles, podcastShows, podcastEpisodes, latestByShow] =
     await Promise.all([
     getPublishedArticles(),
     getFeaturedArticles(),
@@ -44,7 +44,8 @@ export default async function HomePage() {
       ? getTopCategorySlugs(session.user.id).then((slugs) => getPersonalizedArticles(slugs, 4))
       : Promise.resolve([]),
     getActivePodcasts(),
-    getLatestEpisodes(5),
+    getLatestEpisodes(11),
+    getLatestEpisodeDateByShow(),
   ]);
 
   if (articles.length === 0) {
@@ -132,7 +133,8 @@ export default async function HomePage() {
               <PodcastModule
                 lead={podcastLead}
                 shows={podcastShows}
-                recent={podcastEpisodes.slice(1, 5)}
+                recent={podcastEpisodes.slice(1)}
+                latestByShow={latestByShow}
               />
             </Reveal>
           </div>
