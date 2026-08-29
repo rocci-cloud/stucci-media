@@ -1,0 +1,48 @@
+name: "Publish: Nepal floods feature"
+
+# One-click publisher for "A Mountain Fell on Wednesday Morning. Nepal Is
+# Still Counting." Runs scripts/publish-nepal-floods.mjs, which uploads the
+# article's three data graphics into this app's own Vercel Blob store,
+# indexes them in the Media Library, and upserts the article into Postgres
+# as PUBLISHED and Featured.
+#
+# The graphics are committed as PNGs under scripts/data/nepal-graphics/, so
+# this job does NOT re-render them — scripts/build-nepal-graphics.mjs needs
+# Oswald and Archivo installed at the system level via fontconfig, which a
+# stock runner does not have. Rebuild locally and commit the PNGs if the
+# figures change.
+#
+# Click "Run workflow" in the Actions tab to fire this. Uses the same two
+# repo secrets the other publish workflows need (Settings → Secrets and
+# variables → Actions): DATABASE_URL and BLOB_READ_WRITE_TOKEN.
+#
+# Safe to re-run: the article upserts by slug, published_at is coalesced so
+# a re-run never resets the original publication date, and the images
+# overwrite the same three Blob paths. Read the job's logged output, not
+# just the green check — the script reports per-image success counts and
+# publishes with a fallback cover rather than failing outright if an upload
+# cannot complete.
+#
+# This story is live and its figures are moving. Re-running this after
+# editing scripts/data/nepal-floods-body.html is the intended way to update
+# the toll; the graphics carry an "as of" date for the same reason.
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - run: npm ci
+
+      - run: node scripts/publish-nepal-floods.mjs
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
