@@ -3797,3 +3797,37 @@ grids and the article page are untouched.
   place this module departs from the site's square-corner card language,
   because podcast cover art is authored as a rounded tile everywhere else a
   listener sees it.
+
+## Phase 65 — done: one grid rule for every homepage article block
+
+The homepage had drifted into three different column counts under the hero:
+the mosaic ran a 60/40 medium lead plus a four-up rail, the personalized
+rail ran 58/42, and only the category bands were three across. Nothing lined
+up down the page.
+
+- **`app/lib/article-grid.ts` exports one `ARTICLE_GRID` string** and every
+  article block on the homepage uses it: `HeadlineMosaic` (both instances),
+  `PersonalizedRail`, `CategoryGrid`. Retyping the classes per module is
+  exactly how the drift happened; a shared constant means a new module
+  cannot quietly invent a fourth arrangement.
+- **Breakpoints are explicit pixels, not `sm`/`lg`.** `sm` is 640, which put
+  a second column on a large phone; `lg` is 1024, which squeezes a third
+  column under ~320px, right where the three-line headline clamp wraps
+  badly. `min-[700px]` and `min-[1100px]` instead.
+- **`HeadlineMosaic` and `PersonalizedRail` now render `CategoryCard`**, so
+  every card under the hero is the same object. `LeadPackage` keeps its
+  58/42 — it is the hero package, deliberately excluded.
+- **Related follow-ups are derived, never invented.** Up to two per card
+  from the same section, taken only from stories the page has not already
+  placed, and each follow-up is claimed so it cannot appear under two cards.
+  A card with no genuine sibling left renders no list at all.
+  - Ordering matters here: `overflowItems` must be added to `used` before
+    the derivation runs, or a story could appear as both a card and a
+    follow-up under a different card.
+  - The card is one `<a>`, so the follow-up list sits outside that anchor —
+    nested links are invalid HTML and browsers recover from them
+    unpredictably.
+- Still no WATCH pill on article cards: there is no video flag on an
+  article. That is the fourth field now waiting on one migration, alongside
+  `kicker`, `imageCaption` and `imageCredit`.
+
