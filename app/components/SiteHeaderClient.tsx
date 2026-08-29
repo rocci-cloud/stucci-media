@@ -35,7 +35,7 @@ export default function SiteHeaderClient({
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // "Featured" is the homepage's curated lead section (FeaturedSection),
+  // "Featured" is the homepage's curated lead section (HeroRotator),
   // not a real Category row — it's a structural nav entry like Subscribe/
   // Search, always first, not admin-configurable from /admin/categories.
   const isFeaturedActive = pathname === "/";

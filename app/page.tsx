@@ -60,7 +60,7 @@ export default async function HomePage() {
 
   // The hero shows what an editor actually marked Featured; with nothing
   // curated it falls back to the most recent, same honest-fallback rule
-  // the old FeaturedSection used. Every block below takes from what is
+  // this page has always used. Every block below takes from what is
   // left, so a story never appears twice on the page.
   const heroSource = featuredArticles.length > 0 ? featuredArticles : articles;
   const heroItems = heroSource.slice(0, HERO_COUNT);

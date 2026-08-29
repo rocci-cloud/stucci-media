@@ -5,7 +5,7 @@ import ArticleCard from "./ui/ArticleCard";
 // The rest of a category's stories, below the CategoryLead treatment up
 // top — deliberately dense rather than a repeat of the same big image
 // cards: a table-like grid of variant="list" items (the same gap-px +
-// hairline-background technique the homepage's LatestModule uses), so
+// hairline-background divider technique), so
 // a category with dozens of stories reads as a browsable wire, not an
 // endless stack of equal-weight photo cards.
 export default function ArticleGrid({
