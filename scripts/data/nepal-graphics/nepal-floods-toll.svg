@@ -1,0 +1,136 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+<defs>
+  <linearGradient id="ground" x1="0" y1="0" x2="0.35" y2="1">
+    <stop offset="0%" stop-color="#171B22"/>
+    <stop offset="55%" stop-color="#0E1116"/>
+    <stop offset="100%" stop-color="#08090C"/>
+  </linearGradient>
+  <radialGradient id="glow" cx="0.16" cy="0.14" r="0.62">
+    <stop offset="0%" stop-color="#C8102E" stop-opacity="0.34"/>
+    <stop offset="45%" stop-color="#C8102E" stop-opacity="0.09"/>
+    <stop offset="100%" stop-color="#C8102E" stop-opacity="0"/>
+  </radialGradient>
+  <radialGradient id="vignette" cx="0.5" cy="0.45" r="0.78">
+    <stop offset="55%" stop-color="#000" stop-opacity="0"/>
+    <stop offset="100%" stop-color="#000" stop-opacity="0.55"/>
+  </radialGradient>
+  <linearGradient id="card" x1="0" y1="0" x2="0.2" y2="1">
+    <stop offset="0%" stop-color="#1C212B"/>
+    <stop offset="100%" stop-color="#12161D"/>
+  </linearGradient>
+  <linearGradient id="river" x1="0" y1="0" x2="1" y2="0.6">
+    <stop offset="0%" stop-color="#C8102E"/>
+    <stop offset="42%" stop-color="#B4442F"/>
+    <stop offset="100%" stop-color="#5E6470"/>
+  </linearGradient>
+  <linearGradient id="rule" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0%" stop-color="#C8102E"/>
+    <stop offset="100%" stop-color="#C8102E" stop-opacity="0"/>
+  </linearGradient>
+  <filter id="drop" x="-25%" y="-25%" width="150%" height="170%">
+    <feDropShadow dx="0" dy="10" stdDeviation="14" flood-color="#000" flood-opacity="0.62"/>
+  </filter>
+  <filter id="softglow" x="-60%" y="-60%" width="220%" height="220%">
+    <feGaussianBlur stdDeviation="9" result="b"/>
+    <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+  </filter>
+</defs>
+<rect width="1600" height="900" fill="url(#ground)"/>
+<rect width="1600" height="900" fill="url(#glow)"/>
+
+<rect x="72" y="89" width="5" height="20" fill="#C8102E"/>
+<text x="88" y="104" font-family="Archivo SemiBold" font-size="19"
+  font-weight="700" letter-spacing="3.4" fill="#F04458">THE TOLL</text>
+<text x="72" y="176" font-family="Oswald" font-size="60" font-weight="700"
+  letter-spacing="-0.5" fill="#F7F5F2">WHAT ONE MORNING COST</text>
+<text x="72" y="218" font-family="Archivo SemiBold" font-size="23" fill="#A8B0BC">
+  Every figure below is attributed. All of them are still moving.</text>
+
+
+<g filter="url(#drop)">
+  <rect x="72" y="288" width="344" height="204" rx="4" fill="url(#card)"/>
+  <rect x="72" y="288" width="344" height="3" fill="#C8102E"/>
+</g>
+<text x="102" y="384" font-family="Oswald" font-size="60"
+  font-weight="700" letter-spacing="-1" fill="#F04458">676</text>
+<text x="102" y="422" font-family="Archivo SemiBold" font-size="15"
+  font-weight="700" letter-spacing="1.9" fill="#F7F5F2">CONFIRMED DEAD</text>
+<text x="102" y="452" font-family="Archivo SemiBold" font-size="16"
+  fill="#8E97A5">669 in Nepal, 7 in Tibet</text>
+<g filter="url(#drop)">
+  <rect x="440" y="288" width="344" height="204" rx="4" fill="url(#card)"/>
+  <rect x="440" y="288" width="344" height="3" fill="#C8102E"/>
+</g>
+<text x="470" y="384" font-family="Oswald" font-size="60"
+  font-weight="700" letter-spacing="-1" fill="#F04458">~3,000</text>
+<text x="470" y="422" font-family="Archivo SemiBold" font-size="15"
+  font-weight="700" letter-spacing="1.9" fill="#F7F5F2">STILL MISSING</text>
+<text x="470" y="452" font-family="Archivo SemiBold" font-size="16"
+  fill="#8E97A5">2,426 Nepal · 554 Tibet</text>
+<g filter="url(#drop)">
+  <rect x="808" y="288" width="344" height="204" rx="4" fill="url(#card)"/>
+  <rect x="808" y="288" width="344" height="3" fill="#262B34"/>
+</g>
+<text x="838" y="384" font-family="Oswald" font-size="60"
+  font-weight="700" letter-spacing="-1" fill="#F7F5F2">540+</text>
+<text x="838" y="422" font-family="Archivo SemiBold" font-size="15"
+  font-weight="700" letter-spacing="1.9" fill="#F7F5F2">FOREIGN NATIONALS MISSING</text>
+<text x="838" y="452" font-family="Archivo SemiBold" font-size="16"
+  fill="#8E97A5">Many Indian pilgrims</text>
+<g filter="url(#drop)">
+  <rect x="1176" y="288" width="344" height="204" rx="4" fill="url(#card)"/>
+  <rect x="1176" y="288" width="344" height="3" fill="#262B34"/>
+</g>
+<text x="1206" y="384" font-family="Oswald" font-size="60"
+  font-weight="700" letter-spacing="-1" fill="#F7F5F2">93,000</text>
+<text x="1206" y="422" font-family="Archivo SemiBold" font-size="15"
+  font-weight="700" letter-spacing="1.9" fill="#F7F5F2">DIRECTLY AFFECTED</text>
+<text x="1206" y="452" font-family="Archivo SemiBold" font-size="16"
+  fill="#8E97A5">IFRC estimate</text>
+<g filter="url(#drop)">
+  <rect x="72" y="532" width="344" height="204" rx="4" fill="url(#card)"/>
+  <rect x="72" y="532" width="344" height="3" fill="#262B34"/>
+</g>
+<text x="102" y="628" font-family="Oswald" font-size="60"
+  font-weight="700" letter-spacing="-1" fill="#F7F5F2">17,000</text>
+<text x="102" y="666" font-family="Archivo SemiBold" font-size="15"
+  font-weight="700" letter-spacing="1.9" fill="#F7F5F2">CHILDREN IMPACTED</text>
+<text x="102" y="696" font-family="Archivo SemiBold" font-size="16"
+  fill="#8E97A5">UNICEF, three districts</text>
+<g filter="url(#drop)">
+  <rect x="440" y="532" width="344" height="204" rx="4" fill="url(#card)"/>
+  <rect x="440" y="532" width="344" height="3" fill="#262B34"/>
+</g>
+<text x="470" y="628" font-family="Oswald" font-size="60"
+  font-weight="700" letter-spacing="-1" fill="#F7F5F2">10,000+</text>
+<text x="470" y="666" font-family="Archivo SemiBold" font-size="15"
+  font-weight="700" letter-spacing="1.9" fill="#F7F5F2">HOUSEHOLDS NEED SHELTER</text>
+<text x="470" y="696" font-family="Archivo SemiBold" font-size="16"
+  fill="#8E97A5">Trishuli corridor</text>
+<g filter="url(#drop)">
+  <rect x="808" y="532" width="344" height="204" rx="4" fill="url(#card)"/>
+  <rect x="808" y="532" width="344" height="3" fill="#262B34"/>
+</g>
+<text x="838" y="628" font-family="Oswald" font-size="60"
+  font-weight="700" letter-spacing="-1" fill="#F7F5F2">12%</text>
+<text x="838" y="666" font-family="Archivo SemiBold" font-size="15"
+  font-weight="700" letter-spacing="1.9" fill="#F7F5F2">OF NATIONAL POWER LOST</text>
+<text x="838" y="696" font-family="Archivo SemiBold" font-size="16"
+  fill="#8E97A5">Damaged hydropower</text>
+<g filter="url(#drop)">
+  <rect x="1176" y="532" width="344" height="204" rx="4" fill="url(#card)"/>
+  <rect x="1176" y="532" width="344" height="3" fill="#262B34"/>
+</g>
+<text x="1206" y="628" font-family="Oswald" font-size="60"
+  font-weight="700" letter-spacing="-1" fill="#F7F5F2">$4–5B</text>
+<text x="1206" y="666" font-family="Archivo SemiBold" font-size="15"
+  font-weight="700" letter-spacing="1.9" fill="#F7F5F2">TO REBUILD</text>
+<text x="1206" y="696" font-family="Archivo SemiBold" font-size="16"
+  fill="#8E97A5">~a tenth of the economy</text>
+
+
+<rect x="72" y="808" width="1456" height="1" fill="#262B34"/>
+<text x="72" y="846" font-family="Archivo SemiBold" font-size="17"
+  fill="#8E97A5" letter-spacing="0.4">As of 29 August 2026 · Reuters, IFRC, UNICEF, WHO, Nepal Ministry of Finance</text>
+<text x="1528" y="846" text-anchor="end" font-family="Oswald"
+  font-size="20" font-weight="600" letter-spacing="2.6" fill="#A8B0BC">STUCCI MEDIA</text><rect width="1600" height="900" fill="url(#vignette)"/></svg>

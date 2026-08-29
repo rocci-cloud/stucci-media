@@ -1,0 +1,118 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+<defs>
+  <linearGradient id="ground" x1="0" y1="0" x2="0.35" y2="1">
+    <stop offset="0%" stop-color="#171B22"/>
+    <stop offset="55%" stop-color="#0E1116"/>
+    <stop offset="100%" stop-color="#08090C"/>
+  </linearGradient>
+  <radialGradient id="glow" cx="0.16" cy="0.14" r="0.62">
+    <stop offset="0%" stop-color="#C8102E" stop-opacity="0.34"/>
+    <stop offset="45%" stop-color="#C8102E" stop-opacity="0.09"/>
+    <stop offset="100%" stop-color="#C8102E" stop-opacity="0"/>
+  </radialGradient>
+  <radialGradient id="vignette" cx="0.5" cy="0.45" r="0.78">
+    <stop offset="55%" stop-color="#000" stop-opacity="0"/>
+    <stop offset="100%" stop-color="#000" stop-opacity="0.55"/>
+  </radialGradient>
+  <linearGradient id="card" x1="0" y1="0" x2="0.2" y2="1">
+    <stop offset="0%" stop-color="#1C212B"/>
+    <stop offset="100%" stop-color="#12161D"/>
+  </linearGradient>
+  <linearGradient id="river" x1="0" y1="0" x2="1" y2="0.6">
+    <stop offset="0%" stop-color="#C8102E"/>
+    <stop offset="42%" stop-color="#B4442F"/>
+    <stop offset="100%" stop-color="#5E6470"/>
+  </linearGradient>
+  <linearGradient id="rule" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0%" stop-color="#C8102E"/>
+    <stop offset="100%" stop-color="#C8102E" stop-opacity="0"/>
+  </linearGradient>
+  <filter id="drop" x="-25%" y="-25%" width="150%" height="170%">
+    <feDropShadow dx="0" dy="10" stdDeviation="14" flood-color="#000" flood-opacity="0.62"/>
+  </filter>
+  <filter id="softglow" x="-60%" y="-60%" width="220%" height="220%">
+    <feGaussianBlur stdDeviation="9" result="b"/>
+    <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+  </filter>
+</defs>
+<rect width="1600" height="900" fill="url(#ground)"/>
+<rect width="1600" height="900" fill="url(#glow)"/>
+
+<rect x="72" y="89" width="5" height="20" fill="#C8102E"/>
+<text x="88" y="104" font-family="Archivo SemiBold" font-size="19"
+  font-weight="700" letter-spacing="3.4" fill="#F04458">FOUR DAYS</text>
+<text x="72" y="176" font-family="Oswald" font-size="60" font-weight="700"
+  letter-spacing="-0.5" fill="#F7F5F2">HOW THE WEEK MOVED</text>
+<text x="72" y="218" font-family="Archivo SemiBold" font-size="23" fill="#A8B0BC">
+  The toll did not rise because the disaster kept happening. It rose because rescuers kept reaching people.</text>
+
+<line x1="128" y1="288" x2="128" y2="784" stroke="#262B34" stroke-width="3"/>
+
+
+<circle cx="128" cy="322" r="17" fill="#C8102E" opacity="0.14"/>
+<circle cx="128" cy="322" r="9" fill="#0C0F14" stroke="#C8102E" stroke-width="3.5"/>
+<text x="176" y="316" font-family="Oswald" font-size="24" font-weight="700"
+  letter-spacing="1.8" fill="#F04458">WED 26</text>
+<text x="300" y="316" font-family="Oswald" font-size="26" font-weight="600"
+  letter-spacing="0.2" fill="#F7F5F2">The mountain comes down</text>
+<text x="300" y="346" font-family="Archivo SemiBold"
+  font-size="17" fill="#A8B0BC">The lower section of a glacier near Langtang Lirung breaks away, touching off an ice-and-rock avalanche and</text><text x="300" y="371" font-family="Archivo SemiBold"
+  font-size="17" fill="#A8B0BC">a landslide that funnels into the Trishuli corridor. No warning is issued. Entire communities are levelled</text><text x="300" y="396" font-family="Archivo SemiBold"
+  font-size="17" fill="#A8B0BC">within minutes.</text>
+<text x="1528" y="324" text-anchor="end" font-family="Oswald"
+  font-size="38" font-weight="700" fill="#F7F5F2">8</text>
+<text x="1528" y="348" text-anchor="end" font-family="Archivo SemiBold"
+  font-size="14" letter-spacing="1.4" fill="#8E97A5">initial confirmed toll</text>
+<rect x="176" y="406" width="1352" height="1" fill="#262B34"/>
+<circle cx="128" cy="454" r="17" fill="#C8102E" opacity="0.14"/>
+<circle cx="128" cy="454" r="9" fill="#0C0F14" stroke="#C8102E" stroke-width="3.5"/>
+<text x="176" y="448" font-family="Oswald" font-size="24" font-weight="700"
+  letter-spacing="1.8" fill="#F04458">THU 27</text>
+<text x="300" y="448" font-family="Oswald" font-size="26" font-weight="600"
+  letter-spacing="0.2" fill="#F7F5F2">The scale becomes visible</text>
+<text x="300" y="478" font-family="Archivo SemiBold"
+  font-size="17" fill="#A8B0BC">The UN releases $2m from its emergency fund. UNICEF counts 17,000 children affected across Rasuwa, Nuwakot</text><text x="300" y="503" font-family="Archivo SemiBold"
+  font-size="17" fill="#A8B0BC">and Dhading. Roads, bridges, water systems and telecoms are gone, leaving the worst-hit areas unreachable by</text><text x="300" y="528" font-family="Archivo SemiBold"
+  font-size="17" fill="#A8B0BC">land.</text>
+<text x="1528" y="456" text-anchor="end" font-family="Oswald"
+  font-size="38" font-weight="700" fill="#F7F5F2">165</text>
+<text x="1528" y="480" text-anchor="end" font-family="Archivo SemiBold"
+  font-size="14" letter-spacing="1.4" fill="#8E97A5">confirmed dead</text>
+<rect x="176" y="538" width="1352" height="1" fill="#262B34"/>
+<circle cx="128" cy="586" r="17" fill="#C8102E" opacity="0.14"/>
+<circle cx="128" cy="586" r="9" fill="#0C0F14" stroke="#C8102E" stroke-width="3.5"/>
+<text x="176" y="580" font-family="Oswald" font-size="24" font-weight="700"
+  letter-spacing="1.8" fill="#F04458">FRI 28</text>
+<text x="300" y="580" font-family="Oswald" font-size="26" font-weight="600"
+  letter-spacing="0.2" fill="#F7F5F2">A new lake overflows</text>
+<text x="300" y="610" font-family="Archivo SemiBold"
+  font-size="17" fill="#A8B0BC">A lake formed by the debris spills into the Lhende Khola and Trishuli. Rescue work halts; relief trucks stop</text><text x="300" y="635" font-family="Archivo SemiBold"
+  font-size="17" fill="#A8B0BC">where they stand. The IFRC puts the number of people in great need at 93,000. Six health facilities are</text><text x="300" y="660" font-family="Archivo SemiBold"
+  font-size="17" fill="#A8B0BC">damaged; eight health workers are missing.</text>
+<text x="1528" y="588" text-anchor="end" font-family="Oswald"
+  font-size="38" font-weight="700" fill="#F7F5F2">580</text>
+<text x="1528" y="612" text-anchor="end" font-family="Archivo SemiBold"
+  font-size="14" letter-spacing="1.4" fill="#8E97A5">confirmed dead</text>
+<rect x="176" y="670" width="1352" height="1" fill="#262B34"/>
+<circle cx="128" cy="718" r="17" fill="#C8102E" opacity="0.14"/>
+<circle cx="128" cy="718" r="9" fill="#0C0F14" stroke="#C8102E" stroke-width="3.5"/>
+<text x="176" y="712" font-family="Oswald" font-size="24" font-weight="700"
+  letter-spacing="1.8" fill="#F04458">SAT 29</text>
+<text x="300" y="712" font-family="Oswald" font-size="26" font-weight="600"
+  letter-spacing="0.2" fill="#F7F5F2">Rescue resumes. Counting begins.</text>
+<text x="300" y="742" font-family="Archivo SemiBold"
+  font-size="17" fill="#A8B0BC">The lake risk eases and search work restarts. Nepal asks the world not for rescuers but for tunnel</text><text x="300" y="767" font-family="Archivo SemiBold"
+  font-size="17" fill="#A8B0BC">specialists, bridge engineers, DNA testing and morgue capacity. The finance ministry estimates rebuilding at</text><text x="300" y="792" font-family="Archivo SemiBold"
+  font-size="17" fill="#A8B0BC">$4–5 billion.</text>
+<text x="1528" y="720" text-anchor="end" font-family="Oswald"
+  font-size="38" font-weight="700" fill="#F7F5F2">676</text>
+<text x="1528" y="744" text-anchor="end" font-family="Archivo SemiBold"
+  font-size="14" letter-spacing="1.4" fill="#8E97A5">confirmed dead · ~3,000 missing</text>
+
+
+
+<rect x="72" y="808" width="1456" height="1" fill="#262B34"/>
+<text x="72" y="846" font-family="Archivo SemiBold" font-size="17"
+  fill="#8E97A5" letter-spacing="0.4">Daily figures as reported by Reuters, UN News and the IFRC · Counts remain provisional</text>
+<text x="1528" y="846" text-anchor="end" font-family="Oswald"
+  font-size="20" font-weight="600" letter-spacing="2.6" fill="#A8B0BC">STUCCI MEDIA</text><rect width="1600" height="900" fill="url(#vignette)"/></svg>

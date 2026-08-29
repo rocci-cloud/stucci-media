@@ -1,0 +1,42 @@
+{
+  "slug": "nepal-floods-langtang-glacier-collapse-what-we-know",
+  "categorySlug": "world-news",
+  "author": "Rocci J. Stucci",
+  "headline": "A Mountain Fell on Wednesday Morning. Nepal Is Still Counting.",
+  "dek": "A glacier collapsed above the Langtang valley and sent a wall of ice and rock down the Trishuli. Three days later, 676 are confirmed dead, nearly 3,000 are missing, and the lakes it left behind have not finished draining.",
+  "seoTitle": "Nepal Floods: What We Know After the Langtang Collapse",
+  "seoDescription": "A glacier fell above Langtang and took a valley with it. The Nepal floods have killed 676 and left nearly 3,000 missing. Here is everything we know so far.",
+  "seoKeywords": "nepal floods, Langtang glacier collapse, Trishuli river, Rasuwa, Himalayan flood 2026",
+  "tags": ["nepal", "nepal floods", "langtang", "glacier collapse", "himalaya", "disaster relief", "climate", "trishuli"],
+  "isFeatured": true,
+  "isExclusive": false,
+  "bulletPoints": [
+    "A glacier near Langtang Lirung collapsed on Wednesday 26 August, touching off an ice-and-rock avalanche and a landslide that tore down the Trishuli corridor with no warning of any kind.",
+    "As of Saturday, at least 676 people are confirmed dead across Nepal and Tibet and nearly 3,000 are still missing, including more than 540 foreign nationals.",
+    "The Red Cross puts the number of people in urgent need at 93,000. UNICEF counts 17,000 children affected. More than 10,000 households need shelter tonight.",
+    "Nepal's finance minister estimates rebuilding at $4-5 billion, close to a tenth of the national economy, in a country that is still paying for the 2015 earthquake.",
+    "It is not over: two lakes formed by the debris are still draining, and there was no monitoring on that glacier because nobody had ever paid to put any there."
+  ],
+  "comparisonTitle": "What They're Not Telling You",
+  "comparisonBody": "This is being filed as a weather story, and it isn't one. There was no instrument on that glacier and no warning system in that valley — not because Nepal was careless, but because a country facing a $5 billion recovery bill cannot fund a Himalayan monitoring network out of its own pocket, and nobody else offered to. The other detail nobody is leading with: a community of 250 households swept away this week was made up of families resettled onto the Trishuli floodplain after the 2015 earthquake. They lost everything twice, eleven years apart, because the floodplain was the only flat ground on offer.",
+  "comparisonSourceLabel": "Reuters: Nepal's flood damage may cost up to a tenth of economy to rebuild",
+  "comparisonSourceUrl": "https://www.reuters.com/world/china/nepal-needs-least-4-billion-rebuilding-finance-minister-says-2026-08-29/",
+  "socialNotes": "Lead with the boy holding twenty rupees — that image is the whole piece. The 250-households detail is the credibility anchor and the argument: these are 2015 earthquake survivors who were resettled onto the floodplain. Pull quote for graphics: 'A country asking the world for morgue capacity is telling you exactly how bad it is.' Do not run the cover graphic without the caption identifying it as a graphic.",
+  "images": {
+    "cover": {
+      "file": "nepal-graphics/nepal-floods-corridor.png",
+      "filename": "nepal-floods-corridor.png",
+      "alt": "Data graphic tracing the 26 August 2026 glacier collapse at Langtang Lirung down the Trishuli river corridor through Timure, Syabrubesi, Betrawati, Trishuli Bazaar, Dhading, Gorkha and Chitwan, with the confirmed toll"
+    },
+    "inline1": {
+      "file": "nepal-graphics/nepal-floods-timeline.png",
+      "filename": "nepal-floods-timeline.png",
+      "alt": "Timeline graphic showing how the Nepal flood death toll rose from 8 on Wednesday to 676 by Saturday as rescuers reached cut-off communities"
+    },
+    "inline2": {
+      "file": "nepal-graphics/nepal-floods-toll.png",
+      "filename": "nepal-floods-toll.png",
+      "alt": "Data graphic of the Nepal flood toll: 676 dead, nearly 3,000 missing, 93,000 directly affected, 17,000 children impacted, 12 percent of national power capacity lost, $4-5 billion to rebuild"
+    }
+  }
+}
