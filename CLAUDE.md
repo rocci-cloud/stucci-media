@@ -3759,3 +3759,41 @@ card beside a short stack). Replaced with an even three-column grid of six.
 - Scoped strictly to the bands: hero, nav, ticker, mosaic, listing pages and
   the article template are untouched.
 
+## Phase 64 — done: the homepage listen desk, rebuilt as a media module
+
+`PodcastModule` was a featured episode, a text-only episode list, and the
+whole show catalogue as a cloud of outline pills. Eleven shows carried less
+visual weight than one episode, and a paragraph of feed description under
+the lead was where most of the empty height came from.
+
+Three blocks now: a featured episode that uses the full row, a grid of show
+posters, and an episode grid with the same anatomy as the article cards
+above it. Scoped to this module — hero, nav, ticker, article cards, category
+grids and the article page are untouched.
+
+- **`ShowCard`** — cover art is the card, sized for a horizontal shelf
+  (~142/164px) rather than a grid. At four across a 1440 container these
+  were ~340px squares, which gave eleven shows more vertical space than the
+  entire episode grid below them. Native `snap-x` scroll, no carousel
+  library — keyboard, trackpad and touch behaviour come free, and the
+  negative gutter margin lets the row bleed to the container edge while
+  still scrolling past it.
+- **`EpisodeCard`** — the audio twin of `CategoryCard`: 16:9, crimson show
+  kicker, three-line title clamp, clock + duration · date.
+- **`getLatestEpisodeDateByShow()`** is one `groupBy`, not a query per show.
+  Deliberately **not** `Podcast.lastFetchedAt`, which records when the feed
+  was last polled — a dormant show still gets refreshed hourly, so that
+  field would label it new. A show with no episodes is absent from the map
+  and its card falls back to the episode count.
+- **WATCH vs LISTEN comes from the enclosure MIME type** (`audioType`
+  starting `video/`), the only honest video signal in feed data.
+- **No LIVE pill.** Nothing in the podcast data says a show is live. NEW is
+  derived from a real publish date; LIVE would have been decoration that is
+  always wrong.
+- **Episode art falls back to show art**, never an empty dark box — feeds
+  omit per-episode images far more often than show covers.
+- Artwork still goes through `FeedImage` (the optimizer bypass for arbitrary
+  publisher hosts — see its own note). The 8px artwork radius is the one
+  place this module departs from the site's square-corner card language,
+  because podcast cover art is authored as a rounded tile everywhere else a
+  listener sees it.

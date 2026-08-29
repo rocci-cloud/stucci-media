@@ -173,6 +173,32 @@ export async function getLatestEpisodes(limit = 12): Promise<EpisodeWithShow[]> 
   return rows.map((row) => ({ ...mapEpisode(row), show: row.podcast }));
 }
 
+/**
+ * The newest publish date per show, for the Shows grid's "Latest: 2d ago".
+ *
+ * One groupBy rather than a query per show. Deliberately NOT derived from
+ * `Podcast.lastFetchedAt`, which records when the feed was last polled —
+ * a show that has not published in a year still gets refreshed hourly, so
+ * that field would label a dormant show as new.
+ *
+ * A show with no episodes is simply absent from the map; the card then
+ * falls back to its episode count.
+ */
+export async function getLatestEpisodeDateByShow(): Promise<Map<string, string>> {
+  type Row = { podcastId: string; _max: { publishedAt: Date | null } };
+  const rows = (await prisma.podcastFeedEpisode.groupBy({
+    by: ["podcastId"],
+    where: { podcast: { isActive: true } },
+    _max: { publishedAt: true },
+  })) as unknown as Row[];
+
+  const latest = new Map<string, string>();
+  for (const row of rows) {
+    if (row._max.publishedAt) latest.set(row.podcastId, row._max.publishedAt.toISOString());
+  }
+  return latest;
+}
+
 export async function getEpisodeBySlug(
   podcastSlug: string,
   episodeSlug: string
