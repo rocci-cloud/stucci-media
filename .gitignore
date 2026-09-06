@@ -43,10 +43,3 @@ next-env.d.ts
 
 # local verification harness (throwaway Postgres seed/scripts)
 /.harness
-
-# Nested site apps
-sites/*/node_modules
-sites/*/.next
-sites/*/.vercel
-sites/*/next-env.d.ts
-sites/*/public/images
