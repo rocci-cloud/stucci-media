@@ -11,7 +11,7 @@ export function pageMetadata({
   title,
   description,
   path,
-  image = "/og-default.jpg",
+  image = "/images/brand/ddg-social-share.png",
   noindex = false,
 }: {
   title: string;
@@ -62,7 +62,7 @@ export function localBusinessSchema() {
     url: SITE_URL,
     telephone: `+1-970-360-3346`,
     email: site.email,
-    image: canonical("/og-default.jpg"),
+    image: canonical("/images/brand/ddg-social-share.png"),
     founder: { "@type": "Person", name: site.owner },
     sameAs: [site.facebook],
     address: {

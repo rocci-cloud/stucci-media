@@ -24,6 +24,18 @@ const OUT = path.resolve(process.cwd(), "public/images");
 
 /** local path -> source path under /wp-content/uploads */
 const IMAGES = {
+  // ── Brand marks ──────────────────────────────────────────────────────────
+  // The official lockup is navy type on a light ground. Navy #1B355C on this
+  // site's #0F0F0F measures 1.56:1 — invisible — so the header and footer use
+  // the reversed variant the brand already has. Both are pulled so the light
+  // version is available for any light surface (print, email, OG cards).
+  "brand/ddg-logo-dark-bg.png": "2025/10/DDG-CO-ForDarkBG-PNG.png",
+  "brand/ddg-logo-full-color.png": "2025/10/DDG-CO-FC-PNG-lockedin.png",
+  "brand/ddg-logo-mono.png": "2025/10/DDG-Mono-PNG.png",
+  "brand/ddg-logo-square.png": "2025/10/DDG-FC-Square-PNG.png",
+  "brand/ddg-badge-tagline.png": "2025/10/Asset-4.01.png",
+  "brand/ddg-social-share.png": "2025/10/DDG-CO-Social-Sharing-Image.png",
+
   // Doug / brand
   "doug/driveway-doug-owner-operator.jpg": "2025/11/DrivewayDoug_Owner-Operator_DurangoDrivewayGrading_800x1200.jpg",
   "doug/doug-odell-owner-operator.jpg": "2026/06/doug-odell-durango-driveway-grading-owner-operator-square.jpg",

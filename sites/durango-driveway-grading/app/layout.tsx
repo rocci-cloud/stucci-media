@@ -35,7 +35,10 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: SITE_URL,
   },
-  icons: { icon: "/favicon.ico" },
+  icons: {
+    icon: [{ url: "/images/brand/ddg-logo-square.png", type: "image/png" }],
+    apple: [{ url: "/images/brand/ddg-logo-square.png" }],
+  },
 };
 
 export const viewport: Viewport = {

@@ -2,6 +2,8 @@ import Link from "next/link";
 import { site, nav } from "@/content/site";
 import { services } from "@/content/services";
 import { areas } from "@/content/areas";
+import { Logo } from "@/components/Logo";
+import { hasDarkLockup } from "@/lib/brand";
 
 export function SiteFooter() {
   return (
@@ -9,10 +11,8 @@ export function SiteFooter() {
       <div className="mx-auto w-full max-w-6xl px-5 py-14 sm:px-8 sm:py-16">
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.3fr_1fr_1fr]">
           <div>
-            <p className="text-lg font-bold uppercase leading-tight tracking-[0.02em] text-text">
-              Durango <span className="text-gold">Driveway</span> Grading
-            </p>
-            <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.22em] text-muted">
+            <Logo available={hasDarkLockup()} className="h-20 w-auto" width={228} height={160} />
+            <p className="mt-4 font-mono text-[10px] uppercase tracking-[0.22em] text-muted">
               {site.tagline}
             </p>
             <p className="measure mt-5 text-sm leading-relaxed text-muted">
