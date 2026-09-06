@@ -8,26 +8,34 @@ unambiguously the best in Southwest Colorado.
 
 ---
 
-## 0. Two things I need from you before build starts
+## 0. Where things stand
 
-**1. The design reference image did not come through.** Your message describes an attached image
-with the background color, the type treatment, and the highlight color — it isn't in the
-conversation. Please re-attach it. Everything in §2 below is a *proposal* built from the existing
-brand until I can see it; the moment I have the image I'll reconcile the two and lock the palette.
+**1. Design direction — RESOLVED.** The reference image turned out to be a screenshot of
+`staging4.durangodrivewaygrading.com`, a parallel WordPress retrofit published 3 Sep 2026 and
+titled "DDG Home — Retrofit v1". That's better than a static mockup: the tokens below are read
+from its live CSS, not estimated from an image.
 
-For reference, here is what the current site actually uses today (extracted from the live CSS):
-
-| Role | Current value |
+| Token | Value |
 |---|---|
-| Primary | `#1B355C` deep navy |
-| Secondary | `#08101C` near-black |
-| Accent / highlight | `#F9C235` amber-gold |
-| Background | `#DDDDDD` light grey |
-| Buttons | navy fill, gold text, gold border, 5px radius, hard drop shadow |
-| Type | Inter (body + headings), 65px h1 |
+| Background | `#0F0F0F` near-black |
+| Surface | `#1A1A1A` |
+| Accent | `#FFD700` gold-yellow |
+| Primary button | `#FFD700` fill, `#1A1A1A` text, **square corners (0px)** |
+| Typeface | **Poppins**, display and body |
+| Type sizes | h1 65px · h2 35px · body 16px |
 
-A dark ground with a gold/amber highlight is already the brand's DNA. If your reference image is
-in that family, we're refining rather than replacing — which is the better outcome.
+These are the client's picks and they are the mandate — §2 below has been rewritten to execute
+them rather than propose an alternative. Full analysis of the staging build, including six issues
+it should not carry into the rebuild, is in `content/02-staging-retrofit.md`.
+
+**Two decisions the staging site raises:**
+
+- **Who is driving the WordPress retrofit, and does it continue?** Someone was actively editing it
+  two days before this discovery. A from-scratch Vercel rebuild and a WordPress retrofit are two
+  tracks that will diverge. One should stop.
+- **Which copy is canonical?** Staging rewrote the CTA ("Consultation" not "Evaluation"), cut the
+  process from six steps to four, and renamed services. Its voice is genuinely tighter and I'd
+  keep most of it — but this needs one decision, not a merge.
 
 **2. Which repository does this ship from?** My GitHub access in this session is scoped to
 `rocci-cloud/stucci-media` — a completely unrelated news site. Discovery artifacts are committed
@@ -68,62 +76,67 @@ pulls page HTML, media metadata, and all 244 image files, and prints a real succ
 
 ---
 
-## 2. Design direction — "Built for Colorado"
+## 2. Design direction — executing the client's palette
 
-*Proposal pending your reference image.*
+Locked to the staging tokens above. What follows is how to make them read as premium rather than
+as a template, since the palette itself is now settled.
 
 ### The idea
 
 Every competitor's site looks like a **contractor's brochure**. This one should look like a
-**field manual** — the document a serious operator hands you when they've actually diagnosed your
-problem. Precise, dark, engineered, a little bit topographic. Editorial, not promotional.
+**field manual** — the document a serious operator hands you once he has actually diagnosed your
+problem. Precise, dark, engineered. Editorial, not promotional. The near-black ground and square
+corners the client chose already point this way; the job is to hold that line everywhere.
 
-That reads as premium *and* it's the honest expression of what Doug actually sells: diagnosis.
-
-### Palette (dark-ground, gold-highlight — evolving the existing brand)
+### Palette
 
 | Token | Value | Use |
 |---|---|---|
-| `--ground` | `#0B1017` | Page background — deep, near-black with a cold cast |
-| `--surface` | `#131B26` | Cards, panels |
-| `--surface-raised` | `#1B2634` | Hover, elevated panels |
-| `--navy` | `#1B355C` | **Carried from current brand** — structural blocks |
-| `--gold` | `#F9C235` | **Carried from current brand** — the single highlight |
-| `--gold-ink` | `#FFD35C` | Gold as *text* on dark (the fill value fails contrast as type) |
-| `--text` | `#F2F4F7` | Body copy |
-| `--text-muted` | `#98A4B4` | Metadata, captions — verified ≥4.5:1 on `--ground` |
-| `--rule` | `#25303F` | Hairlines, dividers |
-| `--clay` | `#B4633A` | Secondary accent — Southwest earth, used sparingly |
+| `--ground` | `#0F0F0F` | Page background — client's pick |
+| `--surface` | `#1A1A1A` | Cards, panels — client's pick |
+| `--surface-2` | `#242424` | Hover, elevated panels *(derived)* |
+| `--gold` | `#FFD700` | The single highlight — client's pick |
+| `--ink-on-gold` | `#1A1A1A` | Text on gold fills — client's pick |
+| `--text` | `#F5F5F4` | Body copy *(derived)* |
+| `--muted` | `#A3A3A0` | Metadata, captions *(derived, 8.9:1 on ground)* |
+| `--rule` | `#2E2E2C` | Hairlines *(derived)* |
+| `--navy` | `#1B355C` | Retained from the logo artwork only |
 
-**Discipline: exactly one highlight color.** Gold marks the next action and nothing else. Every
-competitor uses two or three accents fighting each other; restraint is what will read as expensive.
+**Measured, not assumed:** `#FFD700` on `#0F0F0F` is **13.7:1**; `#1A1A1A` on `#FFD700` is
+**12.8:1**. Both clear AAA. This palette is materially more accessible than production's, where
+amber sat on light grounds. It also means **no split fill/text token is needed** — one accent
+value works in both roles, which keeps the system simple.
 
-**Every pair gets measured, not eyeballed** — 4.5:1 floor for text, 3:1 for rules, checked in both
-themes before anything ships. Gold-as-fill and gold-as-text will be separate tokens because a
-single value cannot pass both.
+### The one discipline that matters
+
+**Gold marks the next action and nothing else.** The staging homepage puts two full-width
+`#FFD700` buttons inside a single mobile viewport; at that saturation and that scale, the accent
+stops meaning "act here" and starts reading as high-vis workwear. One primary action per screen.
+Everything else is text, rule, or surface.
 
 ### Typography
 
-- **Display:** a condensed industrial grotesque — *Archivo Condensed* or *Oswald*. Tall, tight
-  tracking, uppercase for section labels. Reads as signage and survey markers.
-- **Body:** *Inter* — already in use, excellent at small sizes, no reason to churn it.
-- **Data/specs:** a mono face for project snapshots, measurements, and material specs
-  (`3/4" road base`, `~1/4 mile`). Small detail, big credibility signal.
-- Fluid type scale, `clamp()`-based. **Note:** Tailwind v4 cannot infer the type through commas in
-  `clamp()` — needs the explicit `text-[length:...]` hint or the class silently generates no CSS.
-  (Learned the hard way on another build in this account.)
+Poppins is the mandate and it stays. Two refinements within it:
+
+- **Tighten the caps.** 65px all-caps Poppins at default tracking eats three lines and most of the
+  mobile fold (visible in the client screenshot). Negative tracking around `-0.02em` on display
+  sizes, and a fluid `clamp()` scale so it lands near 40px on a phone rather than 65px.
+- **Add a mono for data.** Project snapshots and material specs — `3/4" road base`, `~1/4 mile`,
+  crown and cross-slope figures — set in a monospace face read as a spec sheet rather than
+  marketing. It is the cheapest credibility signal available and no competitor has it.
+  IBM Plex Mono or JetBrains Mono; one extra font file.
+
+**Tailwind v4 note:** it cannot infer the type through commas in `clamp()` — the class needs the
+explicit `text-[length:...]` hint or it silently generates no CSS at all.
 
 ### Motion
 
-Restrained and fast. Everything under 800ms. Scroll-reveal once per section, never per card.
-Content visible by default, only arming the hidden state if an observer confirms it's off-screen —
-so nothing above the fold ever flashes. Full `prefers-reduced-motion` respect.
+Restrained and fast. Everything under 800ms, one reveal per section rather than per card, content
+visible at rest, full `prefers-reduced-motion` support.
 
-The one signature moment: a **water-flow animation** on the drainage explainer — a line tracing the
-wrong path down the tire track, then the corrected path shedding off the crown. It teaches the
+The one signature moment: a **water-flow animation** on the drainage explainer — a line tracing
+the wrong path down the tire track, then the corrected path shedding off the crown. It teaches the
 entire value proposition in three seconds without a word of copy.
-
----
 
 ## 3. Closing the credibility gap — the highest-leverage work
 
@@ -292,3 +305,6 @@ on the real deployment (not just locally), *then* repoint DNS. Nothing goes live
 9. Full lead-form field list — does the live popup collect name/email/phone/address? The scrape
    didn't render them; `export/pages/*.html` will confirm once the mirror script runs.
 10. Instagram — there's an `Instagram_Fill.svg` in the library but no link anywhere on the site.
+11. Who is building the `staging4` retrofit, and does that track continue alongside this one?
+12. Production copy or staging v1 copy — which is canonical? (CTA wording, 6-step vs 4-step
+    process, service names all differ.)
