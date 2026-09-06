@@ -42,6 +42,8 @@ success/failure summary; **read the summary, not the exit code.**
 - ✅ Game plan drafted
 - ✅ Design direction resolved — tokens read from the `staging4` retrofit's live CSS
 - ✅ Staging retrofit analysed (`content/02-staging-retrofit.md`)
-- ⛔ **Blocked:** repo — this session's token can't create repos in the org (see GAME-PLAN.md §0)
-- ⬜ Image binaries — needs the script run outside this sandbox
-- ⬜ Client answers to the 10 open questions
+- ✅ **Site built** — `sites/durango-driveway-grading`, 29 routes, all static, build + typecheck green
+- ⬜ Vercel project — the MCP token can't create projects in this team; create it manually
+- ⬜ Image binaries — `npm run fetch:images` from a machine with open egress
+- ⬜ Mail env vars (`RESEND_API_KEY`, `CONSULTATION_FROM_EMAIL`) — the form doesn't deliver without them
+- ⬜ Client answers to the 12 open questions
